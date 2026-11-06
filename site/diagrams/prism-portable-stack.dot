@@ -1,0 +1,31 @@
+digraph prism_portable_stack {
+  graph [
+    bgcolor="transparent",
+    fontname="Helvetica",
+    label="Portable PRISM stack and caller-owned effects",
+    labelloc="t",
+    ranksep="0.7",
+    nodesep="0.45",
+    splines="ortho"
+  ];
+  node [shape="box", style="rounded,filled", fontname="Helvetica", fontsize="10", margin="0.16,0.1"];
+  edge [color="#506784", fontname="Helvetica", fontsize="9", arrowsize="0.7"];
+
+  indexer [label="identus-prism-indexer\nordered batches · replay · atomic commit port", color="#1f5d91", fillcolor="#edf5fc"];
+  vdr [label="identus-prism-vdr\nentry semantics · authorization · bounded traversal", color="#6d4da1", fillcolor="#f3effa"];
+  method [label="identus-prism-did\nsyntax · CRUD · state reduction · projection", color="#28826b", fillcolor="#eef8f4"];
+  generic [label="identus-did + identus-crypto\ngeneric values · ports · cryptographic primitives", color="#667085", fillcolor="#f5f7fa"];
+
+  source [label="Caller-owned ledger source\nCardano / Oura / db-sync / other", style="rounded,dashed,filled", color="#c47a12", fillcolor="#fff4dc"];
+  store [label="Caller-owned atomic store\nSQL / memory / product repository", style="rounded,dashed,filled", color="#c47a12", fillcolor="#fff4dc"];
+  runtime [label="Caller-owned runtime\ncancellation · retry · scheduling · telemetry", style="rounded,dashed,filled", color="#c47a12", fillcolor="#fff4dc"];
+  submitter [label="Caller-owned publication\nsigning custody · ledger submission", style="rounded,dashed,filled", color="#c47a12", fillcolor="#fff4dc"];
+
+  indexer -> vdr [label="depends on"];
+  vdr -> method [label="depends on"];
+  method -> generic [label="depends on"];
+  source -> indexer [style="dashed", label="complete batches"];
+  indexer -> store [style="dashed", label="one bounded commit"];
+  runtime -> indexer [style="dashed", label="drives calls"];
+  submitter -> method [style="dashed", label="uses exact bytes"];
+}

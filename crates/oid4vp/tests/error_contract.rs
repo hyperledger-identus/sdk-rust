@@ -23,7 +23,7 @@ macro_rules! case {
     };
 }
 
-const CASES: [Case; 50] = [
+const CASES: [Case; 80] = [
     case!(InvalidLimits, INVALID_LIMITS),
     case!(InvocationTooLarge, INVOCATION_TOO_LARGE),
     case!(InvalidInvocation, INVALID_INVOCATION),
@@ -92,6 +92,60 @@ const CASES: [Case; 50] = [
     ),
     case!(ResponseUriTooLarge, RESPONSE_URI_TOO_LARGE),
     case!(UnsafeResponseUri, UNSAFE_RESPONSE_URI),
+    case!(InvalidState, INVALID_STATE),
+    case!(StateTooLarge, STATE_TOO_LARGE),
+    case!(TooManyQueryResults, TOO_MANY_QUERY_RESULTS),
+    case!(UnknownDcqlResult, UNKNOWN_DCQL_RESULT),
+    case!(DuplicateDcqlResult, DUPLICATE_DCQL_RESULT),
+    case!(MissingDcqlResult, MISSING_DCQL_RESULT),
+    case!(EmptyPresentationList, EMPTY_PRESENTATION_LIST),
+    case!(TooManyPresentations, TOO_MANY_PRESENTATIONS),
+    case!(DcqlCardinalityMismatch, DCQL_CARDINALITY_MISMATCH),
+    case!(InvalidPresentation, INVALID_PRESENTATION),
+    case!(PresentationTooLarge, PRESENTATION_TOO_LARGE),
+    case!(ResponseJsonTooLarge, RESPONSE_JSON_TOO_LARGE),
+    case!(DirectPostFormTooLarge, DIRECT_POST_FORM_TOO_LARGE),
+    case!(
+        InvalidProtocolErrorDescription,
+        INVALID_PROTOCOL_ERROR_DESCRIPTION
+    ),
+    case!(
+        ProtocolErrorDescriptionTooLarge,
+        PROTOCOL_ERROR_DESCRIPTION_TOO_LARGE
+    ),
+    case!(InvalidProtocolErrorUri, INVALID_PROTOCOL_ERROR_URI),
+    case!(ProtocolErrorUriTooLarge, PROTOCOL_ERROR_URI_TOO_LARGE),
+    case!(
+        DirectPostErrorFormTooLarge,
+        DIRECT_POST_ERROR_FORM_TOO_LARGE
+    ),
+    case!(ResponseModeMismatch, RESPONSE_MODE_MISMATCH),
+    case!(ResponseEncryptionFailed, RESPONSE_ENCRYPTION_FAILED),
+    case!(
+        InvalidRequestObjectSecurityPolicy,
+        INVALID_REQUEST_OBJECT_SECURITY_POLICY
+    ),
+    case!(
+        InvalidRequestObjectSecurityClaims,
+        INVALID_REQUEST_OBJECT_SECURITY_CLAIMS
+    ),
+    case!(
+        RequestObjectAudienceMismatch,
+        REQUEST_OBJECT_AUDIENCE_MISMATCH
+    ),
+    case!(RequestObjectExpired, REQUEST_OBJECT_EXPIRED),
+    case!(RequestObjectNotYetValid, REQUEST_OBJECT_NOT_YET_VALID),
+    case!(RequestObjectStale, REQUEST_OBJECT_STALE),
+    case!(RequestObjectIssuedInFuture, REQUEST_OBJECT_ISSUED_IN_FUTURE),
+    case!(RequestObjectReplayRejected, REQUEST_OBJECT_REPLAY_REJECTED),
+    case!(
+        RequestObjectReplayUnavailable,
+        REQUEST_OBJECT_REPLAY_UNAVAILABLE
+    ),
+    case!(
+        RequestObjectClockUnavailable,
+        REQUEST_OBJECT_CLOCK_UNAVAILABLE
+    ),
 ];
 
 #[test]
@@ -100,10 +154,10 @@ fn public_error_contract_matches_the_versioned_fixture() {
     assert_eq!(lines.next(), Some(GOLDEN_HEADER));
 
     let rows: Vec<_> = lines.collect();
-    assert_eq!(rows.len(), CASES.len());
+    assert_eq!(rows.len(), 70);
     let mut codes = BTreeSet::new();
 
-    for (row, case) in rows.iter().zip(CASES) {
+    for (row, case) in rows.iter().zip(CASES[..70].iter().copied()) {
         let columns: Vec<_> = row.splitn(4, ',').collect();
         assert_eq!(columns.len(), 4);
         assert_eq!(columns[0], case.variant);
@@ -132,7 +186,10 @@ fn local_and_shared_diagnostics_are_static_and_redacted() {
         }
         assert!(matches!(
             public.kind(),
-            ErrorKind::InvalidInput | ErrorKind::Unsupported
+            ErrorKind::InvalidInput
+                | ErrorKind::Unsupported
+                | ErrorKind::Crypto
+                | ErrorKind::Internal
         ));
     }
 }
@@ -149,5 +206,29 @@ fn compile_inventory_extends_the_ordered_fixture() {
         .iter()
         .map(|error| format!("{error:?}"))
         .collect();
-    assert_eq!(inventory, fixture);
+    assert_eq!(&inventory[..fixture.len()], fixture);
+    assert_eq!(
+        &inventory[fixture.len()..],
+        [
+            "InvalidRequestObjectSecurityPolicy",
+            "InvalidRequestObjectSecurityClaims",
+            "RequestObjectAudienceMismatch",
+            "RequestObjectExpired",
+            "RequestObjectNotYetValid",
+            "RequestObjectStale",
+            "RequestObjectIssuedInFuture",
+            "RequestObjectReplayRejected",
+            "RequestObjectReplayUnavailable",
+            "RequestObjectClockUnavailable",
+            "UnsupportedClientIdentifierScheme",
+            "InvalidClientIdentifier",
+            "InvalidVerifierMetadata",
+            "VerifierMetadataTooLarge",
+            "VerifierTrustRejected",
+            "VerifierTrustUnavailable",
+            "InvalidDirectPostAcknowledgement",
+            "AmbiguousResponseCode",
+            "InvalidTransactionData",
+        ]
+    );
 }

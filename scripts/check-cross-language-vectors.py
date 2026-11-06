@@ -13,6 +13,8 @@ from pathlib import Path
 
 CATALOG = Path("docs/conformance/cross-language-vector-catalog.toml")
 FIXTURE_ROOT = Path("docs/conformance/fixtures")
+PACKAGE_FIXTURE_ROOT = Path("crates/crypto/tests/fixtures")
+FIXTURE_ROOTS = (FIXTURE_ROOT, PACKAGE_FIXTURE_ROOT)
 TOP_KEYS = {"schema_version", "catalog_version", "status", "owner_issue", "sources", "packets", "vectors"}
 REPOSITORY_SOURCE_KEYS = {
     "id", "kind", "url", "revision", "path", "authorship", "license", "redistribution"
@@ -34,12 +36,35 @@ PACKET_DOCUMENT_KEYS = {"schemaVersion", "packetId", "capability", "cases"}
 CASE_KEYS = {"id", "operation", "input", "expected"}
 EXPECTED_KEYS = {"kind", "errorCode", "redacted", "fields"}
 GENERATED_KEYS = {"prefix", "repeat", "count", "suffix"}
-FIELD_KEYS = {"serialized", "did", "method", "methodSpecificId", "path", "query", "fragment"}
+FIELD_KEYS = {
+    "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment",
+    "operationKind", "operationId", "operationHash", "canonicalDid", "curve",
+    "relationshipCount", "url",
+}
 AUTHORITIES = {
     "normative", "identus-contract", "consumer-regression", "implementation-regression", "exploratory"
 }
 TARGETS = {"rust", "typescript", "swift", "kotlin"}
-OPERATIONS = {"did.parse", "did-url.parse"}
+OPERATIONS = {
+    "did.parse",
+    "did-url.parse",
+    "did-prism.envelope.parse",
+    "did-prism-indexer.transition.digest",
+    "did-prism.signed-create.verify",
+    "did-prism.state.reduce",
+    "crypto.secp256k1.verify",
+    "did-prism-vdr.operation.parse",
+    "did-peer.numalgo4.create",
+    "did-peer.numalgo2.parse-resolve",
+    "did-key.parse",
+    "did-key.parse-resolve",
+    "did-jwk.parse-resolve",
+    "did-web.parse-prepare",
+    "oid4vp.direct-post-response.construct",
+    "siopv2.did-authentication.roundtrip",
+    "sd-jwt.parse",
+    "sd-jwt-vc.validate-profile",
+}
 BOUNDARIES = {"positive", "negative", "boundary", "mutation"}
 ID_PATTERN = re.compile(r"^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$")
 SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
@@ -51,6 +76,7 @@ CONSUMER_SELECTORS = {
     "sdk-swift.did-parser": "DIDParserTests.swift:testValidDIDs",
     "sdk-kmp.did-parser": "DIDParserTest.kt:it_should_test_valid_DIDs",
 }
+MAX_GENERATED_REPEAT = 262_144
 
 
 def exact_keys(value: object, expected: set[str], label: str, errors: list[str]) -> bool:
@@ -90,10 +116,13 @@ def safe_payload(root: Path, raw: object, label: str, errors: list[str]) -> Path
     if relative.is_absolute() or ".." in relative.parts or not relative.parts:
         errors.append(f"{label} must be a safe repository-relative path")
         return None
-    try:
-        relative.relative_to(FIXTURE_ROOT)
-    except ValueError:
-        errors.append(f"{label} must remain below {FIXTURE_ROOT}")
+    selected_root = next(
+        (fixture_root for fixture_root in FIXTURE_ROOTS if relative.is_relative_to(fixture_root)),
+        None,
+    )
+    if selected_root is None:
+        allowed = ", ".join(str(fixture_root) for fixture_root in FIXTURE_ROOTS)
+        errors.append(f"{label} must remain below an approved fixture root: {allowed}")
         return None
     candidate = root / relative
     if not candidate.is_file():
@@ -103,9 +132,9 @@ def safe_payload(root: Path, raw: object, label: str, errors: list[str]) -> Path
         errors.append(f"{label} must not resolve through a symlink")
         return None
     try:
-        candidate.resolve().relative_to((root / FIXTURE_ROOT).resolve())
+        candidate.resolve().relative_to((root / selected_root).resolve())
     except ValueError:
-        errors.append(f"{label} resolves outside {FIXTURE_ROOT}")
+        errors.append(f"{label} resolves outside {selected_root}")
         return None
     return candidate
 
@@ -133,10 +162,35 @@ def validate_input(value: object, label: str, errors: list[str]) -> str | None:
     if len(repeated) != 1:
         errors.append(f"{label}.generated.repeat must be exactly one ASCII character")
         return None
-    if not isinstance(count, int) or isinstance(count, bool) or not 0 <= count <= 10_000:
-        errors.append(f"{label}.generated.count must be an integer from 0 through 10000")
+    if not isinstance(count, int) or isinstance(count, bool) or not 0 <= count <= MAX_GENERATED_REPEAT:
+        errors.append(
+            f"{label}.generated.count must be an integer from 0 through {MAX_GENERATED_REPEAT}"
+        )
         return None
     return prefix + repeated * count + suffix
+
+
+def validate_sd_jwt_vc_prerequisites(
+    literal: str | None, expected_code: object, label: str, errors: list[str]
+) -> None:
+    """Reject profile vectors whose prerequisite claims shadow the intended error."""
+    if expected_code == "sd_jwt_vc.protected_type" or literal is None:
+        return
+    try:
+        claims = json.loads(literal)
+    except json.JSONDecodeError:
+        errors.append(f"{label}.input.literal must be JSON for profile validation")
+        return
+    if not isinstance(claims, dict):
+        errors.append(f"{label}.input.literal must be a JSON object for profile validation")
+        return
+    issuer = claims.get("iss")
+    if not isinstance(issuer, str) or not issuer:
+        errors.append(f"{label}.input.literal must include a valid iss prerequisite")
+    if expected_code != "sd_jwt_vc.credential_type":
+        credential_type = claims.get("vct")
+        if not isinstance(credential_type, str) or not credential_type:
+            errors.append(f"{label}.input.literal must include a valid vct prerequisite")
 
 
 def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) -> dict[str, dict[str, object]]:
@@ -172,7 +226,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
         operation = case.get("operation")
         if operation not in OPERATIONS:
             errors.append(f"{identifier}.operation is invalid")
-        validate_input(case.get("input"), f"{identifier}.input", errors)
+        literal = validate_input(case.get("input"), f"{identifier}.input", errors)
         expected = case.get("expected")
         if not exact_keys(expected, EXPECTED_KEYS, f"{identifier}.expected", errors):
             continue
@@ -181,14 +235,34 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
         if not isinstance(fields, dict) or set(fields) - FIELD_KEYS:
             errors.append(f"{identifier}.expected.fields has unknown fields or is not an object")
         else:
-            allowed_fields = (
-                {"serialized", "method", "methodSpecificId"}
-                if operation == "did.parse"
-                else FIELD_KEYS
-            )
+            if operation == "did.parse":
+                allowed_fields = {"serialized", "method", "methodSpecificId"}
+            elif operation == "did-url.parse":
+                allowed_fields = {
+                    "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment"
+                }
+            elif operation in {"did-peer.numalgo4.create", "did-peer.numalgo2.parse-resolve"}:
+                allowed_fields = {"did"}
+            elif operation == "did-key.parse":
+                allowed_fields = {"curve"}
+            elif operation in {"did-key.parse-resolve", "did-jwk.parse-resolve"}:
+                allowed_fields = {"curve", "relationshipCount"}
+            elif operation == "did-web.parse-prepare":
+                allowed_fields = {"url"}
+            elif operation in {
+                "oid4vp.direct-post-response.construct",
+                "siopv2.did-authentication.roundtrip",
+            }:
+                allowed_fields = {"serialized"}
+            else:
+                allowed_fields = {"operationKind", "operationId", "operationHash", "canonicalDid"}
             if set(fields) - allowed_fields:
                 errors.append(f"{identifier}.expected.fields contains fields unsupported by {operation}")
             for field, value in fields.items():
+                if field == "relationshipCount":
+                    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                        errors.append(f"{identifier}.expected.fields.{field} must be a non-negative integer")
+                    continue
                 nullable = operation == "did-url.parse" and field in {"query", "fragment"}
                 empty_allowed = operation == "did-url.parse" and field in {"path", "query", "fragment"}
                 if value is None and not nullable:
@@ -202,10 +276,72 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 errors.append(f"{identifier}: success must use null errorCode and redacted")
             if not fields:
                 errors.append(f"{identifier}: success must assert at least one parsed field")
+            elif operation == "did-key.parse" and set(fields) != {"curve"}:
+                errors.append(f"{identifier}: did-key.parse success must assert exactly curve")
+            elif operation in {"did-key.parse-resolve", "did-jwk.parse-resolve"} and set(fields) != {"curve", "relationshipCount"}:
+                errors.append(
+                    f"{identifier}: {operation} success must assert curve and relationshipCount"
+                )
         elif kind == "error":
-            required_code = "did.invalid_did" if operation == "did.parse" else "did.invalid_did_url"
-            if expected.get("errorCode") != required_code or expected.get("redacted") is not True or fields:
-                errors.append(f"{identifier}: error expectation must use {required_code}, redacted=true, and empty fields")
+            required_code: str | set[str] = {
+                "did.parse": "did.invalid_did",
+                "did-url.parse": "did.invalid_did_url",
+                "did-prism.envelope.parse": "did-prism.invalid_wire",
+                "did-prism-indexer.transition.digest": "did-prism-indexer.invalid_transition",
+                "did-prism.signed-create.verify": "did-prism.invalid_operation",
+                "did-prism.state.reduce": "did-prism.invalid_state",
+                "crypto.secp256k1.verify": "crypto.signature_invalid",
+                "did-prism-vdr.operation.parse": "did-prism-vdr.invalid_operation",
+                "did-peer.numalgo4.create": "did-peer.invalid_input_document",
+                "did-peer.numalgo2.parse-resolve": "did-peer.malformed_encoding",
+                "did-key.parse": {
+                    "did-key.malformed_encoding",
+                    "did-key.unsupported_codec",
+                    "did-key.invalid_public_key",
+                    "did-key.resource_limit",
+                },
+                "did-key.parse-resolve": {
+                    "did-key.malformed_encoding",
+                    "did-key.unsupported_codec",
+                    "did-key.invalid_public_key",
+                    "did-key.resource_limit",
+                },
+                "did-jwk.parse-resolve": {
+                    "did-jwk.malformed_encoding",
+                    "did-jwk.malformed_json",
+                    "did-jwk.duplicate_member",
+                    "did-jwk.private_key_material",
+                    "did-jwk.unsupported_profile",
+                    "did-jwk.invalid_public_key",
+                    "did-jwk.incompatible_use",
+                    "did-jwk.resource_limit",
+                },
+                "oid4vp.direct-post-response.construct": "oid4vp.invalid_direct_post_response",
+                "sd-jwt.parse": "sd_jwt.invalid_compact",
+                "sd-jwt-vc.validate-profile": {
+                    "sd_jwt_vc.protected_type",
+                    "sd_jwt_vc.credential_type",
+                    "sd_jwt_vc.additional_types",
+                    "sd_jwt_vc.claim_placement",
+                    "sd_jwt_vc.key_binding_required",
+                    "sd_jwt_vc.type_metadata",
+                    "sd_jwt_vc.type_metadata_cycle",
+                    "sd_jwt_vc.type_metadata_rule",
+                    "sd_jwt_vc.status",
+                    "sd_jwt_vc.unsupported_status",
+                    "sd_jwt_vc.evidence_mismatch",
+                    "sd_jwt_vc.resource_limit",
+                    "sd_jwt_vc.legacy_draft_feature",
+                },
+            }[operation]
+            error_code = expected.get("errorCode")
+            if operation == "sd-jwt-vc.validate-profile":
+                validate_sd_jwt_vc_prerequisites(literal, error_code, identifier, errors)
+            code_matches = error_code in required_code if isinstance(required_code, set) else error_code == required_code
+            if not code_matches or expected.get("redacted") is not True or fields:
+                errors.append(
+                    f"{identifier}: error expectation must use an operation-owned stable code, redacted=true, and empty fields"
+                )
         else:
             errors.append(f"{identifier}.expected.kind must be success or error")
         found[identifier] = case
@@ -369,8 +505,13 @@ def main() -> int:
         expected_selectors = {CONSUMER_SELECTORS[source] for source in consumer_sources}
         if set(selectors) != expected_selectors:
             errors.append(f"{identifier}.language_selectors must match its pinned consumer sources")
-        if vector.get("owner_issue") != 420 or not isinstance(vector.get("active"), bool):
-            errors.append(f"{identifier}: owner_issue must be 420 and active must be boolean")
+        if (
+            not isinstance(vector.get("owner_issue"), int)
+            or isinstance(vector.get("owner_issue"), bool)
+            or vector.get("owner_issue", 0) <= 0
+            or not isinstance(vector.get("active"), bool)
+        ):
+            errors.append(f"{identifier}: owner_issue must be positive and active must be boolean")
         string_array(vector.get("supersedes"), f"{identifier}.supersedes", errors, allow_empty=True)
         if not isinstance(vector.get("replaced_by"), str):
             errors.append(f"{identifier}.replaced_by must be text")

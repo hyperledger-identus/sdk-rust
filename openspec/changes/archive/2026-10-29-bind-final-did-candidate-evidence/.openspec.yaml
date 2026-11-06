@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-10-29
+goal: Bind the DID 0.1.0-rc.1 candidate to one exact protected revision,
+  complete slow evidence, downstream compatibility receipts, and independent
+  approval without activating publication.

@@ -9,4 +9,6 @@ three-crate closure.
 
 - [Dependency direction](dependency-direction.md)
 - [Ownership boundaries](ownership-boundaries.md)
+- [Portable PRISM stack](prism-portable-stack.md)
+- [SD-JWT VC draft-22 stages](sd-jwt-vc-draft22.md)
 - [Evidence and release flow](evidence-flow.md)

@@ -102,7 +102,8 @@ The agent then:
 11. verifies consumer HEAD/status did not change;
 12. completes and records a distinct local review pass;
 13. batches the locally accepted candidate, pushes the focused branch and opens
-    a ready, issue-linked pull request targeting `develop`;
+    a ready pull request targeting `develop` with explicit closing linkage, or
+    evidence-bound deferred linkage when named acceptance remains post-merge;
 14. after the first green fast head, requests one automatic discovery review
     and performs at most one remediation round; new independent non-blocking
     findings after that cutoff become linked follow-up issues, while P0/P1,

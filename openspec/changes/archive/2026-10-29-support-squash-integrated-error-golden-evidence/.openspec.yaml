@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-29
+goal: Preserve immutable error-golden provenance across the repository's protected squash-merge path.

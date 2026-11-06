@@ -3,8 +3,8 @@
 //! side completed here.
 
 use k256::Secp256k1;
-use k256::ecdsa::signature::{SignerMut, Verifier};
-use k256::elliptic_curve::sec1::{EncodedPoint, ToEncodedPoint};
+use k256::ecdsa::signature::{Signer, Verifier};
+use k256::elliptic_curve::sec1::{Sec1Point, ToSec1Point};
 use k256::{
     PublicKey, SecretKey,
     ecdsa::{Signature, SigningKey},
@@ -53,7 +53,7 @@ impl Secp256k1PublicKey {
     /// Compressed (33-byte) SEC1 encoding.
     #[must_use]
     pub fn encode_compressed(&self) -> [u8; 33] {
-        let bytes: EncodedPoint<Secp256k1> = self.0.to_encoded_point(true);
+        let bytes: Sec1Point<Secp256k1> = self.0.to_sec1_point(true);
         bytes
             .as_bytes()
             .try_into()
@@ -63,7 +63,7 @@ impl Secp256k1PublicKey {
     /// Uncompressed (65-byte) SEC1 encoding.
     #[must_use]
     pub fn encode_uncompressed(&self) -> [u8; 65] {
-        let bytes: EncodedPoint<Secp256k1> = self.0.to_encoded_point(false);
+        let bytes: Sec1Point<Secp256k1> = self.0.to_sec1_point(false);
         bytes
             .as_bytes()
             .try_into()
@@ -98,7 +98,7 @@ impl Secp256k1PrivateKey {
     /// Sign `message` (deterministic RFC 6979 nonce), returning a DER-encoded signature.
     #[must_use]
     pub fn sign(&self, message: &[u8]) -> Vec<u8> {
-        let mut signing_key = SigningKey::from(&self.0);
+        let signing_key = SigningKey::from(&self.0);
         let signature: Signature = signing_key.sign(message);
         signature.to_der().as_bytes().to_vec()
     }
@@ -176,11 +176,9 @@ impl Verifiable for Secp256k1PublicKey {
 
         // normalized-s verification. The JVM (`Secp256k1Lib.verify`) always
         // proceeds to the transcode step regardless of whether `s` was already
-        // low, so we must NOT early-return here when `normalize_s` yields `None`
-        // — doing so would skip the transcode path for exactly the low-s
-        // LE-encoded signatures it is meant to recover. Fall through to the
-        // transcode path using the normalized-or-original signature.
-        let normalized = signature.normalize_s().unwrap_or(signature);
+        // low. The current RustCrypto API returns the original signature when
+        // normalization is unnecessary, so the transcode path is never skipped.
+        let normalized = signature.normalize_s();
         if verifying_key.verify(message, &normalized).is_ok() {
             return true;
         }

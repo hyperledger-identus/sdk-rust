@@ -39,9 +39,23 @@ constraints and the normal dependency gates.
    or failed acceptance remains blocking; later independent P2/P3 hardening is
    linked to a follow-up issue. Mark tasks complete, run `factory ready` and
    archive through the guarded facade.
-8. Push signed, DCO-bearing commits, open a ready PR that closes the issue, and
-   merge into `develop` only at the reviewed exact head with all required checks
-   green.
+8. Push signed, DCO-bearing commits and open a ready PR. Ordinary delivery
+   declares `Issue linkage: closes` and closes the branch issue. Work with
+   genuine post-merge acceptance may declare `deferred`, reference the issue
+   without closing it, and bind the exact archived OpenSpec
+   `post-merge-acceptance.json` sidecar. Deferred titles, commit messages, and
+   merge bodies must not contain a closing keyword for that issue. Terminal
+   metrics treat the exact deferred reference as valid linkage. The required
+   hosted policy check binds the provider's bounded closing-reference pages to
+   the exact pull request and head: `closes` requires the complete relation to
+   contain only the branch issue, while `deferred` requires no relation to that
+   issue. This check is a snapshot,
+   not an atomic lock. The guarded merge path therefore re-reads the same
+   hosted relation immediately before merging; direct provider-side mutation
+   between a successful check and a manual merge remains detectable but cannot
+   be made atomic without a separately authorized repository-setting or merge-
+   queue change. Merge into `develop` only at the reviewed exact head with all
+   required checks green.
 9. Close the managed worktree only with the merged PR number and exact head.
 
 Prototype work uses the same issue and OpenSpec boundary but cannot publish or

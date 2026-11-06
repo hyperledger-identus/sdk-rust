@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "packetId": "did.peer.profiles.v1",
+  "capability": "did.peer.profiles",
+  "cases": [
+    {
+      "id": "did.peer.numalgo4.reference-minimal",
+      "operation": "did-peer.numalgo4.create",
+      "input": { "literal": "{\"hello\":\"world\"}" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "did": "did:peer:4zQmb7xLdVY9TXx8oov5XgpGUmGELgqiAV2699s43i6Qdm3M:zQSJgiFTYiCHjQ9MktwNThRXM7a"
+        }
+      }
+    },
+    {
+      "id": "did.peer.numalgo2.affinidi-compat",
+      "operation": "did-peer.numalgo2.parse-resolve",
+      "input": {
+        "literal": "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "did": "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19"
+        }
+      }
+    }
+  ]
+}

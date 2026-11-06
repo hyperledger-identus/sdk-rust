@@ -85,7 +85,7 @@ id               = "did-syntax-and-uri"
 package          = "identus-did"
 surface          = "DID, DID URL, DID method and URI syntax values"
 disposition      = "sdk-enforced"
-limits           = [ "MAX_DID_BYTES=2048", "MAX_DID_URL_BYTES=4096", "MAX_DID_METHOD_BYTES=2042", "MAX_URI_BYTES=4096" ]
+limits           = [ "MAX_DID_BYTES=131072", "MAX_DID_URL_BYTES=139264", "MAX_DID_URL_SUFFIX_BYTES=8192", "MAX_DID_METHOD_BYTES=2042", "MAX_URI_BYTES=139264" ]
 evidence         = [ "crates/did/src/did.rs", "crates/did/src/method.rs", "crates/did/src/uri.rs" ]
 outer_obligation = "Owned String and serde paths may allocate before typed syntax validation."
 consumer_impact  = "Typed syntax retention and grammar work are bounded; bound enclosing wire bytes first."
@@ -101,6 +101,83 @@ evidence         = [ "crates/did/src/document.rs", "crates/did/src/wire_json.rs"
 outer_obligation = "Generic serde and direct native entry points receive already allocated Value/maps; callers and transports own allocation before typed SDK entry. After native ownership transfer, every rejected recursive tree is dismantled iteratively."
 consumer_impact  = "Accepted typed structures, including inline ContextObject values, and SDK-owned slice parsing are byte/node/depth/member bounded; SDK-LIM-007 covers outer preallocation but no longer native rejection cleanup."
 review_triggers  = [ "new DID JSON surface", "open JSON field", "collection or recursion limit change", "new owned fallible boundary", "iterative cleanup regression" ]
+
+[[boundaries]]
+id               = "did-key-method-profile"
+package          = "identus-did-key"
+surface          = "did:key v0.9 method-specific identifiers, decoded multicodec public keys, and deterministic DID document projection"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_DECODED_KEY_BYTES=67", "MAX_METHOD_SPECIFIC_ID_BYTES=128" ]
+evidence         = [ "crates/did-key/src/lib.rs", "crates/did-key/tests/conformance.rs" ]
+outer_obligation = "The borrowed input string exists before entry; the SDK bounds the key fingerprint before DID allocation and decodes into a fixed-size stack buffer."
+consumer_impact  = "Accepted identifiers and decoded keys remain finite; canonical codec, exact key length, curve validation, and generic document limits apply before projection."
+review_triggers  = [ "did:key draft revision", "new multibase or multicodec", "new curve", "resource limit change", "implicit key conversion" ]
+
+[[boundaries]]
+id               = "did-web-method-profile"
+package          = "identus-did-web"
+surface          = "did:web identifiers, derived HTTPS request URLs, response media types, remote response bodies, and generic DID documents"
+disposition      = "sdk-enforced"
+limits           = [ "max_identifier_bytes=2048", "max_path_segments=32", "max_path_segment_bytes=128", "max_url_bytes=4096", "max_content_type_bytes=128", "max_response_body_bytes=131072" ]
+evidence         = [ "crates/did-web/src/lib.rs", "crates/did-web/tests/conformance.rs", "crates/did-web/tests/fetch_port_e2e.rs" ]
+outer_obligation = "The caller owns network execution and must stop reading at the request body ceiling; the SDK rechecks response status, media type, body size, duplicate-safe DID document structure, and exact document identity."
+consumer_impact  = "Accepted method text, URL allocation, path work, headers, remote bytes and document parsing remain finite while DNS, TLS, redirects, cancellation and SSRF policy stay adapter-owned."
+review_triggers  = [ "did:web draft revision", "new host or IDNA profile", "new representation", "concrete transport adapter", "resource limit change" ]
+
+[[boundaries]]
+id               = "did-jwk-method-profile"
+package          = "identus-did-jwk"
+surface          = "did:jwk base64url carriers, duplicate-safe public JWK JSON, key validation, and deterministic DID document projection"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_JWK_JSON_BYTES=16384", "MAX_JSON_DEPTH=16", "MAX_JSON_NODES=1024", "MAX_JWK_MEMBERS=64", "MAX_METHOD_SPECIFIC_ID_BYTES=21846" ]
+evidence         = [ "crates/did-jwk/src/lib.rs", "crates/did-jwk/tests/conformance.rs", "crates/did-jwk/tests/registry_e2e.rs" ]
+outer_obligation = "The borrowed DID string exists before entry; early carrier length/alphabet checks precede proportional decoding, and the method-owned parser bounds decoded bytes, JSON work, typed construction, and projection."
+consumer_impact  = "Accepted identifiers, JSON trees, public keys and generic DID documents remain finite; creation applies the same serialized byte ceilings as parsing."
+review_triggers  = [ "did:jwk draft revision", "new JWK curve or member policy", "new relationship policy", "resource limit change", "JSON parser extraction" ]
+
+[[boundaries]]
+id               = "did-peer-method-profiles"
+package          = "identus-did-peer"
+surface          = "peer DID numalgo-4 short/long forms, construction input documents, numalgo-2 purpose keys and compact services"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_COMPAT_DID_BYTES=131072", "MAX_ENCODED_DOCUMENT_BYTES=24576", "MAX_ELEMENTS=32", "MAX_INPUT_DOCUMENT_BYTES=16384", "MAX_INPUT_DOCUMENT_DEPTH=32", "MAX_INPUT_DOCUMENT_NODES=4096", "MAX_INPUT_LIVE_KEY_BYTES=65536", "MAX_INPUT_OBJECT_MEMBERS=128", "MAX_KEY_BYTES=128", "MAX_LONG_FORM_BYTES=24635", "MAX_SERVICE_BYTES=16384", "MAX_SERVICE_ENDPOINTS=32", "MAX_SHORT_FORM_BYTES=58" ]
+evidence         = [ "crates/did-peer/src/numalgo4.rs", "crates/did-peer/src/numalgo2_compat.rs" ]
+outer_obligation = "Callers own raw JSON, DID strings, public-key strings and service values before entry; profile dispatch and encoded-size checks precede proportional decoding."
+consumer_impact  = "Accepted encoded/decoded documents, keys, services, element counts and generic DID projection remain within the declared finite method profile."
+review_triggers  = [ "peer DID draft revision", "new numalgo", "new key codec or purpose", "resource limit change", "new retained JSON field" ]
+
+[[boundaries]]
+id               = "did-prism-operation-profile"
+package          = "identus-prism-did"
+surface          = "canonical and long-form identifiers, exact protobuf envelopes, typed DID operations, key/service/context collections, service endpoint JSON and native DID-document projection"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_CONTEXTS=127", "MAX_ID_CHARACTERS=50", "MAX_LONG_FORM_DID_BYTES=128075", "MAX_OPERATION_BYTES=96000", "MAX_PROJECTED_DOCUMENT_BYTES=33554432", "MAX_RETIRED_IDENTIFIERS_PER_KIND=4096", "MAX_SERVICES=50", "MAX_SERVICE_ENDPOINT_BYTES=1200", "MAX_SERVICE_ENDPOINT_CHARACTERS=300", "MAX_SIGNATURE_BYTES=128", "MAX_SIGNED_OPERATION_BYTES=131072", "MAX_SIGNED_WITH_BYTES=50", "MAX_TYPE_CHARACTERS=100", "MAX_VERIFICATION_METHODS=50" ]
+evidence         = [ "crates/prism-did/src/limits.rs", "crates/prism-did/src/operation.rs", "crates/prism-did/src/projection.rs", "crates/prism-did/src/state.rs", "crates/prism-did/src/syntax.rs", "crates/prism-did/src/wire.rs" ]
+outer_obligation = "Callers own the borrowed or allocated envelope, identifier and protobuf bytes before entry; the SDK rejects aggregate wire bytes before typed decoding and bounds nested endpoint JSON before parsing."
+consumer_impact  = "Accepted method syntax, exact signed bytes, typed operation collections, key identifiers, service values, nested JSON retention and native projection stay within the declared finite profile. Generic hostile JSON ingress remains independently bounded."
+review_triggers  = [ "PRISM protobuf revision", "method-profile limit change", "new operation variant", "new retained JSON or byte field", "long-form encoding change" ]
+
+[[boundaries]]
+id               = "did-prism-vdr-operation-profile"
+package          = "identus-prism-vdr"
+surface          = "PRISM storage payloads, opaque content, status text, authorization and local-first root traversal"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_ANCESTRY_DEPTH=200", "MAX_IPFS_BYTES=2048", "MAX_LOOKUP_NODES_PER_BATCH=4096", "MAX_NONCE_BYTES=64", "MAX_STATUS_TEXT_BYTES=4096", "MAX_VDR_DATA_BYTES=65536" ]
+evidence         = [ "crates/prism-vdr/src/limits.rs", "crates/prism-vdr/src/operation.rs", "crates/prism-vdr/src/traversal.rs", "crates/prism-vdr/src/wire.rs", "crates/prism-vdr/tests/vdr.rs" ]
+outer_obligation = "The caller owns signed-envelope allocation, authoritative transaction boundaries, DID-state snapshots, lookup snapshots and batch-local maps before entry."
+consumer_impact  = "Retained VDR content, nested status text, ancestry depth and aggregate lookup work are finite; the enclosing PRISM envelope remains bounded by identus-prism-did."
+review_triggers  = [ "PRISM storage protobuf revision", "VDR content limit change", "new retained field", "root traversal or authorization change" ]
+
+[[boundaries]]
+id               = "did-prism-indexer-transaction-profile"
+package          = "identus-prism-indexer"
+surface          = "complete transaction identity, expected/next cursors, ordered signed records and canonical replay transcript"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_BATCH_RECORDS=1024", "MAX_CURSOR_BYTES=1024", "MAX_SIGNED_BYTES_PER_BATCH=8388608", "MAX_TRANSACTION_ID_BYTES=256" ]
+evidence         = [ "crates/prism-indexer/src/batch.rs" ]
+outer_obligation = "The source adapter owns authoritative transaction-boundary extraction and the allocated signed envelopes before construction."
+consumer_impact  = "Incomplete, cross-transaction, out-of-order or oversized transactions fail before planning or commit; digest fields use canonical tagged length-delimited framing."
+review_triggers  = [ "batch profile change", "cursor or identity change", "transition transcript change", "new retained transaction metadata" ]
 
 [[boundaries]]
 id               = "did-resolution-results-json"
@@ -290,6 +367,28 @@ consumer_impact  = "Retained semantic collections and artifacts are bounded with
 review_triggers  = [ "new presentation collection", "wire codec", "proof generation engine" ]
 
 [[boundaries]]
+id               = "sd-jwt-compact-and-graph"
+package          = "identus-sd-jwt"
+surface          = "RFC 9901 compact parsing, disclosure issuance, graph processing, selection and key binding"
+disposition      = "sdk-enforced"
+limits           = [ "SdJwtLimits=explicit" ]
+evidence         = [ "crates/sd-jwt/src/limits.rs", "crates/sd-jwt/src/json.rs", "crates/sd-jwt/src/engine.rs", "crates/sd-jwt/tests/offline_journey.rs" ]
+outer_obligation = "Callers own allocation of compact strings and programmatic JSON values before typed entry; injected random and signing providers own their execution budgets."
+consumer_impact  = "The engine bounds decoded and retained bytes, graph depth, counts, and aggregate synchronous work but does not bound caller allocation or provider latency."
+review_triggers  = [ "new SD-JWT serialization", "new digest algorithm", "limit or graph change", "new injected effect" ]
+
+[[boundaries]]
+id               = "sd-jwt-vc-draft22-profile"
+package          = "identus-sd-jwt-vc"
+surface          = "draft-22 profile claims plus the explicit input-only draft-03 common-subset adapter, protected types, issuer discovery evidence, Type Metadata chains, status-list bindings and generic credential envelopes"
+disposition      = "sdk-enforced"
+limits           = [ "SdJwtVcLimits=explicit", "SdJwtLimits=explicit" ]
+evidence         = [ "crates/sd-jwt-vc/src/limits.rs", "crates/sd-jwt-vc/src/profile.rs", "crates/sd-jwt-vc/src/legacy.rs", "crates/sd-jwt-vc/src/issuer_evidence.rs", "crates/sd-jwt-vc/src/type_metadata.rs", "crates/sd-jwt-vc/src/status.rs", "crates/sd-jwt-vc/tests/protocol_e2e.rs", "crates/sd-jwt-vc/tests/legacy_adapter.rs" ]
+outer_obligation = "Callers own compact/envelope and evidence allocation before typed entry plus retrieval, certificate/JWK validation, issuer authorization, trust, freshness and status acceptance."
+consumer_impact  = "The profile bounds retained identifiers, metadata, status, extension depth, claim paths and synchronous correlation work; the legacy adapter reuses those limits, performs no fallback or effect, and cannot promote migration evidence into canonical draft-22, trust or product acceptance."
+review_triggers  = [ "new SD-JWT VC draft or RFC", "protected or media type change", "new issuer discovery mechanism", "Type Metadata rule change", "status mechanism", "resource limit change", "legacy adapter" ]
+
+[[boundaries]]
 id               = "jose-compact-and-signature"
 package          = "identus-jose"
 surface          = "JWS Compact parsing, validated protected headers, and signature-suite registry"
@@ -299,6 +398,17 @@ evidence         = [ "crates/jose/src/limits.rs", "crates/jose/src/compact.rs", 
 outer_obligation = "The enclosing transport allocates compact/header text before parser entry."
 consumer_impact  = "Validated JOSE decoding, native key-reference construction, headers, and registries are bounded; callers still bound transport bytes first."
 review_triggers  = [ "new JOSE serialization", "new header collection", "new signature suite" ]
+
+[[boundaries]]
+id               = "jose-jwe-encryption-port"
+package          = "identus-jose"
+surface          = "P-256 ECDH-ES/A128GCM recipient, plaintext, compact JWE and injected encrypter"
+disposition      = "sdk-enforced"
+limits           = [ "DEFAULT_MAX_JWE_PLAINTEXT_BYTES=65536", "DEFAULT_MAX_COMPACT_JWE_BYTES=131072", "DEFAULT_MAX_JWE_KEY_ID_BYTES=2048" ]
+evidence         = [ "crates/jose/src/jwe.rs", "crates/jose/tests/jwe_port.rs", "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md" ]
+outer_obligation = "Callers bound transport allocation before typed entry; injected engines own randomness, cryptographic work, side-channel posture and any external execution budget."
+consumer_impact  = "Typed public keys, plaintext and compact output are independently bounded and redaction-safe; no production engine or engine QoS is implied."
+review_triggers  = [ "production JWE engine", "new algorithm", "new recipient shape", "limit change", "remote encryption operation" ]
 
 [[boundaries]]
 id               = "jose-direct-retained-enum-construction"
@@ -369,18 +479,18 @@ review_triggers  = [ "new invocation transport", "Request Object retrieval", "JA
 [[boundaries]]
 id               = "oid4vp-request-uri-and-jar"
 package          = "identus-oid4vp"
-surface          = "runtime-neutral GET/POST Request URI construction, status/media/body response binding, compact signed JAR verification, and exact client-id plus optional wallet-nonce correlation"
+surface          = "runtime-neutral GET/POST Request URI construction, bounded response binding, signed JAR verification, exact correlation, discovery audience, temporal policy, atomic replay evidence, client identifier classification, verifier metadata and exact-key trust ports"
 disposition      = "sdk-enforced"
-limits           = [ "RequestUriRetrievalLimits=explicit", "RequestObjectValidationLimits=explicit" ]
-evidence         = [ "crates/oid4vp/src/request_uri.rs", "crates/oid4vp/src/request_object.rs", "crates/oid4vp/src/request_object_json.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/request_uri_jar.rs", "docs/adr/0158-bind-oid4vp-request-uri-retrieval-and-signed-jar.md" ]
-outer_obligation = "Transport adapters cap pre-UTF-8 headers, redirects, decompression and time, execute HTTPS, generate nonce entropy, and authorize the supplied verification key for the exact client identifier through the selected trust framework."
-consumer_impact  = "The verified state proves the selected-key signature, protected type, client-id equality and optional wallet-nonce correlation only; it does not prove verifier trust, audience, freshness, OAuth/DCQL validity, consent or authorization."
-review_triggers  = [ "HTTP adapter", "JWE or JWS JSON", "client identifier prefix", "audience or clock validation", "DCQL parsing", "limit change" ]
+limits           = [ "RequestUriRetrievalLimits=explicit", "RequestObjectValidationLimits=explicit", "VerifierAuthorizationLimits=explicit" ]
+evidence         = [ "crates/oid4vp/src/request_uri.rs", "crates/oid4vp/src/request_object.rs", "crates/oid4vp/src/request_object_json.rs", "crates/oid4vp/src/request_object_security.rs", "crates/oid4vp/src/verifier_authorization.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/request_uri_jar.rs", "crates/oid4vp/tests/request_object_security.rs", "crates/oid4vp/tests/verifier_authorization.rs", "docs/adr/0158-bind-oid4vp-request-uri-retrieval-and-signed-jar.md", "docs/adr/0183-require-oid4vp-request-object-security-evidence-before-routing.md", "docs/adr/0184-bind-oid4vp-verifier-identity-through-policy-ports.md" ]
+outer_obligation = "Transport adapters cap pre-UTF-8 headers, redirects, decompression and time, execute HTTPS, generate nonce entropy, supply trusted discovery audience and clock evidence, implement atomic replay durability, and completely validate the selected DID, PKI, Federation, attestation or registration trust scheme before accepting the exact verification key."
+consumer_impact  = "Verifier authorization evidence proves signature correlation exact discovery audience integral freshness atomic replay and one caller-policy acceptance of the exact verifier/key binding; it does not prove consent credential validity transport safety or product authorization."
+review_triggers  = [ "HTTP adapter", "JWE or JWS JSON", "client identifier prefix", "audience or NumericDate profile", "replay persistence", "DCQL parsing", "limit change" ]
 
 [[boundaries]]
 id               = "oid4vp-dcql-query"
 package          = "identus-oid4vp"
-surface          = "signature-proven DCQL extraction, strict structural validation, credential claim-resolution port, selection and capped combinations"
+surface          = "security-evidence-gated DCQL extraction, strict structural validation, credential claim-resolution port, selection and capped combinations"
 disposition      = "sdk-enforced"
 limits           = [ "DcqlLimits=explicit" ]
 evidence         = [ "crates/oid4vp/src/dcql.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/dcql.rs", "docs/adr/0165-adopt-siros-dcql-behind-a-bounded-identus-facade.md" ]
@@ -391,13 +501,46 @@ review_triggers  = [ "format metadata policy", "trusted-authority policy", "scop
 [[boundaries]]
 id               = "oid4vp-authorization-request-routing"
 package          = "identus-oid4vp"
-surface          = "signature-proven and DCQL-valid OpenID4VP Final vp_token/direct_post request semantics with bounded nonce and HTTPS response URI"
+surface          = "signature-proven and DCQL-valid OpenID4VP Final vp_token request semantics with bounded nonce, exact transaction data, credential-format capability dispatch, selected-query linkage and one mode-specific response or redirect destination"
 disposition      = "sdk-enforced"
-limits           = [ "AuthorizationRequestValidationLimits=explicit", "DcqlLimits=explicit" ]
-evidence         = [ "crates/oid4vp/src/authorization_request.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/authorization_request.rs", "crates/oid4vp/tests/error_contract.rs", "docs/adr/0168-compose-oid4vp-final-direct-post-routing.md" ]
-outer_obligation = "Transport adapters own DNS, private-address policy, TLS, redirects, decompression, timeout, execution and SSRF defense; consumers own verifier-key authorization, trust, consent, credential verification and response construction."
-consumer_impact  = "The composed state proves narrow request and routing syntax plus JAR/DCQL evidence only; it confers no network authority, verifier trust, credential authenticity, consent or response safety."
-review_triggers  = [ "new response type or mode", "redirect support", "encrypted response", "HTTP adapter", "nonce or URI limit change", "response construction" ]
+limits           = [ "AuthorizationRequestValidationLimits=explicit", "DcqlLimits=explicit", "TransactionDataLimits=explicit" ]
+evidence         = [ "crates/oid4vp/src/authorization_request.rs", "crates/oid4vp/src/credential_format.rs", "crates/oid4vp/src/transaction_data.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/authorization_request.rs", "crates/oid4vp/tests/redirect_response.rs", "crates/oid4vp/tests/error_contract.rs", "fuzz/fuzz_targets/transaction_data.rs", "docs/adr/0168-compose-oid4vp-final-direct-post-routing.md", "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md", "docs/adr/0186-keep-credential-format-proofs-behind-oid4vp-capability-ports.md" ]
+outer_obligation = "Transport adapters own DNS, private-address policy, TLS, redirects, decompression, timeout, execution and SSRF defense; consumers own verifier-key authorization, trust, consent, credential verification and concrete format proof engines behind deterministic effect-free capability ports."
+consumer_impact  = "The composed state proves narrow request/routing syntax, JAR/DCQL evidence, bounded common transaction semantics and selected-query linkage; it confers no network authority, credential authenticity, consent, proof validity or response delivery authority."
+review_triggers  = [ "new response type or mode", "transaction profile", "credential format", "redirect support", "encrypted response", "HTTP adapter", "nonce, URI or transaction limit change", "response construction" ]
+
+[[boundaries]]
+id               = "oid4vp-direct-post-response"
+package          = "identus-oid4vp"
+surface          = "caller-selected Final presentations bound to validated DCQL and serialized into bounded inert redirect or direct-post material plus consuming direct-post acknowledgement parsing"
+disposition      = "sdk-enforced"
+limits           = [ "DirectPostResponseLimits=explicit", "RedirectResponseLimits=explicit", "DirectPostAcknowledgementLimits=explicit", "AuthorizationStateBytes=explicit" ]
+evidence         = [ "crates/oid4vp/src/direct_post.rs", "crates/oid4vp/src/redirect_response.rs", "crates/oid4vp/src/direct_post_acknowledgement.rs", "crates/oid4vp/src/limits.rs", "crates/oid4vp/tests/direct_post_response.rs", "crates/oid4vp/tests/redirect_response.rs", "fuzz/fuzz_targets/direct_post_response.rs", "docs/adr/0179-construct-bounded-oid4vp-direct-post-responses.md", "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md" ]
+outer_obligation = "Callers bound presentation production before construction and transport adapters own DNS, address policy, TLS, redirects, timeouts, retries, SSRF defense and HTTP outcome handling."
+consumer_impact  = "The SDK validates query identity, cardinality, encoding, destination collisions, output bounds and acknowledgement shape; it does not authorize HTTP, browser navigation, code redemption, disclosure, consent or verifier success."
+review_triggers  = [ "new presentation JSON type", "direct_post.jwt", "encryption", "HTTP adapter", "state grammar", "response limit change" ]
+
+[[boundaries]]
+id               = "openid4vc-request-retrieval"
+package          = "identus-openid4vc"
+surface          = "runtime-neutral HTTPS Request URI GET/POST preparation, optional wallet metadata/nonce form encoding, and status/media/body response binding to one opaque compact request object"
+disposition      = "sdk-enforced"
+limits           = [ "RequestRetrievalLimits=explicit" ]
+evidence         = [ "crates/openid4vc/src/lib.rs", "crates/openid4vc/tests/retrieval.rs", "docs/adr/0182-pin-siopv2-draft13-behind-identus-protocol-boundaries.md" ]
+outer_obligation = "Protocol invocation adapters bound the outer client and URI before construction; transport adapters own DNS, address policy, TLS, redirects, decompression, timeout, execution and response-byte preallocation."
+consumer_impact  = "The SDK prepares inert request data and bounds a response after transport allocation; it does not execute HTTP, verify JAR, interpret claims, authorize a key, establish trust or retry."
+review_triggers  = [ "new retrieval method", "HTTP adapter", "redirect policy", "decompression", "media type", "limit change" ]
+
+[[boundaries]]
+id               = "siopv2-draft13-protocol-core"
+package          = "identus-siopv2"
+surface          = "bounded compact JAR parsing and caller-authorized verification, duplicate-aware draft-13 request claims, DID-subject ID Token planning, exact direct-post encoding and pure lifecycle events"
+disposition      = "sdk-enforced"
+limits           = [ "Siopv2Limits=explicit" ]
+evidence         = [ "crates/siopv2/src/limits.rs", "crates/siopv2/src/request.rs", "crates/siopv2/src/response.rs", "crates/siopv2/src/flow.rs", "crates/siopv2/tests/e2e.rs", "fuzz/fuzz_targets/siopv2.rs" ]
+outer_obligation = "Callers own request retrieval, RP-key authorization and trust, durable nonce/replay storage, DID resolution, key custody, user authentication, consent, transport execution, retry policy and unknown-outcome recovery."
+consumer_impact  = "The experimental core proves the pinned draft-13 syntax, selected-key signature and exact response construction only; it confers no RP trust, durable replay defense, user consent, delivery or certification."
+review_triggers  = [ "new SIOPv2 draft or Final", "new subject type", "self-attested claim", "new response mode", "transport adapter", "storage", "limit change" ]
 
 [[boundaries]]
 id               = "wallet-storage-vocabulary"

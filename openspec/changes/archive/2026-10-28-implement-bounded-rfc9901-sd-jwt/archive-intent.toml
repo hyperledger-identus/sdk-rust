@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "sd-jwt-engine-selection"
+requirement      = "Local implementation remains focused and replaceable"
+canonical_sha256 = "daf4e3ad7be13152cedb854b063ccd792602277fb2cb9784f9447d7f70465dc5"
+reason           = "Activate the selected focused crate with explicit staged SDK-owned values and a candidate-free production graph."
+
+[[modified_requirement]]
+capability       = "sd-jwt-engine-selection"
+requirement      = "Evidence covers hostile behavior and a complete offline journey"
+canonical_sha256 = "cdbb993b9e7f8621d563500d24a0ea84e9def6f8cc1f083913c2652df128be90"
+reason           = "Make the base-engine quality declaration and independently completable offline journey explicit without claiming the later VC profile."

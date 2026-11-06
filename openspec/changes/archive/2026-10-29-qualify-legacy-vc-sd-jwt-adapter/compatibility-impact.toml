@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 572
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive explicit adapter accepts a bounded draft-03 vc+sd-jwt common subset for migration while canonical draft-22 output and validation remain unchanged."
+ledger_ids     = [ "credentials.sd-jwt.vc-draft03-input-adapter.v1" ]

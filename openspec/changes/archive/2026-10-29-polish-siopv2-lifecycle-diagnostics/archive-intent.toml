@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "siopv2-protocol-core"
+requirement      = "lifecycle transitions are deterministic and effect-bounded"
+canonical_sha256 = "a8dfea4d8c36b9ddeaca1c5f61f2536a673357d50b1315dd734f7c83160a08ba"
+reason           = "Clarify that duplicate event identity is idempotent only while its resulting state remains current, while superseded receipts and durable replay history remain caller-owned."

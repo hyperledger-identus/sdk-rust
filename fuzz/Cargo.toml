@@ -9,14 +9,41 @@ publish = false
 cargo-fuzz = true
 
 [dependencies]
-base64         = "=0.22.1"
-hex            = "=0.4.3"
-identus-crypto = { path = "../crates/crypto", default-features = false, features = [ "cose", "jwk-thumbprint" ] }
-identus-did    = { path = "../crates/did" }
-identus-jose   = { path = "../crates/jose" }
-libfuzzer-sys  = "=0.4.13"
-serde          = "=1.0.228"
-serde_json     = "=1.0.150"
+base64                = "=0.22.1"
+hex                   = "=0.4.3"
+identus-crypto        = { path = "../crates/crypto", default-features = false, features = [ "cose", "ed25519", "jwk-thumbprint", "secp256r1" ] }
+identus-core          = { path = "../crates/core" }
+identus-credentials   = { path = "../crates/credentials" }
+identus-did           = { path = "../crates/did" }
+identus-did-key       = { path = "../crates/did-key" }
+identus-did-jwk       = { path = "../crates/did-jwk" }
+identus-did-web       = { path = "../crates/did-web" }
+identus-did-peer      = { path = "../crates/did-peer" }
+identus-prism-did     = { path = "../crates/prism-did" }
+identus-prism-indexer = { path = "../crates/prism-indexer" }
+identus-prism-vdr     = { path = "../crates/prism-vdr" }
+identus-jose          = { path = "../crates/jose" }
+identus-oid4vp        = { path = "../crates/oid4vp" }
+identus-siopv2        = { path = "../crates/siopv2" }
+identus-sd-jwt        = { path = "../crates/sd-jwt" }
+identus-sd-jwt-vc     = { path = "../crates/sd-jwt-vc" }
+libfuzzer-sys         = "=0.4.13"
+serde                 = "=1.0.228"
+serde_json            = "=1.0.150"
+
+[[bin]]
+name  = "sd_jwt"
+path  = "fuzz_targets/sd_jwt.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "sd_jwt_vc"
+path  = "fuzz_targets/sd_jwt_vc.rs"
+test  = false
+doc   = false
+bench = false
 
 [[bin]]
 name  = "did"
@@ -28,6 +55,62 @@ bench = false
 [[bin]]
 name  = "did_url"
 path  = "fuzz_targets/did_url.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "did_key"
+path  = "fuzz_targets/did_key.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "did_jwk"
+path  = "fuzz_targets/did_jwk.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "did_web"
+path  = "fuzz_targets/did_web.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "peer_did"
+path  = "fuzz_targets/peer_did.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "prism_operation"
+path  = "fuzz_targets/prism_operation.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "prism_did"
+path  = "fuzz_targets/prism_did.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "prism_vdr"
+path  = "fuzz_targets/prism_vdr.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "prism_indexer_batch"
+path  = "fuzz_targets/prism_indexer_batch.rs"
 test  = false
 doc   = false
 bench = false
@@ -49,6 +132,41 @@ bench = false
 [[bin]]
 name  = "public_cose"
 path  = "fuzz_targets/public_cose.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "direct_post_response"
+path  = "fuzz_targets/direct_post_response.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "encrypted_direct_post_response"
+path  = "fuzz_targets/encrypted_direct_post_response.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "request_object_security"
+path  = "fuzz_targets/request_object_security.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "transaction_data"
+path  = "fuzz_targets/transaction_data.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "siopv2"
+path  = "fuzz_targets/siopv2.rs"
 test  = false
 doc   = false
 bench = false

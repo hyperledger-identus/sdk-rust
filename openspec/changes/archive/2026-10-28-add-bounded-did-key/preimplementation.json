@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 557,
+  "change": "add-bounded-did-key",
+  "branch": "codex/feat/issue-557",
+  "baseRef": "origin/develop",
+  "baseSha": "48c61920b8553d5401375338a5b217421b4c3c10",
+  "contractHeadSha": "3dc45b207aa8e7ee892bc804489765ab9f913940",
+  "createdAt": "2026-10-28T09:17:05.768Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

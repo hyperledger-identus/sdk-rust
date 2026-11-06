@@ -13,6 +13,10 @@ use crate::jwk::{EncodeJwk, JwkCurve, PublicKeyJwk};
 use crate::securerandom::SecureRandom;
 
 const KEY_SIZE: usize = 32;
+const FIELD_MODULUS: [u8; KEY_SIZE] = [
+    0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f,
+];
 
 fn key_type<T>() -> &'static str {
     std::any::type_name::<T>()
@@ -42,6 +46,31 @@ impl X25519PublicKey {
             key_type: key_type::<Self>(),
         })?;
         Ok(Self(PublicKey::from(arr)))
+    }
+
+    /// Return whether the public key uses the canonical field encoding.
+    ///
+    /// RFC 7748 arithmetic masks the high bit and accepts non-canonical field
+    /// elements. Identifier profiles that bind identity to exact public bytes
+    /// can use this predicate to prevent aliases for the same effective key.
+    #[must_use]
+    pub fn has_canonical_encoding(&self) -> bool {
+        let bytes = self.0.as_bytes();
+        bytes[KEY_SIZE - 1] & 0x80 == 0
+            && bytes.iter().rev().cmp(FIELD_MODULUS.iter().rev()).is_lt()
+    }
+
+    /// Return whether this public key can produce a contributory shared secret.
+    ///
+    /// Low-order public keys produce an all-zero shared secret for every X25519
+    /// private key and must be rejected by protocols that require contributory
+    /// key agreement. This classification uses a fixed non-secret scalar and
+    /// does not consume or expose caller-owned private material.
+    #[must_use]
+    pub fn is_contributory(&self) -> bool {
+        StaticSecret::from([0x42; KEY_SIZE])
+            .diffie_hellman(&self.0)
+            .was_contributory()
     }
 }
 

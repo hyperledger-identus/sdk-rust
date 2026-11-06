@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 541,
+  "change": "complete-oid4vp-final-capability-matrix",
+  "branch": "codex/feat/issue-541",
+  "baseRef": "origin/develop",
+  "baseSha": "63b23f7ebce3bab7741873b0147e7943a12ba73b",
+  "contractHeadSha": "20933022881ac27cd284e6647e3468f5fcb2bf0c",
+  "createdAt": "2026-10-27T23:30:02.084Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

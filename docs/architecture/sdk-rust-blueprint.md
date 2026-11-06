@@ -53,16 +53,18 @@ consumer responsibilities.
 
 ## 2. Repository boundary
 
-The SDK is Layer 1 of the three-layer component model:
+The SDK is Layer 1 of the component model. A portable, effect-isolated DID
+method may live in that layer without making the generic SDK depend on it:
 
 ```text
 applications: Oxid, Lace ID Portal, wallets and agents
                          │
                          ▼
-chain families: midnight-identity, neoprism/did:prism, future chains
+chain operations: midnight-identity, NeoPRISM Cardano adapters, future chains
                          │
                          ▼
 Identus SDK-Rust: generic SSI models, protocols, ports and evidence
+                  + independently selectable portable DID methods
 ```
 
 Dependencies point downward only. Therefore SDK crates must not depend on:
@@ -74,8 +76,11 @@ Dependencies point downward only. Therefore SDK crates must not depend on:
   executor-neutral protocol runtime kernel in ADR 0171 remains in scope);
 - a consumer's trust, disclosure, consent or custody policy.
 
-Chain- and product-specific behavior enters through typed ports or adapter
-crates outside this repository.
+Portable method grammar, validation, deterministic state reduction, document
+projection, bounded traversal and effect-neutral indexing may enter through
+independently selectable method crates under ADR 0174. Chain clients,
+transactions, persistence, networking, service composition and product
+behavior remain behind typed ports or adapter crates outside this repository.
 
 The `identus-conformance` suite enforces this boundary across direct normal,
 development, build and target-scoped Cargo declarations, renamed packages,
@@ -141,19 +146,19 @@ accepted product commitment.
 | `identus-adapters-entropy` | system entropy adapter | retain as the first ports implementation and review runtime/target support |
 | `identus-conformance` | dependency-layer and workspace guards | expand with provenance and architecture evidence |
 
-The inherited `identus-agent`, `identus-bindings`, `identus-messaging`,
-`identus-openid4vc` and `identus-trust` packages remain empty placeholders.
+The inherited `identus-agent`, `identus-bindings`, `identus-messaging` and
+`identus-trust` packages remain empty placeholders.
 They must not be published or represented as supported capabilities. Each is
 removed, quarantined or replaced only through an accepted component issue and
 namespace decision. Focused issues have activated experimental credential,
 presentation and wallet-storage surfaces in their inherited packages; this is
 not a namespace-stability, publication or wallet-product commitment. Issue
 Issue #111 activates the separate experimental `identus-oid4vci` package for the
-Credential Offer transport boundary without changing the quarantined
-`identus-openid4vc` umbrella marker.
+Credential Offer transport boundary. Issue #514 later activates
+`identus-openid4vc` only as a narrow runtime-neutral request-object retrieval
+seam shared by focused protocol crates; it is not an umbrella policy layer.
 Issue #394 activates the separate unpublished experimental `identus-oid4vp`
-package for a bounded Final by-reference invocation boundary. It likewise does
-not activate the umbrella marker. Issue #396 adds runtime-neutral Request URI
+package for a bounded Final by-reference invocation boundary. Issue #396 adds runtime-neutral Request URI
 GET/POST construction, bounded response binding, and signed compact JAR
 verification through `identus-jose`, with exact protected type, client-id and
 optional wallet-nonce correlation. Issue #429 adds strict bounded DCQL
@@ -175,6 +180,7 @@ reserve the final namespace automatically.
 | `identus-ports` | time, entropy, HTTP, secure-key/signing, storage transaction and cancellation contracts | production storage, platform keychain, browser or cloud runtime |
 | `identus-crypto` | validated encodings, public-key/JWK conversion, curve utilities and HD derivation required by SSI formats | custody, JOSE protocol, Midnight Jubjub suite |
 | `identus-did` | DID/DID URL, document, verification relationships, services, resolution/dereference/registration contracts and metadata | DID method ledger behavior, HTTP server/client |
+| `identus-prism-did` | portable PRISM method syntax, exact signed-operation validation, authenticated state reduction and generic DID document projection | Cardano transport/indexing, VDR payload semantics, persistence, node composition |
 | `identus-did-resolver-http` | optional Axum binding for the W3C DID Resolution HTTP interface over any resolver | chain resolver implementation |
 | `identus-uniffi-did` | experimental versioned UniFFI value facade for bounded DID and DID URL parsing, including local Apple proof, ARM64 Android package proof and test-only x86_64 Android runtime proof | published/signed mobile distribution, ARM64 device execution, physical-device or compatibility-matrix support, or general binding umbrella |
 | `identus-wasm-did` | experimental versioned browser-native ESM/TypeScript value facade for bounded DID and DID URL parsing with Chromium/Firefox behavior evidence | publication, Node, React Native, bundler-specific policy, browser-version matrix, secrets or browser authority |
@@ -202,15 +208,17 @@ crates.
              │             │             │
              └───────┬─────┴──────┬──────┘
                      ▼            ▼
-                identus-jose  identus-vc-core
-                     │            │
-                     ▼            ▼
-              identus-crypto  identus-did
-                                    │
-                                    ▼
-                              identus-ports
+             identus-openid4vc  identus-jose  identus-vc-core   identus-prism-did
+                     │            │                │       │
+                     └────────────┼────────────────┘       │
+                                  ▼                        ▼
+                           identus-crypto              identus-did
+                                                           │
+                                                           ▼
+                                                     identus-ports
 
 identus-oid4vci -> identus-did for protocol-owned DID proof resolution
+identus-oid4vci -> identus-openid4vc for narrow shared HTTP field validation
 
 identus-did-resolver-http -> identus-did + optional HTTP framework
 identus-conformance       -> dev/test edges only
@@ -836,10 +844,14 @@ independent slices. Issue #429 adopts exact `siros-dcql 0.3.0` privately behind
 strict SDK-owned Final validation and bounded selection under ADR 0165. The
 issue #447 slice then consumes the same bounded request map into a composed
 `vp_token`/HTTPS `direct_post` routing state while preserving signature and
-DCQL evidence. Issue #487 owns bounded response construction as the explicit
-successor. HTTP execution, verifier trust, consent, credential
-verification, redirects, `direct_post.jwt`, SIOPv2, DC API, JWE and response
-construction remain separate capabilities.
+DCQL evidence. Issue #487 consumes that state with bounded caller-selected
+presentation strings or objects, enforces the retained DCQL coverage and
+cardinality rules, and produces a deterministic form-encoded plain
+`direct_post` success envelope with exact state return. Issue #532 owns the
+separately bounded plain protocol-error response successor. HTTP execution,
+verifier trust, consent, credential or presentation verification,
+presentation generation, redirects, `direct_post.jwt`, SIOPv2, DC API and JWE
+remain separate capabilities.
 
 ### B11 — formats and profiles
 

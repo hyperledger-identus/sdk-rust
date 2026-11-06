@@ -6,7 +6,14 @@
 
 ## Issue and decision record
 
+<!-- Use exactly one live standalone `- Issue: #123` line and one live
+`- Issue linkage: closes` or `- Issue linkage: deferred` line. Closing mode
+also requires exactly one live standalone `Closes #123` line. Indented code,
+fenced code, HTML comments, prose, titles and commit messages do not satisfy
+these fields. -->
 - Issue: <!-- Required: #123 -->
+- Issue linkage: <!-- Required: closes/deferred -->
+- Post-merge acceptance: <!-- Required for deferred: openspec/changes/archive/YYYY-MM-DD-change/post-merge-acceptance.json -->
 - Discussion/ADR:
 - Owner crate:
 
@@ -48,6 +55,9 @@
 - Serialized/wire behavior:
 - Feature/MSRV/target impact:
 - Migration or rollback:
+- Compatibility disposition: <!-- consumer-visible or behavior-neutral -->
+- Change-ledger IDs: <!-- stable IDs or none -->
+- OpenSpec `compatibility-impact.toml`: present/grandfathered/not applicable
 
 ## Constraints and limitations
 
@@ -94,6 +104,7 @@ factory receipt:
 - [ ] tests, negative cases and docs updated
 - [ ] provenance/license recorded
 - [ ] public/wire compatibility reviewed
+- [ ] compatibility impact and stable change-ledger IDs recorded
 - [ ] targets and limitations are not represented as effective promises
 - [ ] no chain or product dependency in generic crates
 - [ ] no raw secret material in logs/errors/serialization/FFI

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "packetId": "crypto.compat.v1",
+  "capability": "crypto.secp256k1",
+  "cases": [
+    {
+      "id": "crypto.secp256k1.jvm-compat",
+      "operation": "crypto.secp256k1.verify",
+      "input": {
+        "literal": "publicKey=025ec3069f260463ab79c6ada107de5ef43da1663eb4092d1718f5d26f57f2884b;message=33121a19313e349bafada4113e364a01d578007a02dc;signature=3046022100ce972f4df5ab2d6aa20151bd56d92f9db42a6b6e9bdbd78971ea80828e183683022100a30cef9d2d28bc1710cec2c1966eb1e5ac965d0be4774a60ba38a462d56c7e7c"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "operationKind": "verified"
+        }
+      }
+    }
+  ]
+}

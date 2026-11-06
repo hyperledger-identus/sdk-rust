@@ -1,0 +1,31 @@
+# Tasks
+
+## 1. Contract and preflight
+
+- [x] 1.1 Record source history, exact stale origin, alternatives,
+      compatibility classification, constraints, limitations, and rollback.
+- [x] 1.2 Pass research/constraints/strict readiness, commit the planning-only
+      contract, and record exact #582 preimplementation evidence.
+
+## 2. Exact API-origin evidence
+
+- [x] 2.1 Generate current cargo-public-api output through the pinned candidate
+      toolchain and record the exact set difference.
+- [x] 2.2 Add a closed machine-readable rebaseline receipt with validator and
+      mutation coverage.
+- [x] 2.3 Replace only the `identus-did` baseline byte-for-byte and update ADR
+      and release-readiness knowledge.
+
+## 3. Qualification
+
+- [x] 3.1 Pass normal deterministic candidate preparation without API
+      initialization, including archives, closure, API/SBOM, and source policy.
+- [x] 3.2 Pass primary/MSRV matrix lanes, focused DID tests, factory/site/full
+      Nix gates, and independent CLI review.
+
+## 4. Delivery
+
+- [x] 4.1 Prepare the completed OpenSpec archive and signed/DCO issue-linked
+      PR inputs; retain metrics, protected CI, and guarded merge as delivery evidence.
+- [x] 4.2 Hand the new baseline and lock identities back to #388 without
+      claiming final slow evidence or independent release approval.

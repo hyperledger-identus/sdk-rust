@@ -1,0 +1,18 @@
+digraph did_jwk {
+  graph [bgcolor="transparent", rankdir="LR", pad="0.2", nodesep="0.45", ranksep="0.65"];
+  node [shape="box", style="rounded,filled", fontname="Arial", color="#526581", fillcolor="#eef3fb"];
+  edge [color="#526581", fontname="Arial"];
+
+  caller [label="Caller-owned\nPublicKeyJwk"];
+  method [label="identus-did-jwk\nbounded method profile", fillcolor="#d8e8ff"];
+  crypto [label="identus-crypto\nkey validation"];
+  did [label="identus-did\ndocument + registry"];
+  evidence [label="vectors + property + fuzz\nbenchmark + registry E2E", fillcolor="#e4f5e8"];
+  excluded [label="No custody, I/O, runtime,\nbindings, consumer or release", fillcolor="#fff2df", color="#b77a23"];
+
+  caller -> method;
+  method -> crypto;
+  method -> did;
+  evidence -> method [dir="back"];
+  method -> excluded [style="dashed", arrowhead="none"];
+}

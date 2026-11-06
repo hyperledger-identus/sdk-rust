@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 564,
+  "change": "accept-bounded-uniffi-generator-risk",
+  "branch": "codex/chore/issue-564",
+  "baseRef": "origin/develop",
+  "baseSha": "3efd3a1b78d8d8c07b05ffddacf101433028aab7",
+  "contractHeadSha": "089761f076cb47aa23244381fd3d0d0b55985081",
+  "createdAt": "2026-10-28T15:23:00.933Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

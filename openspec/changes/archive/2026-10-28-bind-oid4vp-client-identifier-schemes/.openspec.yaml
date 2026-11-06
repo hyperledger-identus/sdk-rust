@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-28
+goal: Bind OpenID4VP Final client identifier schemes and bounded verifier metadata to the exact verified request key through caller-owned trust ports.

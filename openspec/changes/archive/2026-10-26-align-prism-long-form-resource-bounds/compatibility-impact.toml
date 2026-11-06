@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 524
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "This change expands public DID and DID URL lexical ceilings, decouples the public method-name constant, and makes oversized normalized cache identities observably bypass retention. Existing accepted inputs remain compatible, while adapters and consumers can now observe newly accepted values and a new cache status."
+ledger_ids     = [ "did.syntax.long-form-resource-policy.v1" ]

@@ -76,6 +76,25 @@ pub(super) fn check_dep_edge(source: &str, target: &str) -> Result<(), String> {
     let target_layer = layer_of(target)
         .unwrap_or_else(|| panic!("crate {target} has no layer assignment in LAYER_RULES"));
 
+    const PRISM_FAMILY: &[&str] = &[
+        "identus-prism-did",
+        "identus-prism-vdr",
+        "identus-prism-indexer",
+    ];
+    if PRISM_FAMILY.contains(&target) {
+        let permitted = matches!(
+            (source, target),
+            ("identus-prism-vdr", "identus-prism-did")
+                | ("identus-prism-indexer", "identus-prism-did")
+                | ("identus-prism-indexer", "identus-prism-vdr")
+        );
+        if !permitted {
+            return Err(format!(
+                "crate {source} must not depend on method-specific crate {target}"
+            ));
+        }
+    }
+
     // Proc-macro targets are exempt from the inward-direction policy.
     if !is_proc_macro(target) {
         let allowed = allowed_target_layers(source_layer);

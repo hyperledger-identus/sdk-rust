@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -54,6 +55,35 @@ def replace_once(content: str, before: str, after: str) -> str:
     return content.replace(before, after, 1)
 
 
+def obligation_block(content: str, class_name: str, disposition: str) -> str:
+    marker = "[[declarations.obligations]]"
+    needle = f'class = "{class_name}"\ndisposition = "{disposition}"'
+    candidates = [marker + part for part in content.split(marker)[1:] if needle in part]
+    if len(candidates) != 1:
+        raise AssertionError(
+            f"expected one {class_name}/{disposition} obligation, found {len(candidates)}"
+        )
+    return candidates[0]
+
+
+def declaration_block(content: str, identifier: str) -> str:
+    marker = "[[declarations]]"
+    needle = f'id = "{identifier}"'
+    candidates = [marker + part for part in content.split(marker)[1:] if needle in part]
+    if len(candidates) != 1:
+        raise AssertionError(f"expected one declaration {identifier}, found {len(candidates)}")
+    return candidates[0]
+
+
+def replace_field(block: str, key: str, value: str) -> str:
+    updated, count = re.subn(
+        rf"(?m)^{re.escape(key)}\s*=.*$", f"{key} = {value}", block, count=1
+    )
+    if count != 1:
+        raise AssertionError(f"expected one field in obligation: {key}")
+    return updated
+
+
 def expect_failure(
     source_root: Path,
     fixture_root: Path,
@@ -87,7 +117,7 @@ def main() -> int:
 
         omitted_budget = replace_once(
             baseline,
-            'budget = "Exhaust ASCII bytes 0..127 in each grammar position and verify exact 2,048-byte DID and 4,096-byte DID URL limits."\n',
+            'budget = "Exhaust ASCII bytes 0..127 in each grammar position and verify exact 131,072-byte DID and 139,264-byte DID URL limits."\n',
             "",
         )
         expect_failure(
@@ -113,11 +143,10 @@ def main() -> int:
             "must explain the bounded omission",
         )
 
-        stale_receipt = replace_once(
-            baseline,
-            'recorded_at = "2026-09-29"',
-            'recorded_at = "2026-09-01"',
-        )
+        did_syntax = declaration_block(baseline, "did.syntax.quality.v1")
+        satisfied_fuzz = obligation_block(did_syntax, "fuzz", "satisfied")
+        stale_fuzz = replace_field(satisfied_fuzz, "recorded_at", '"2026-09-01"')
+        stale_receipt = replace_once(baseline, satisfied_fuzz, stale_fuzz)
         expect_failure(
             source_root,
             fixture_root,
@@ -127,30 +156,16 @@ def main() -> int:
             "receipt is stale",
         )
 
-        unowned_debt = replace_once(
-            baseline,
-            'class = "fuzz"\ndisposition = "satisfied"',
-            'class = "fuzz"\ndisposition = "required"',
-        )
-        for before, after in (
-            ('freshness = "max-age-days"', 'freshness = "pending"'),
-            ("freshness_days = 8", "freshness_days = 0"),
-            ('receipt_kind = "github-run"', 'receipt_kind = "none"'),
-            (
-                'receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/36517752658"',
-                'receipt = ""',
-            ),
-            (
-                'evidence_revision = "d27e455901c501d9611abbe0065e6a9b7270dd57"',
-                'evidence_revision = ""',
-            ),
-            ('recorded_at = "2026-09-29"', 'recorded_at = ""'),
-            (
-                'debt_status = "none"\ndebt_issue = 0\nrationale = ""\ndetails = [\n  "harness=',
-                'debt_status = "open"\ndebt_issue = 0\nrationale = ""\ndetails = [\n  "harness=',
-            ),
-        ):
-            unowned_debt = replace_once(unowned_debt, before, after)
+        unowned_fuzz = replace_field(satisfied_fuzz, "disposition", '"required"')
+        unowned_fuzz = replace_field(unowned_fuzz, "freshness", '"pending"')
+        unowned_fuzz = replace_field(unowned_fuzz, "freshness_days", "0")
+        unowned_fuzz = replace_field(unowned_fuzz, "receipt_kind", '"none"')
+        unowned_fuzz = replace_field(unowned_fuzz, "receipt", '""')
+        unowned_fuzz = replace_field(unowned_fuzz, "evidence_revision", '""')
+        unowned_fuzz = replace_field(unowned_fuzz, "recorded_at", '""')
+        unowned_fuzz = replace_field(unowned_fuzz, "debt_status", '"open"')
+        unowned_fuzz = replace_field(unowned_fuzz, "debt_issue", "0")
+        unowned_debt = replace_once(baseline, satisfied_fuzz, unowned_fuzz)
         expect_failure(
             source_root,
             fixture_root,
@@ -188,23 +203,23 @@ def main() -> int:
             "unknown keys: free_form_policy",
         )
 
-        declaration_offset = baseline.index("[[declarations]]")
-        second_declaration = baseline[declaration_offset:]
-        second_declaration = replace_once(
-            second_declaration,
+        additive_declaration = did_syntax
+        additive_declaration = replace_once(
+            additive_declaration,
             'id = "did.syntax.quality.v1"',
             'id = "example.portable.quality.v1"',
         )
-        second_declaration = replace_once(
-            second_declaration,
+        additive_declaration = replace_once(
+            additive_declaration,
             'capability = "did.syntax"',
             'capability = "example.portable"',
         )
-        additive = baseline.rstrip() + "\n\n" + second_declaration
+        additive = baseline.rstrip() + "\n\n" + additive_declaration
         (fixture_root / REGISTRY).write_text(additive, encoding="utf-8")
         result = run_checker(source_root, fixture_root, "--render")
         (fixture_root / REGISTRY).write_text(baseline, encoding="utf-8")
-        if result.returncode != 0 or "Declaration count: `2`" not in result.stdout:
+        expected_count = baseline.count("[[declarations]]") + 1
+        if result.returncode != 0 or f"Declaration count: `{expected_count}`" not in result.stdout:
             raise AssertionError(f"additive declaration was not accepted:\n{result.stderr}")
 
         drifted_plan = (fixture_root / PLAN).read_text(encoding="utf-8") + "\nmanual edit\n"

@@ -257,3 +257,93 @@ dependency-cone drift, and SHALL NOT edit tracked source identity.
 - **THEN** that workspace may generate exactly one local lock and all following
   checks and tests consume it with locked resolution
 
+### Requirement: Staged lock refreshes are closed and reviewable
+
+The SDK SHALL refresh a candidate staged lock only through an explicit issue,
+review-only resolver output, complete added/removed package report, exact lock
+digest update, and rerun of deterministic archive, closure, API, supply-chain,
+compiler, and target evidence. Direct dependency requirements, candidate
+identity, and publication state SHALL remain unchanged unless separately
+specified.
+
+#### Scenario: a frozen lock becomes stale
+
+- **WHEN** clean `--locked` candidate preparation rejects the reviewed lock
+- **THEN** the SDK generates a proposal outside the repository and reviews the
+  complete dependency drift before changing tracked lock bytes
+
+#### Scenario: undeclared drift appears
+
+- **WHEN** the adopted lock differs from the closed proposal or contains an
+  undeclared package, version, source, or checksum change
+- **THEN** qualification fails before the lock can become release evidence
+
+### Requirement: Prepublication API-origin rebaselines are exact and additive
+
+Before the first candidate is published, the SDK SHALL permit rebaselining its
+committed API origin only through an issue-linked exact-source receipt that binds old and
+new generated API hashes, proves an empty removal set and a closed expected
+addition set, retains unchanged package/version/feature/dependency/publication
+state, and passes normal candidate qualification without initialization mode.
+The rebaseline SHALL remain a first-candidate origin rather than a stable
+SemVer or released-predecessor claim.
+
+#### Scenario: an already-delivered additive API is missing from the origin
+
+- **WHEN** exact generated API comparison contains no removal or changed item
+  and additions equal the reviewed allowlist
+- **THEN** the SDK records the immutable classification and may replace the
+  stale unpublished origin before rerunning normal qualification
+
+#### Scenario: the diff is breaking, ambiguous, or broader than reviewed
+
+- **WHEN** any API item is removed or changed, an unexpected addition appears,
+  the source revision differs, or publication has already occurred
+- **THEN** the rebaseline fails and requires a separate compatibility decision
+
+### Requirement: A candidate train has one closed final readiness packet
+
+The SDK SHALL bind one exact protected revision to its train descriptor, staged
+lock, deterministic archives, API origins, SBOMs, documentation, package-
+specific compiler/target matrix, security-policy result, complete required
+slow lanes, downstream compatibility evidence where available, explicit
+limitations, and independent approval before a candidate-only train can be
+proposed for publication activation. Every receipt SHALL use immutable links
+and SHALL distinguish passing, pending, failed, and not-applicable evidence.
+
+#### Scenario: a required slow lane fails
+
+- **WHEN** any required lane fails, is cancelled, is stale, runs from another
+  branch or revision, or only a rerun is available
+- **THEN** final readiness remains pending even if an aggregate artifact exists
+
+#### Scenario: the exact candidate is approved
+
+- **WHEN** every closed evidence class passes for one protected revision and an
+  independent maintainer approves that exact receipt
+- **THEN** the candidate may proceed to a separate publication-activation
+  decision without implying that publication already occurred
+
+#### Scenario: downstream interoperability is available
+
+- **WHEN** a consumer has immutable source-pinned and network parity evidence
+- **THEN** the packet links it as downstream compatibility evidence while
+  preserving consumer ownership and its stated scope and limitations
+
+### Requirement: Published API origins remain immutable compatibility inputs
+
+The SDK SHALL preserve a published train's generated public-API origin and
+compare later source to it without baseline initialization. Qualification MAY
+accept additive current API, but SHALL fail when any published API occurrence
+is removed or changed and SHALL emit bounded deterministic diff evidence.
+
+#### Scenario: Current development is additive
+
+- **WHEN** every published API occurrence remains and current source adds items
+- **THEN** qualification retains the published origin and records the additions
+
+#### Scenario: Published API history would be rewritten
+
+- **WHEN** tooling requests initialization or baseline replacement for a train
+  already recorded as published
+- **THEN** qualification fails before modifying the origin

@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 388
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "The change adds a bounded release-evidence report, navigation, validation, and tests without changing Rust APIs, behavior, dependencies, targets, wire formats, persisted representations, package identity, publication state, or downstream consumers."
+ledger_ids     = [  ]

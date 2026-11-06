@@ -261,12 +261,15 @@ consumer_apk="$consumer_root/app/build/outputs/apk/debug/app-debug.apk"
 cmp "$template_root/consumer/app/gradle.lockfile" \
     "$consumer_root/app/gradle.lockfile" || fail "consumer dependency lock drifted"
 
+gradle_version=$(JAVA_HOME="$java_home" gradle --version | awk '/^Gradle / { print $2 }')
+[[ -n $gradle_version ]] || fail "Gradle version evidence is unavailable"
+
 {
     printf 'evidence_role=%s\n' "$evidence_role"
     printf 'rust=%s\n' "$(rustc --version)"
     printf 'rust_target=%s\n' "$rust_target"
     printf 'java=%s\n' "$("$java_home/bin/java" -version 2>&1 | awk 'NR == 1')"
-    printf 'gradle=%s\n' "$(gradle --version | awk '/^Gradle / { print $2 }')"
+    printf 'gradle=%s\n' "$gradle_version"
     printf 'ndk=%s\n' "$ndk_version"
     printf 'ndk_source_properties_sha256=%s\n' \
         "$(shasum -a 256 "$ndk_properties" | awk '{ print $1 }')"

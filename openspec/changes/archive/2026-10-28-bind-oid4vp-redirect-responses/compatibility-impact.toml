@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 546
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The experimental OID4VP routing enum and constructors gain standard redirect modes and a request-bound direct-post acknowledgement successor."
+ledger_ids     = [ "oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1" ]

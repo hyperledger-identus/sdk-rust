@@ -2,6 +2,8 @@ use identus_jose::JwsLimits;
 
 use crate::Oid4vpError;
 
+const MAX_PRESENTATION_JSON_DEPTH: usize = 64;
+
 /// Resource limits for one Authorization Request invocation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AuthorizationRequestInvocationLimits {
@@ -238,6 +240,7 @@ impl Default for RequestObjectValidationLimits {
 pub struct AuthorizationRequestValidationLimits {
     max_nonce_bytes: usize,
     max_response_uri_bytes: usize,
+    max_state_bytes: usize,
 }
 
 impl AuthorizationRequestValidationLimits {
@@ -252,7 +255,20 @@ impl AuthorizationRequestValidationLimits {
         Ok(Self {
             max_nonce_bytes,
             max_response_uri_bytes,
+            max_state_bytes: 1_024,
         })
+    }
+
+    /// Override the maximum UTF-8 bytes in an optional OAuth state value.
+    pub const fn with_max_state_bytes(
+        mut self,
+        max_state_bytes: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_state_bytes == 0 {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        self.max_state_bytes = max_state_bytes;
+        Ok(self)
     }
 
     /// Maximum UTF-8 bytes in the authorization nonce.
@@ -264,6 +280,11 @@ impl AuthorizationRequestValidationLimits {
     pub const fn max_response_uri_bytes(self) -> usize {
         self.max_response_uri_bytes
     }
+
+    /// Maximum UTF-8 bytes in the optional OAuth state value.
+    pub const fn max_state_bytes(self) -> usize {
+        self.max_state_bytes
+    }
 }
 
 impl Default for AuthorizationRequestValidationLimits {
@@ -271,6 +292,289 @@ impl Default for AuthorizationRequestValidationLimits {
         Self {
             max_nonce_bytes: 256,
             max_response_uri_bytes: 4_096,
+            max_state_bytes: 1_024,
+        }
+    }
+}
+
+/// Resource limits for one plain OID4VP direct-post success response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DirectPostResponseLimits {
+    max_query_results: usize,
+    max_query_id_bytes: usize,
+    max_presentations_per_query: usize,
+    max_presentation_bytes: usize,
+    max_json_depth: usize,
+    max_json_nodes: usize,
+    max_vp_token_bytes: usize,
+    max_form_body_bytes: usize,
+}
+
+impl DirectPostResponseLimits {
+    /// Construct a positive response resource policy.
+    #[allow(clippy::too_many_arguments)]
+    pub const fn new(
+        max_query_results: usize,
+        max_query_id_bytes: usize,
+        max_presentations_per_query: usize,
+        max_presentation_bytes: usize,
+        max_json_depth: usize,
+        max_json_nodes: usize,
+        max_vp_token_bytes: usize,
+        max_form_body_bytes: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_query_results == 0
+            || max_query_id_bytes == 0
+            || max_presentations_per_query == 0
+            || max_presentation_bytes == 0
+            || max_json_depth == 0
+            || max_json_depth > MAX_PRESENTATION_JSON_DEPTH
+            || max_json_nodes == 0
+            || max_vp_token_bytes == 0
+            || max_form_body_bytes == 0
+        {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        Ok(Self {
+            max_query_results,
+            max_query_id_bytes,
+            max_presentations_per_query,
+            max_presentation_bytes,
+            max_json_depth,
+            max_json_nodes,
+            max_vp_token_bytes,
+            max_form_body_bytes,
+        })
+    }
+
+    /// Maximum number of query results supplied by a caller.
+    pub const fn max_query_results(self) -> usize {
+        self.max_query_results
+    }
+
+    /// Maximum UTF-8 bytes in one supplied query identifier.
+    pub const fn max_query_id_bytes(self) -> usize {
+        self.max_query_id_bytes
+    }
+
+    /// Maximum presentations supplied for one query.
+    pub const fn max_presentations_per_query(self) -> usize {
+        self.max_presentations_per_query
+    }
+
+    /// Maximum encoded bytes in one presentation value.
+    pub const fn max_presentation_bytes(self) -> usize {
+        self.max_presentation_bytes
+    }
+
+    /// Maximum nested JSON container depth in an object presentation.
+    pub const fn max_json_depth(self) -> usize {
+        self.max_json_depth
+    }
+
+    /// Maximum JSON nodes in an object presentation.
+    pub const fn max_json_nodes(self) -> usize {
+        self.max_json_nodes
+    }
+
+    /// Maximum bytes in the serialized `vp_token` JSON object.
+    pub const fn max_vp_token_bytes(self) -> usize {
+        self.max_vp_token_bytes
+    }
+
+    /// Maximum bytes in the encoded direct-post form body.
+    pub const fn max_form_body_bytes(self) -> usize {
+        self.max_form_body_bytes
+    }
+}
+
+impl Default for DirectPostResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_query_results: 64,
+            max_query_id_bytes: 256,
+            max_presentations_per_query: 16,
+            max_presentation_bytes: 65_536,
+            max_json_depth: 64,
+            max_json_nodes: 8_192,
+            max_vp_token_bytes: 262_144,
+            max_form_body_bytes: 786_432,
+        }
+    }
+}
+
+/// Resource limits for one plain direct-post Authorization Error Response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DirectPostErrorResponseLimits {
+    max_error_description_bytes: usize,
+    max_error_uri_bytes: usize,
+    max_form_body_bytes: usize,
+}
+
+impl DirectPostErrorResponseLimits {
+    /// Construct a positive protocol-error response policy.
+    pub const fn new(
+        max_error_description_bytes: usize,
+        max_error_uri_bytes: usize,
+        max_form_body_bytes: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_error_description_bytes == 0 || max_error_uri_bytes == 0 || max_form_body_bytes == 0
+        {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        Ok(Self {
+            max_error_description_bytes,
+            max_error_uri_bytes,
+            max_form_body_bytes,
+        })
+    }
+
+    /// Maximum decoded bytes in optional developer-oriented text.
+    pub const fn max_error_description_bytes(self) -> usize {
+        self.max_error_description_bytes
+    }
+
+    /// Maximum decoded bytes in the optional URI-reference.
+    pub const fn max_error_uri_bytes(self) -> usize {
+        self.max_error_uri_bytes
+    }
+
+    /// Maximum bytes in the encoded direct-post error form body.
+    pub const fn max_form_body_bytes(self) -> usize {
+        self.max_form_body_bytes
+    }
+}
+
+impl Default for DirectPostErrorResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_error_description_bytes: 1_024,
+            max_error_uri_bytes: 2_048,
+            max_form_body_bytes: 8_192,
+        }
+    }
+}
+
+/// Resource limits for one inert redirect-mode response.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RedirectResponseLimits {
+    max_output_uri_bytes: usize,
+    max_existing_parameters: usize,
+}
+
+impl RedirectResponseLimits {
+    /// Construct a positive redirect-output policy.
+    pub const fn new(
+        max_output_uri_bytes: usize,
+        max_existing_parameters: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_output_uri_bytes == 0 || max_existing_parameters == 0 {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        Ok(Self {
+            max_output_uri_bytes,
+            max_existing_parameters,
+        })
+    }
+
+    /// Maximum bytes in the complete query or fragment redirect URI.
+    pub const fn max_output_uri_bytes(self) -> usize {
+        self.max_output_uri_bytes
+    }
+
+    /// Maximum existing query or fragment parameters inspected for collisions.
+    pub const fn max_existing_parameters(self) -> usize {
+        self.max_existing_parameters
+    }
+}
+
+impl Default for RedirectResponseLimits {
+    fn default() -> Self {
+        Self {
+            max_output_uri_bytes: 1_048_576,
+            max_existing_parameters: 64,
+        }
+    }
+}
+
+/// Resource limits for one direct-post endpoint acknowledgement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DirectPostAcknowledgementLimits {
+    max_content_type_bytes: usize,
+    max_cache_control_bytes: usize,
+    max_body_bytes: usize,
+    max_members: usize,
+    max_member_name_bytes: usize,
+    max_redirect_uri_bytes: usize,
+    max_response_code_bytes: usize,
+}
+
+impl DirectPostAcknowledgementLimits {
+    /// Construct a positive acknowledgement parsing policy.
+    #[allow(clippy::too_many_arguments)]
+    pub const fn new(
+        max_content_type_bytes: usize,
+        max_cache_control_bytes: usize,
+        max_body_bytes: usize,
+        max_members: usize,
+        max_member_name_bytes: usize,
+        max_redirect_uri_bytes: usize,
+        max_response_code_bytes: usize,
+    ) -> Result<Self, Oid4vpError> {
+        if max_content_type_bytes == 0
+            || max_cache_control_bytes == 0
+            || max_body_bytes == 0
+            || max_members == 0
+            || max_member_name_bytes == 0
+            || max_redirect_uri_bytes == 0
+            || max_response_code_bytes == 0
+        {
+            return Err(Oid4vpError::InvalidLimits);
+        }
+        Ok(Self {
+            max_content_type_bytes,
+            max_cache_control_bytes,
+            max_body_bytes,
+            max_members,
+            max_member_name_bytes,
+            max_redirect_uri_bytes,
+            max_response_code_bytes,
+        })
+    }
+
+    pub const fn max_content_type_bytes(self) -> usize {
+        self.max_content_type_bytes
+    }
+    pub const fn max_cache_control_bytes(self) -> usize {
+        self.max_cache_control_bytes
+    }
+    pub const fn max_body_bytes(self) -> usize {
+        self.max_body_bytes
+    }
+    pub const fn max_members(self) -> usize {
+        self.max_members
+    }
+    pub const fn max_member_name_bytes(self) -> usize {
+        self.max_member_name_bytes
+    }
+    pub const fn max_redirect_uri_bytes(self) -> usize {
+        self.max_redirect_uri_bytes
+    }
+    pub const fn max_response_code_bytes(self) -> usize {
+        self.max_response_code_bytes
+    }
+}
+
+impl Default for DirectPostAcknowledgementLimits {
+    fn default() -> Self {
+        Self {
+            max_content_type_bytes: 256,
+            max_cache_control_bytes: 512,
+            max_body_bytes: 16_384,
+            max_members: 32,
+            max_member_name_bytes: 128,
+            max_redirect_uri_bytes: 4_096,
+            max_response_code_bytes: 1_024,
         }
     }
 }

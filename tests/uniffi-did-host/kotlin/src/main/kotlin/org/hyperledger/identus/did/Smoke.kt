@@ -24,7 +24,9 @@ fun main() {
         check(!error.message.orEmpty().contains(callerText))
     }
 
-    val oversized = "did:example:" + "a".repeat(4_096)
+    // Exercise the independent 8 KiB DID URL suffix bound; the global ceiling
+    // is larger so portable PRISM long-form DIDs remain representable.
+    val oversized = "did:example:1/" + "a".repeat(8_192)
     try {
         parseDidUrl(oversized)
         error("oversized DID URL was accepted")

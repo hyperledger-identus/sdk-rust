@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "packetId": "oid4vp.encrypted-direct-post-response.v1",
+  "capability": "oid4vp.direct-post-response",
+  "cases": [
+    {
+      "id": "oid4vp.encrypted-direct-post-response.final-p256-a128gcm",
+      "operation": "oid4vp.direct-post-response.construct",
+      "input": {
+        "literal": "{\"response_mode\":\"direct_post.jwt\",\"client_metadata\":{\"jwks\":{\"keys\":[{\"kty\":\"EC\",\"crv\":\"P-256\",\"alg\":\"ECDH-ES\",\"use\":\"enc\",\"key_ops\":[\"deriveKey\"],\"kid\":\"response-key\",\"x\":\"OtOGGpViE5JRa7WT7wVYPtLlhm9ctiYKMBcjf9ibkK8\",\"y\":\"0JYcfjcHWmeRo5xh9WKVsCttJlZ7YV5gqkHuHI6DOI0\"}]},\"encrypted_response_enc_values_supported\":[\"A128GCM\"]},\"results\":{\"degree\":[\"eyJ2cCI6dHJ1ZX0\"]},\"state\":\"opaque-state\"}"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "response=eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOEdDTSIsImVwayI6eyJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwieCI6IlhndUlsVlI0ZFM4Z3RTeUc5ODkycHFMMlhqVUNrN0NiVzhTS19oTHZiWWciLCJ5IjoiaVB6Z3ZkMmRyQzE2VWl5b1JjdEFDaEcwRlFLS0g0UGpiWmNRUzlOUVhpayJ9LCJraWQiOiJyZXNwb25zZS1rZXkifQ..AQEBAQEBAQEBAQEB.Y2lwaGVydGV4dA.AgICAgICAgICAgICAgICAg"
+        }
+      }
+    }
+  ]
+}

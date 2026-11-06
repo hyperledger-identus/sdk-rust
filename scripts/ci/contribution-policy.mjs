@@ -10,6 +10,7 @@ import {
   validateContributionPolicyMonotonicity,
   validateContributionPolicyShape,
 } from "./contribution-policy-schema.mjs";
+import { parseJsonWithoutDuplicates } from "../factory-tools/strict-json.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 export const policy = Object.freeze(parseContributionPolicy(
@@ -19,6 +20,9 @@ const policyShapeErrors = validateContributionPolicyShape(policy);
 if (policyShapeErrors.length > 0) throw new Error(`base contribution policy is invalid: ${policyShapeErrors.join("; ")}`);
 const types = new Set(policy.types);
 const scopes = new Set(policy.scopes);
+const repositorySlug = "hyperledger-identus/sdk-rust";
+const deferredAcceptancePathPattern = /^openspec\/changes\/archive\/\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\/post-merge-acceptance\.json$/u;
+const maximumDeferredAcceptanceBytes = 16 * 1024;
 
 function result(errors = [], values = {}) {
   return { ok: errors.length === 0, errors, ...values };
@@ -64,17 +68,275 @@ export function validateBranchName(branch, { expectedType = null, actor = "" } =
   return result(errors, { exempt: false, type, issue });
 }
 
-export function validatePullRequest({ title, body = "", branch, actor = "" }) {
+function maskInlineCode(line) {
+  let masked = "";
+  for (let index = 0; index < line.length;) {
+    if (line[index] !== "`") {
+      masked += line[index];
+      index += 1;
+      continue;
+    }
+    let end = index + 1;
+    while (line[end] === "`") end += 1;
+    const marker = line.slice(index, end);
+    let closing = -1;
+    for (let search = end; search < line.length;) {
+      const run = line.indexOf("`", search);
+      if (run === -1) break;
+      let runEnd = run + 1;
+      while (line[runEnd] === "`") runEnd += 1;
+      if (runEnd - run === marker.length) {
+        closing = run;
+        break;
+      }
+      search = runEnd;
+    }
+    if (closing === -1) {
+      masked += marker;
+      index = end;
+      continue;
+    }
+    masked += " ".repeat(closing + marker.length - index);
+    index = closing + marker.length;
+  }
+  return masked;
+}
+
+function parseMarkdown(body, { includeListContinuations = false } = {}) {
+  const lines = [];
+  let fence = null;
+  let comment = false;
+  let listContext = false;
+  for (const rawLine of String(body ?? "").split(/\r?\n/u)) {
+    if (fence !== null) {
+      const closing = rawLine.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/u)?.[1] ?? null;
+      if (closing !== null && closing[0] === fence.character && closing.length >= fence.length) fence = null;
+      continue;
+    }
+
+    if (comment) {
+      const closing = rawLine.indexOf("-->");
+      if (closing === -1) continue;
+      comment = false;
+      continue;
+    }
+    const indented = /^(?: {0,3}\t| {4})/u.test(rawLine);
+    if (indented && !(includeListContinuations && listContext)) continue;
+
+    const candidate = maskInlineCode(rawLine);
+    const blockComment = candidate.match(/^ {0,3}<!--/u);
+    if (blockComment !== null) {
+      if (candidate.indexOf("-->", blockComment.index + blockComment[0].length) === -1) comment = true;
+      continue;
+    }
+
+    let visible = "";
+    for (let index = 0; index < candidate.length;) {
+      if (!comment) {
+        const opening = candidate.indexOf("<!--", index);
+        if (opening === -1) {
+          visible += candidate.slice(index);
+          break;
+        }
+        visible += candidate.slice(index, opening);
+        comment = true;
+        index = opening + 4;
+        continue;
+      }
+      const closing = candidate.indexOf("-->", index);
+      if (closing === -1) break;
+      comment = false;
+      index = closing + 3;
+    }
+    const opening = visible.match(/^ {0,3}(`{3,}|~{3,})(.*)$/u);
+    const marker = opening?.[1] ?? null;
+    const info = opening?.[2] ?? "";
+    if (marker !== null && !(marker[0] === "`" && info.includes("`"))) {
+      fence = { character: marker[0], length: marker.length };
+      comment = false;
+      listContext = false;
+      continue;
+    }
+    lines.push(visible);
+    if (visible.trim().length === 0) {
+      listContext = false;
+    } else if (/^ {0,3}[-+*][ \t]+\S/u.test(visible)) {
+      listContext = true;
+    } else if (!indented) {
+      listContext = false;
+    }
+  }
+  const errors = [];
+  if (fence !== null) errors.push("body contains an unterminated fenced code block");
+  if (comment) errors.push("body contains an unterminated HTML comment");
+  return result(errors, { lines: errors.length === 0 ? lines : [], observedLines: lines });
+}
+
+export function parseAuthoritativeMarkdown(body) {
+  return parseMarkdown(body);
+}
+
+function captures(lines, pattern) {
+  return lines.flatMap((line) => {
+    const match = line.match(pattern);
+    return match ? [match.slice(1)] : [];
+  });
+}
+
+function linkageModes(lines) {
+  return captures(lines, /^\s*-\s*Issue linkage:\s*(closes|deferred)\s*$/iu)
+    .map(([mode]) => mode.toLowerCase());
+}
+
+export function declaredIssueLinkageMode(body) {
+  const parsed = parseAuthoritativeMarkdown(body);
+  if (!parsed.ok) return null;
+  const modes = linkageModes(parsed.lines);
+  return modes.length === 1 ? modes[0] : null;
+}
+
+export function containsGitHubClosingKeyword(text, issue, repository = repositorySlug) {
+  const closingKeyword = new RegExp(
+    `\\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\\s*:?\\s+(?:([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?#${issue}(?![0-9])`,
+    "giu",
+  );
+  return [...String(text ?? "").matchAll(closingKeyword)].some((match) => (
+    match[1] === undefined || match[1].toLowerCase() === repository.toLowerCase()
+  ));
+}
+
+export function validateDeferredAcceptance(document, expectedIssue) {
+  const errors = [];
+  const expectedKeys = ["acceptance", "disposition", "issue", "rationale", "schemaVersion"];
+  if (!document || typeof document !== "object" || Array.isArray(document)) {
+    return result(["deferred acceptance sidecar must be an object"]);
+  }
+  const actualKeys = Object.keys(document).sort();
+  if (actualKeys.length !== expectedKeys.length || actualKeys.some((key, index) => key !== expectedKeys[index])) {
+    errors.push("deferred acceptance sidecar has an unknown or missing field");
+  }
+  if (document.schemaVersion !== 1) errors.push("deferred acceptance sidecar schemaVersion must be 1");
+  if (!Number.isSafeInteger(document.issue) || document.issue !== expectedIssue) {
+    errors.push(`deferred acceptance sidecar must bind issue #${expectedIssue}`);
+  }
+  if (document.disposition !== "deferred") {
+    errors.push("deferred acceptance sidecar disposition must be deferred");
+  }
+  if (typeof document.rationale !== "string" || document.rationale.trim().length === 0 || document.rationale.length > 1024) {
+    errors.push("deferred acceptance sidecar rationale must be a non-empty bounded string");
+  }
+  if (!Array.isArray(document.acceptance) || document.acceptance.length === 0 || document.acceptance.length > 16) {
+    errors.push("deferred acceptance sidecar must contain one to sixteen acceptance IDs");
+  } else {
+    const seen = new Set();
+    for (const entry of document.acceptance) {
+      if (typeof entry !== "string" || entry.length > 128 || !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/u.test(entry)) {
+        errors.push("deferred acceptance sidecar contains an invalid acceptance ID");
+      } else if (seen.has(entry)) {
+        errors.push("deferred acceptance sidecar contains a duplicate acceptance ID");
+      }
+      seen.add(entry);
+    }
+  }
+  return result(errors);
+}
+
+export function readDeferredAcceptanceAt({ repository = root, head, sidecarPath }) {
+  if (!validSha(head)) throw new Error("deferred acceptance head must be an exact lowercase SHA");
+  if (typeof sidecarPath !== "string" || !deferredAcceptancePathPattern.test(sidecarPath)) {
+    throw new Error("deferred acceptance sidecar path is invalid");
+  }
+  const commit = git(repository, ["rev-parse", "--verify", `${head}^{commit}`]).trim();
+  if (commit !== head) throw new Error("deferred acceptance head is not the exact commit object");
+  const entry = git(repository, ["ls-tree", head, "--", sidecarPath]).trim();
+  const match = entry.match(/^100644 blob ([0-9a-f]{40})\t(.+)$/u);
+  if (!match || match[2] !== sidecarPath) {
+    throw new Error("deferred acceptance sidecar must be one regular non-executable Git blob");
+  }
+  const [, blob] = match;
+  const sizeText = git(repository, ["cat-file", "-s", blob]).trim();
+  if (!/^[0-9]+$/u.test(sizeText)) throw new Error("deferred acceptance sidecar size is invalid");
+  const size = Number(sizeText);
+  if (!Number.isSafeInteger(size) || size > maximumDeferredAcceptanceBytes) {
+    throw new Error("deferred acceptance sidecar exceeds 16384 bytes");
+  }
+  const text = git(repository, ["cat-file", "blob", blob]);
+  if (Buffer.byteLength(text, "utf8") !== size) {
+    throw new Error("deferred acceptance sidecar changed while reading");
+  }
+  return parseJsonWithoutDuplicates(text, { maximumDepth: 8, maximumNodes: 512 });
+}
+
+export function validateIssueLinkage(body, expectedIssue, {
+  loadDeferredAcceptance = null,
+  additionalClosingText = "",
+} = {}) {
+  const parsed = parseAuthoritativeMarkdown(body);
+  const lines = parsed.lines;
+  const errors = [...parsed.errors];
+  const issues = captures(lines, /^\s*-\s*Issue:\s*#([1-9][0-9]*)\s*$/iu).map(Number);
+  const modes = linkageModes(lines);
+  const closing = captures(
+    lines,
+    /^\s*(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s+#([1-9][0-9]*)\.?\s*$/iu,
+  ).map(Number);
+  const references = captures(lines, /^\s*(?:Refs|References)\s+#([1-9][0-9]*)\.?\s*$/iu).map(Number);
+  const sidecars = captures(
+    lines,
+    /^\s*-\s*Post-merge acceptance:\s*(openspec\/changes\/archive\/\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\/post-merge-acceptance\.json)\s*$/u,
+  ).map(([sidecarPath]) => sidecarPath);
+
+  if (issues.length !== 1 || issues[0] !== expectedIssue) {
+    errors.push(`body must contain exactly one authoritative Issue field for #${expectedIssue}`);
+  }
+  if (modes.length !== 1) errors.push("body must contain exactly one Issue linkage field");
+  const mode = modes.length === 1 ? modes[0] : null;
+  if (mode === "closes") {
+    if (closing.filter((issue) => issue === expectedIssue).length !== 1) {
+      errors.push(`closing linkage must contain exactly one standalone closing keyword for issue #${expectedIssue}`);
+    }
+    if (sidecars.length > 0) errors.push("closing linkage must not declare post-merge acceptance evidence");
+  } else if (mode === "deferred") {
+    const closingText = parseMarkdown(body, { includeListContinuations: true });
+    errors.push(...closingText.errors);
+    if (containsGitHubClosingKeyword(closingText.lines.join("\n"), expectedIssue)
+        || containsGitHubClosingKeyword(additionalClosingText, expectedIssue)) {
+      errors.push(`deferred linkage must not close issue #${expectedIssue}`);
+    }
+    if (references.filter((issue) => issue === expectedIssue).length !== 1) {
+      errors.push(`deferred linkage must contain exactly one standalone reference to issue #${expectedIssue}`);
+    }
+    if (sidecars.length !== 1) {
+      errors.push("deferred linkage must contain exactly one post-merge acceptance sidecar path");
+    } else if (typeof loadDeferredAcceptance !== "function") {
+      errors.push("deferred linkage requires exact-head acceptance evidence");
+    } else {
+      try {
+        const evidence = validateDeferredAcceptance(loadDeferredAcceptance(sidecars[0]), expectedIssue);
+        errors.push(...evidence.errors);
+      } catch {
+        errors.push("deferred linkage acceptance evidence is unavailable or invalid");
+      }
+    }
+  }
+  return result(errors, { issue: expectedIssue, mode, sidecarPath: sidecars.length === 1 ? sidecars[0] : null });
+}
+
+export function validatePullRequest(
+  { title, body = "", branch, actor = "" },
+  { loadDeferredAcceptance = null } = {},
+) {
   const subject = parseConventionalSubject(title, body);
   const branchResult = validateBranchName(branch, { expectedType: subject.type, actor });
   const errors = [
     ...subject.errors.map((entry) => `title: ${entry}`),
     ...branchResult.errors.map((entry) => `branch: ${entry}`),
   ];
-  if (branchResult.issue && !new RegExp(`(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+#${branchResult.issue}(?![0-9])`, "iu").test(body)) {
-    errors.push(`body must close issue #${branchResult.issue}`);
-  }
-  return result(errors, { subject, branch: branchResult });
+  const linkage = branchResult.issue
+    ? validateIssueLinkage(body, branchResult.issue, { loadDeferredAcceptance, additionalClosingText: title })
+    : result([], { issue: null, mode: null, sidecarPath: null });
+  errors.push(...linkage.errors.map((entry) => `linkage: ${entry}`));
+  return result(errors, { subject, branch: branchResult, linkage });
 }
 
 export function validateSignatureProvenance({ verification = null, rawCommit = "" }, document = policy) {
@@ -253,9 +515,102 @@ export function validateHostedCommits(records, expectedHead, context = {}) {
     );
     const evidence = validateCommitEvidence(record, { authoredMetadata: !synchronizationMerge });
     errors.push(...evidence.errors.map((entry) => `${record.sha}: ${entry}`));
+    if (context.deferredIssue
+        && containsGitHubClosingKeyword(record.message, context.deferredIssue)) {
+      errors.push(`${record.sha}: commit message must not close deferred issue #${context.deferredIssue}`);
+    }
   }
   if (records.at(-1)?.sha !== expectedHead) errors.push(`last hosted commit is not exact PR head ${expectedHead}`);
   return result(errors);
+}
+
+const maximumHostedClosingPages = 8;
+const maximumHostedClosingReferences = 800;
+
+export function validateHostedClosingIssuePages(
+  pages,
+  { expectedPullRequest, expectedHead, repository = repositorySlug } = {},
+) {
+  const errors = [];
+  const references = [];
+  if (!Array.isArray(pages) || pages.length === 0) {
+    return result(["hosted closing-issue evidence has no pages"], { references });
+  }
+  if (pages.length > maximumHostedClosingPages) {
+    return result([`hosted closing-issue evidence exceeds ${maximumHostedClosingPages} pages`], { references });
+  }
+  if (!Number.isSafeInteger(expectedPullRequest) || expectedPullRequest < 1 || !validSha(expectedHead)) {
+    return result(["expected hosted pull-request identity is invalid"], { references });
+  }
+  const cursors = new Set();
+  for (const [index, page] of pages.entries()) {
+    const pullRequest = page?.data?.repository?.pullRequest;
+    if (pullRequest?.number !== expectedPullRequest || pullRequest?.headRefOid !== expectedHead) {
+      errors.push(`hosted closing-issue page ${index + 1} does not match exact PR #${expectedPullRequest} at ${expectedHead}`);
+      continue;
+    }
+    const connection = pullRequest.closingIssuesReferences;
+    if (!Array.isArray(connection?.nodes) || connection.nodes.length > 100
+        || typeof connection?.pageInfo?.hasNextPage !== "boolean") {
+      errors.push(`hosted closing-issue page ${index + 1} is malformed`);
+      continue;
+    }
+    const endCursor = connection.pageInfo.endCursor;
+    if (endCursor !== null && (typeof endCursor !== "string" || endCursor.length === 0 || endCursor.length > 1024)) {
+      errors.push(`hosted closing-issue page ${index + 1} has an invalid cursor`);
+    }
+    const last = index === pages.length - 1;
+    if (connection.pageInfo.hasNextPage === last) {
+      errors.push(`hosted closing-issue page ${index + 1} has inconsistent pagination state`);
+    }
+    if (connection.pageInfo.hasNextPage) {
+      const cursor = endCursor;
+      if (typeof cursor !== "string" || cursor.length === 0 || cursor.length > 1024 || cursors.has(cursor)) {
+        errors.push(`hosted closing-issue page ${index + 1} has an invalid or repeated cursor`);
+      } else {
+        cursors.add(cursor);
+      }
+    }
+    for (const reference of connection.nodes) {
+      const number = reference?.number;
+      const nameWithOwner = reference?.repository?.nameWithOwner;
+      if (!Number.isSafeInteger(number) || number < 1
+          || typeof nameWithOwner !== "string" || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(nameWithOwner)) {
+        errors.push(`hosted closing-issue page ${index + 1} contains an invalid reference`);
+        continue;
+      }
+      references.push({ number, repository: nameWithOwner });
+    }
+  }
+  if (references.length > maximumHostedClosingReferences) {
+    errors.push(`hosted closing-issue evidence exceeds ${maximumHostedClosingReferences} references`);
+  }
+  if (pages.length === maximumHostedClosingPages) {
+    const lastConnection = pages.at(-1)?.data?.repository?.pullRequest?.closingIssuesReferences;
+    if (lastConnection?.pageInfo?.hasNextPage) {
+      errors.push(`hosted closing-issue evidence exceeds ${maximumHostedClosingPages} pages`);
+    }
+  }
+  return result(errors, {
+    references: references.length <= maximumHostedClosingReferences ? references : [],
+    repository,
+  });
+}
+
+export function validateHostedIssueLinkage(linkage, references, issue, repository = repositorySlug) {
+  if (!linkage?.ok) return result(["hosted issue linkage requires valid authoritative metadata"]);
+  if (!Array.isArray(references)) return result(["hosted closing-issue references are unavailable"]);
+  const matching = references.filter((reference) => (
+    reference?.number === issue
+      && String(reference?.repository ?? "").toLowerCase() === repository.toLowerCase()
+  ));
+  if (linkage.mode === "closes" && (matching.length !== 1 || references.length !== 1)) {
+    return result([`hosted closing references must contain only issue #${issue}`]);
+  }
+  if (linkage.mode === "deferred" && matching.length !== 0) {
+    return result([`hosted closing references must not contain deferred issue #${issue}`]);
+  }
+  return result([]);
 }
 
 function requireEnv(name) {
@@ -273,11 +628,18 @@ function report(outcome) {
 function main() {
   const command = process.argv[2];
   if (command === "pr") {
+    const head = process.env.HEAD_SHA ?? "";
     const outcome = validatePullRequest({
       title: requireEnv("PR_TITLE"),
       body: process.env.PR_BODY ?? "",
       branch: requireEnv("PR_HEAD_REF"),
       actor: process.env.PR_ACTOR ?? "",
+    }, {
+      loadDeferredAcceptance: (sidecarPath) => readDeferredAcceptanceAt({
+        repository: root,
+        head,
+        sidecarPath,
+      }),
     });
     report(outcome);
     if (outcome.ok) process.stdout.write(`Contribution metadata valid: ${outcome.subject.type}(${outcome.subject.scope}).\n`);
@@ -296,14 +658,50 @@ function main() {
   }
   if (command === "hosted-commits") {
     const records = JSON.parse(readFileSync(requireEnv("COMMITS_FILE"), "utf8"));
+    const closingPages = JSON.parse(readFileSync(requireEnv("CLOSING_ISSUES_FILE"), "utf8"));
+    const head = requireEnv("HEAD_SHA");
+    const branch = validateBranchName(requireEnv("PR_HEAD_REF"), {
+      actor: process.env.PR_ACTOR ?? "",
+    });
+    let linkage;
+    if (!branch.ok) {
+      linkage = result(branch.errors.map((entry) => `branch: ${entry}`));
+    } else if (branch.exempt) {
+      linkage = result([], { mode: null });
+    } else if (branch.issue) {
+      linkage = validateIssueLinkage(process.env.PR_BODY ?? "", branch.issue, {
+        additionalClosingText: process.env.PR_TITLE ?? "",
+        loadDeferredAcceptance: (sidecarPath) => readDeferredAcceptanceAt({
+          repository: root,
+          head,
+          sidecarPath,
+        }),
+      });
+    } else {
+      linkage = result(["hosted commit evidence requires an issue branch"]);
+    }
     const outcome = validateHostedCommits(records, requireEnv("HEAD_SHA"), {
       baseSha: requireEnv("PR_BASE_SHA"),
       baseRef: requireEnv("PR_BASE_REF"),
       headRef: requireEnv("PR_HEAD_REF"),
       repository: root,
+      deferredIssue: linkage.ok && linkage.mode === "deferred" ? branch.issue : null,
     });
-    report(outcome);
-    if (outcome.ok) process.stdout.write(`Hosted commit policy passed for ${records.length} commit(s).\n`);
+    const hostedClosing = validateHostedClosingIssuePages(closingPages, {
+      expectedPullRequest: Number(requireEnv("PR_NUMBER")),
+      expectedHead: head,
+    });
+    const hostedLinkage = branch.exempt
+      ? result([])
+      : validateHostedIssueLinkage(linkage, hostedClosing.references, branch.issue);
+    const combined = result([
+      ...linkage.errors,
+      ...outcome.errors,
+      ...hostedClosing.errors,
+      ...hostedLinkage.errors,
+    ]);
+    report(combined);
+    if (combined.ok) process.stdout.write(`Hosted commit policy passed for ${records.length} commit(s).\n`);
     return;
   }
   if (command === "policy-monotonicity") {

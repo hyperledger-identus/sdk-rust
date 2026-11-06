@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 489
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "The standards pin, dependency qualification, ADR, roadmap correction, and implementation backlog add no production dependency, public API, wire behavior, release claim, or downstream mutation."
+ledger_ids     = [  ]

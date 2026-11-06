@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 578
+disposition    = "behavior-neutral"
+scope          = "tooling"
+rationale      = "The slice repairs canonical factory evidence after the repository's protected squash merge without changing SDK APIs, runtime behavior, wire formats, dependencies, targets, or consumer outcomes."
+ledger_ids     = [  ]

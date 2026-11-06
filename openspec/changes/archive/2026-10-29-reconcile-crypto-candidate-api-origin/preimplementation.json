@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 587,
+  "change": "reconcile-crypto-candidate-api-origin",
+  "branch": "codex/fix/issue-587",
+  "baseRef": "origin/develop",
+  "baseSha": "6ebd4633c987539689ae180fbccbb629572ca45a",
+  "contractHeadSha": "fe69d2f5c3b9d2a315e4f5fa583337297f90217a",
+  "createdAt": "2026-10-29T13:13:29.917Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-28
+goal: Select the bounded Rust implementation strategy for RFC 9901 and pin the independently versioned SD-JWT VC profile before production code is added.

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 586,
+  "change": "package-crypto-conformance-vectors",
+  "branch": "codex/fix/issue-586",
+  "baseRef": "origin/develop",
+  "baseSha": "6ebd4633c987539689ae180fbccbb629572ca45a",
+  "contractHeadSha": "d4ab4285d0b55149b7830bab77b88a29f4383c82",
+  "createdAt": "2026-10-29T12:26:44.116Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

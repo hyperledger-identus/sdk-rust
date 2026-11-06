@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "oracle": "affinidi-sd-jwt",
+  "version": "0.1.8",
+  "revision": "95fde42bd338f308ea0ce8473a85a92b2f5f5423",
+  "crateSha256": "b44d072f5e9be444fdf1e4c458175b567ded9f46119ab6c5b2b8cc6ad1ccb1cb",
+  "source": "tests/rfc9901_vectors.rs:rfc9901_parse_array_us",
+  "cases": [
+    {
+      "disclosure": "WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgIlVTIl0",
+      "digest": "pFndjkZ_VCzmyTa6UjlZo3dh-ko8aIKQc9DlGzhaVYo"
+    }
+  ]
+}

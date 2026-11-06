@@ -5,40 +5,59 @@ TBD - created by archiving change validate-oid4vp-final-routing. Update Purpose 
 ## Requirements
 ### Requirement: Authorization semantics are one consuming composed transition
 
-The SDK SHALL consume one `VerifiedRequestObject`, deserialize its already
-bounded duplicate-safe payload once, and return one state that preserves JAR
-evidence and owns one valid DCQL query.
+The SDK SHALL consume one verified and verifier-authorized Request Object,
+deserialize its already bounded duplicate-safe payload once, and return one
+state that preserves JAR evidence, owns one valid DCQL query, and retains any
+validated transaction-data linkage through caller-supplied capabilities.
 
 #### Scenario: one supported request is valid
 
-- **WHEN** a verified request has exact supported authorization fields,
-  direct-post routing, and one valid DCQL query
-- **THEN** the result owns the composed evidence without retaining or exposing
-  the raw payload
+- **WHEN** a verified request has supported authorization fields, coherent
+  routing, one valid DCQL query, and supported transaction/format semantics
+- **THEN** the result owns composed redacted evidence without exposing raw payload or foreign DTOs
 
 #### Scenario: a caller still needs query-only evidence
 
-- **WHEN** the existing DCQL-only transition is used
-- **THEN** its public behavior and narrower evidence claim remain unchanged
+- **WHEN** the existing DCQL-only transition is used with the baseline empty-metadata profile
+- **THEN** its narrower evidence claim and no-transaction behavior remain available
 
 ### Requirement: The first profile supports only VP token direct post
 
-The SDK SHALL require exact `response_type=vp_token`, exact
-`response_mode=direct_post`, one bounded valid nonce, one bounded absolute
-HTTPS `response_uri`, no `redirect_uri`, and one object-valued DCQL query with
-no scope-based selection.
+The SDK SHALL require exact `response_type=vp_token`, one supported exact
+response mode, one bounded valid nonce, one mode-matching bounded destination,
+and one object-valued DCQL query with no scope-based selection.
+
+For `direct_post` and `direct_post.jwt`, it SHALL require one absolute HTTPS
+`response_uri` and no `redirect_uri`. For `fragment`, `query`, and `form_post`,
+it SHALL require one absolute `redirect_uri` authorized by the exact verifier
+trust decision and no `response_uri`.
+
+It SHALL accept `direct_post.jwt` only with bounded verifier metadata that
+selects exactly one supported public recipient and content-encryption profile.
 
 #### Scenario: direct-post routing is coherent
 
 - **WHEN** every required value has the supported exact spelling and the
-  destination meets the HTTPS syntax policy
+  response destination meets the HTTPS syntax policy
 - **THEN** the result reports safe response enums and exposes retained strings
   only through explicitly sensitive accessors
 
+#### Scenario: redirect routing is coherent
+
+- **WHEN** `fragment`, `query`, or `form_post` carries one exact bounded
+  verifier-authorized redirect destination
+- **THEN** the result retains only that destination for the matching inert response constructor
+
+#### Scenario: protected direct-post metadata is coherent
+
+- **WHEN** `direct_post.jwt` metadata selects exactly one public P-256
+  `ECDH-ES` recipient and the A128GCM content-encryption profile
+- **THEN** the validated request privately retains the bounded encryption plan
+
 #### Scenario: routing is absent, conflicting, or unsupported
 
-- **WHEN** a required value is missing/malformed, an unsupported value is
-  supplied, or both response and redirect destinations are present
+- **WHEN** a required value is missing or malformed, an unsupported value is
+  supplied, the destination does not match the mode, or both destinations are present
 - **THEN** validation terminates with the corresponding static category
 
 #### Scenario: the nonce is invalid or outside policy
@@ -52,6 +71,18 @@ no scope-based selection.
 - **WHEN** `response_uri` is oversized, not absolute HTTPS, lacks a host, or
   contains user information or a fragment
 - **THEN** validation terminates without performing network work
+
+#### Scenario: the redirect URI is unsafe or outside policy
+
+- **WHEN** `redirect_uri` is oversized, not absolute, contains user information,
+  or violates mode-specific component/collision policy
+- **THEN** validation terminates without performing browser work
+
+#### Scenario: protected routing metadata is absent or ambiguous
+
+- **WHEN** `direct_post.jwt` metadata is absent, malformed, unsupported or
+  selects zero or multiple recipients
+- **THEN** validation terminates with a static category before response construction
 
 ### Requirement: Validation order and diagnostics are deterministic and redacted
 
@@ -82,3 +113,22 @@ consent, construct a presentation, or prove response safety.
 - **WHEN** a syntactically valid response URI would violate caller network
   policy
 - **THEN** the SDK state confers no permission to execute that request
+
+### Requirement: Authorization state retains bounded response lineage
+
+The SDK SHALL retain optional bounded `state` and only the private DCQL
+response-shape evidence needed by a consuming response transition while it
+constructs the existing composed authorization state.
+
+#### Scenario: bounded state is present
+
+- **WHEN** a supported request contains optional bounded state
+- **THEN** the composed result retains it for exact return by the consuming
+  response transition without exposing it in diagnostics
+
+#### Scenario: optional state is outside policy
+
+- **WHEN** `state` is empty, not a string, contains non-visible ASCII, or
+  exceeds the configured bound
+- **THEN** request validation fails with a stable redacted category before DCQL
+  response construction can occur

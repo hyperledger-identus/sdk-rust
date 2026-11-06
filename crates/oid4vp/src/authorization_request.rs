@@ -1,15 +1,21 @@
 //! Composed OpenID4VP Final authorization and direct-post routing evidence.
 
-use std::fmt;
+use std::{collections::BTreeSet, fmt};
 
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use fluent_uri::Uri as ParsedUri;
-use identus_jose::{JwsAlgorithm, ProtectedHeader};
+use identus_jose::{
+    JweContentEncryptionAlgorithm, JweKeyManagementAlgorithm, JweLimits, JweRecipientPublicKey,
+    JwsAlgorithm, ProtectedHeader,
+};
 use serde_json::{Map, Value};
 use zeroize::Zeroizing;
 
 use crate::{
-    AuthorizationRequestValidationLimits, DcqlLimits, Oid4vpError, ValidatedDcqlQuery,
-    VerifiedRequestObject,
+    AuthorizationRequestValidationLimits, ClientIdentifierScheme, CredentialFormatCapability,
+    DcqlLimits, DirectPostQueryResult, Oid4vpError, SelectedCredentialInput, TransactionBinding,
+    TransactionDataCapability, TransactionDataLimits, ValidatedDcqlQuery,
+    VerifierAuthorizationEvidence,
 };
 
 /// Supported OpenID4VP Authorization Response type.
@@ -21,15 +27,62 @@ pub enum AuthorizationResponseType {
 
 /// Supported OpenID4VP Authorization Response delivery mode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum AuthorizationResponseMode {
+    /// Parameters encoded into the redirect URI fragment.
+    Fragment,
+    /// Parameters encoded into the redirect URI query.
+    Query,
+    /// Form-encoded response material targeting the redirect URI.
+    FormPost,
     /// Form-encoded response sent to the request's response URI.
     DirectPost,
+    /// Form-encoded response carrying one unsigned encrypted JWT.
+    DirectPostJwt,
 }
 
-/// A signature-proven request with bounded Final authorization and routing.
+pub(crate) enum AuthorizationResponseDestination {
+    RedirectUri(Zeroizing<String>),
+    ResponseUri(Zeroizing<String>),
+}
+
+impl AuthorizationResponseDestination {
+    pub(crate) fn expose_sensitive(&self) -> &str {
+        match self {
+            Self::RedirectUri(value) | Self::ResponseUri(value) => value,
+        }
+    }
+}
+
+pub(crate) struct DirectPostEncryptionPlan {
+    pub(crate) recipient: JweRecipientPublicKey,
+    pub(crate) key_management: JweKeyManagementAlgorithm,
+    pub(crate) content_encryption: JweContentEncryptionAlgorithm,
+}
+
+struct AuthorizationValidationPolicy<'a> {
+    routing: AuthorizationRequestValidationLimits,
+    dcql: DcqlLimits,
+    jwe: JweLimits,
+    transaction: TransactionDataLimits,
+    scheme: ClientIdentifierScheme,
+    format_capabilities: &'a [&'a dyn CredentialFormatCapability],
+    transaction_capabilities: &'a [&'a dyn TransactionDataCapability],
+}
+
+pub(crate) type AuthorizationResponseParts = (
+    AuthorizationResponseDestination,
+    Option<Zeroizing<String>>,
+    ValidatedDcqlQuery,
+    AuthorizationResponseMode,
+    Option<DirectPostEncryptionPlan>,
+);
+
+/// A verifier-authorized request with bounded Final authorization and routing.
 ///
 /// This state proves the narrow `vp_token`/`direct_post` request profile and
-/// one valid DCQL query. It does not authorize the verifier key, trust or
+/// one valid DCQL query. It proves that a caller-owned policy accepted the
+/// exact verifier/key binding, but does not expose the policy's reasoning,
 /// execute the response endpoint, verify credentials, record consent, or
 /// construct a presentation response.
 pub struct ValidatedAuthorizationRequest {
@@ -40,12 +93,17 @@ pub struct ValidatedAuthorizationRequest {
     client_id: Zeroizing<String>,
     wallet_nonce: Option<Zeroizing<String>>,
     nonce: Zeroizing<String>,
-    response_uri: Zeroizing<String>,
+    state: Option<Zeroizing<String>>,
+    destination: AuthorizationResponseDestination,
     dcql_query: ValidatedDcqlQuery,
+    transaction_data: crate::transaction_data::ValidatedTransactionData,
+    transaction_query_ids: Vec<Zeroizing<String>>,
+    bound_transaction_query_ids: Option<Vec<Zeroizing<String>>>,
+    encryption_plan: Option<DirectPostEncryptionPlan>,
 }
 
-impl VerifiedRequestObject {
-    /// Consume verified JAR evidence into one bounded Final request state.
+impl VerifierAuthorizationEvidence {
+    /// Consume security-validated JAR evidence into one bounded Final request state.
     ///
     /// # Errors
     ///
@@ -57,13 +115,88 @@ impl VerifiedRequestObject {
         routing_limits: AuthorizationRequestValidationLimits,
         dcql_limits: DcqlLimits,
     ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
-        let parts = self.into_parts();
+        self.into_authorization_request_with_jwe_limits(
+            routing_limits,
+            dcql_limits,
+            JweLimits::default(),
+        )
+    }
+
+    /// Consume verified JAR evidence with an explicit encrypted-response policy.
+    pub fn into_authorization_request_with_jwe_limits(
+        self,
+        routing_limits: AuthorizationRequestValidationLimits,
+        dcql_limits: DcqlLimits,
+        jwe_limits: JweLimits,
+    ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
+        self.into_authorization_request_with_capabilities_and_jwe_limits(
+            routing_limits,
+            dcql_limits,
+            jwe_limits,
+            &[],
+        )
+    }
+
+    /// Consume verified JAR evidence with credential-format capabilities.
+    pub fn into_authorization_request_with_capabilities(
+        self,
+        routing_limits: AuthorizationRequestValidationLimits,
+        dcql_limits: DcqlLimits,
+        format_capabilities: &[&dyn CredentialFormatCapability],
+    ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
+        self.into_authorization_request_with_capabilities_and_jwe_limits(
+            routing_limits,
+            dcql_limits,
+            JweLimits::default(),
+            format_capabilities,
+        )
+    }
+
+    /// Consume verified JAR evidence with explicit JWE and format policies.
+    pub fn into_authorization_request_with_capabilities_and_jwe_limits(
+        self,
+        routing_limits: AuthorizationRequestValidationLimits,
+        dcql_limits: DcqlLimits,
+        jwe_limits: JweLimits,
+        format_capabilities: &[&dyn CredentialFormatCapability],
+    ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
+        self.into_authorization_request_with_transaction_capabilities(
+            routing_limits,
+            dcql_limits,
+            jwe_limits,
+            TransactionDataLimits::default(),
+            format_capabilities,
+            &[],
+        )
+    }
+
+    /// Consume verified JAR evidence with complete transaction and format ports.
+    pub fn into_authorization_request_with_transaction_capabilities(
+        self,
+        routing_limits: AuthorizationRequestValidationLimits,
+        dcql_limits: DcqlLimits,
+        jwe_limits: JweLimits,
+        transaction_limits: TransactionDataLimits,
+        format_capabilities: &[&dyn CredentialFormatCapability],
+        transaction_capabilities: &[&dyn TransactionDataCapability],
+    ) -> Result<ValidatedAuthorizationRequest, Oid4vpError> {
+        let (security, scheme) = self.into_parts();
+        let parts = security.into_request().into_parts();
         let Value::Object(request) = serde_json::from_slice(parts.payload.as_slice())
             .map_err(|_| Oid4vpError::InvalidRequestObjectPayload)?
         else {
             return Err(Oid4vpError::InvalidRequestObjectPayload);
         };
-        ValidatedAuthorizationRequest::from_request_map(request, parts, routing_limits, dcql_limits)
+        let policy = AuthorizationValidationPolicy {
+            routing: routing_limits,
+            dcql: dcql_limits,
+            jwe: jwe_limits,
+            transaction: transaction_limits,
+            scheme,
+            format_capabilities,
+            transaction_capabilities,
+        };
+        ValidatedAuthorizationRequest::from_request_map(request, parts, policy)
     }
 }
 
@@ -71,14 +204,29 @@ impl ValidatedAuthorizationRequest {
     fn from_request_map(
         request: Map<String, Value>,
         parts: crate::request_object::VerifiedRequestObjectParts,
-        routing_limits: AuthorizationRequestValidationLimits,
-        dcql_limits: DcqlLimits,
+        policy: AuthorizationValidationPolicy<'_>,
     ) -> Result<Self, Oid4vpError> {
         let response_type = validate_response_type(&request)?;
         let response_mode = validate_response_mode(&request)?;
-        let nonce = validate_nonce(&request, routing_limits)?;
-        let response_uri = validate_response_destination(&request, routing_limits)?;
-        let dcql_query = ValidatedDcqlQuery::from_request_map(request, dcql_limits)?;
+        let nonce = validate_nonce(&request, policy.routing)?;
+        let state = validate_state(&request, policy.routing)?;
+        let destination = validate_response_destination(&request, response_mode, policy.routing)?;
+        let encryption_plan =
+            validate_encryption_plan(&request, response_mode, policy.jwe, policy.scheme)?;
+        let dcql_query = ValidatedDcqlQuery::from_request_map_with_capabilities(
+            request.clone(),
+            policy.dcql,
+            policy.format_capabilities,
+        )?;
+        let transaction_data = crate::transaction_data::ValidatedTransactionData::parse(
+            &request,
+            &dcql_query,
+            policy.transaction,
+            policy.format_capabilities,
+            policy.transaction_capabilities,
+        )?;
+        let transaction_query_ids = transaction_data.referenced_query_ids();
+        let bound_transaction_query_ids = transaction_data.is_empty().then(Vec::new);
 
         Ok(Self {
             response_type,
@@ -88,8 +236,13 @@ impl ValidatedAuthorizationRequest {
             client_id: parts.client_id,
             wallet_nonce: parts.wallet_nonce,
             nonce,
-            response_uri,
+            state,
+            destination,
             dcql_query,
+            transaction_data,
+            transaction_query_ids,
+            bound_transaction_query_ids,
+            encryption_plan,
         })
     }
 
@@ -128,17 +281,117 @@ impl ValidatedAuthorizationRequest {
         &self.nonce
     }
 
+    /// Explicitly reveal the exact signed OAuth state, when present.
+    pub fn expose_sensitive_state(&self) -> Option<&str> {
+        self.state.as_ref().map(|state| state.as_str())
+    }
+
     /// Explicitly reveal the syntactically validated HTTPS response URI.
     ///
     /// This accessor confers no authority to perform network I/O. Callers own
     /// DNS, address policy, TLS, redirects, timeouts, and SSRF defenses.
-    pub fn expose_sensitive_response_uri(&self) -> &str {
-        &self.response_uri
+    pub fn expose_sensitive_response_uri(&self) -> Option<&str> {
+        match &self.destination {
+            AuthorizationResponseDestination::ResponseUri(value) => Some(value),
+            AuthorizationResponseDestination::RedirectUri(_) => None,
+        }
+    }
+
+    /// Explicitly reveal the syntactically validated redirect URI, when selected.
+    ///
+    /// This accessor confers no authority to navigate, render, or submit data.
+    pub fn expose_sensitive_redirect_uri(&self) -> Option<&str> {
+        match &self.destination {
+            AuthorizationResponseDestination::RedirectUri(value) => Some(value),
+            AuthorizationResponseDestination::ResponseUri(_) => None,
+        }
+    }
+
+    /// Explicitly reveal the exact signed response destination.
+    ///
+    /// This accessor confers no authority to perform transport, navigation, or
+    /// rendering. The selected response mode determines whether the value came
+    /// from `response_uri` or `redirect_uri`.
+    pub fn expose_sensitive_response_destination(&self) -> &str {
+        self.destination.expose_sensitive()
     }
 
     /// Borrow the bounded structurally validated DCQL query.
     pub const fn dcql_query(&self) -> &ValidatedDcqlQuery {
         &self.dcql_query
+    }
+
+    /// Number of validated transaction-data entries retained by the request.
+    pub fn transaction_data_count(&self) -> usize {
+        self.transaction_data.len()
+    }
+
+    /// Consume the request after validating selected DCQL inputs and return
+    /// exact format-proof binding material beside response-capable lineage.
+    pub fn bind_transaction_data(
+        mut self,
+        selections: &[SelectedCredentialInput],
+    ) -> Result<(Self, Vec<TransactionBinding>), Oid4vpError> {
+        let bindings = self
+            .transaction_data
+            .bindings(selections, &self.dcql_query)?;
+        let query_ids = bindings
+            .iter()
+            .map(|binding| binding.expose_sensitive_query_id())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .map(|query_id| Zeroizing::new(query_id.to_owned()))
+            .collect();
+        self.bound_transaction_query_ids = Some(query_ids);
+        Ok((self, bindings))
+    }
+
+    pub(crate) fn into_success_response_parts(
+        self,
+        results: &[DirectPostQueryResult],
+    ) -> Result<AuthorizationResponseParts, Oid4vpError> {
+        let bound_query_ids = self
+            .bound_transaction_query_ids
+            .as_ref()
+            .ok_or(Oid4vpError::InvalidTransactionData)?;
+        let bound_query_ids = bound_query_ids
+            .iter()
+            .map(|query_id| query_id.as_str())
+            .collect::<BTreeSet<_>>();
+        let transaction_query_ids = self
+            .transaction_query_ids
+            .iter()
+            .map(|query_id| query_id.as_str())
+            .collect::<BTreeSet<_>>();
+        for query_id in &bound_query_ids {
+            if !results
+                .iter()
+                .any(|result| result.expose_sensitive_query_id() == *query_id)
+            {
+                return Err(Oid4vpError::InvalidTransactionData);
+            }
+        }
+        for result in results {
+            let query_id = result.expose_sensitive_query_id();
+            if transaction_query_ids.contains(query_id) && !bound_query_ids.contains(query_id) {
+                return Err(Oid4vpError::InvalidTransactionData);
+            }
+        }
+        Ok(self.into_response_parts())
+    }
+
+    pub(crate) fn into_error_response_parts(self) -> AuthorizationResponseParts {
+        self.into_response_parts()
+    }
+
+    fn into_response_parts(self) -> AuthorizationResponseParts {
+        (
+            self.destination,
+            self.state,
+            self.dcql_query,
+            self.response_mode,
+            self.encryption_plan,
+        )
     }
 }
 
@@ -156,13 +409,40 @@ impl fmt::Debug for ValidatedAuthorizationRequest {
             .field("client_id_len", &self.client_id.len())
             .field("has_wallet_nonce", &self.wallet_nonce.is_some())
             .field("nonce_len", &self.nonce.len())
-            .field("response_uri_len", &self.response_uri.len())
+            .field("has_state", &self.state.is_some())
+            .field(
+                "response_destination_len",
+                &self.destination.expose_sensitive().len(),
+            )
             .field(
                 "credential_query_count",
                 &self.dcql_query.credential_query_count(),
             )
+            .field("has_encryption_plan", &self.encryption_plan.is_some())
+            .field("transaction_data_count", &self.transaction_data.len())
+            .field(
+                "transaction_data_bound",
+                &self.bound_transaction_query_ids.is_some(),
+            )
             .finish_non_exhaustive()
     }
+}
+
+fn validate_state(
+    request: &Map<String, Value>,
+    limits: AuthorizationRequestValidationLimits,
+) -> Result<Option<Zeroizing<String>>, Oid4vpError> {
+    let Some(value) = request.get("state") else {
+        return Ok(None);
+    };
+    let state = value.as_str().ok_or(Oid4vpError::InvalidState)?;
+    if state.len() > limits.max_state_bytes() {
+        return Err(Oid4vpError::StateTooLarge);
+    }
+    if state.is_empty() || !state.bytes().all(|byte| matches!(byte, 0x20..=0x7e)) {
+        return Err(Oid4vpError::InvalidState);
+    }
+    Ok(Some(Zeroizing::new(state.to_owned())))
 }
 
 fn validate_response_type(
@@ -184,9 +464,152 @@ fn validate_response_mode(
         .get("response_mode")
         .ok_or(Oid4vpError::MissingResponseMode)?;
     match value.as_str() {
+        Some("fragment") => Ok(AuthorizationResponseMode::Fragment),
+        Some("query") => Ok(AuthorizationResponseMode::Query),
+        Some("form_post") => Ok(AuthorizationResponseMode::FormPost),
         Some("direct_post") => Ok(AuthorizationResponseMode::DirectPost),
+        Some("direct_post.jwt") => Ok(AuthorizationResponseMode::DirectPostJwt),
         _ => Err(Oid4vpError::UnsupportedResponseMode),
     }
+}
+
+fn validate_encryption_plan(
+    request: &Map<String, Value>,
+    mode: AuthorizationResponseMode,
+    limits: JweLimits,
+    scheme: ClientIdentifierScheme,
+) -> Result<Option<DirectPostEncryptionPlan>, Oid4vpError> {
+    if mode != AuthorizationResponseMode::DirectPostJwt {
+        return Ok(None);
+    }
+    if matches!(
+        scheme,
+        ClientIdentifierScheme::OpenIdFederation | ClientIdentifierScheme::PreRegistered
+    ) {
+        return Err(Oid4vpError::InvalidVerifierMetadata);
+    }
+    let metadata = request
+        .get("client_metadata")
+        .and_then(Value::as_object)
+        .ok_or(Oid4vpError::InvalidRequestObjectPayload)?;
+    validate_content_encryption(metadata)?;
+    let keys = metadata
+        .get("jwks")
+        .and_then(Value::as_object)
+        .and_then(|jwks| jwks.get("keys"))
+        .and_then(Value::as_array)
+        .ok_or(Oid4vpError::InvalidRequestObjectPayload)?;
+    if keys.is_empty() || keys.len() > 16 {
+        return Err(Oid4vpError::InvalidRequestObjectPayload);
+    }
+
+    let mut selected = None;
+    for value in keys {
+        let key = value
+            .as_object()
+            .ok_or(Oid4vpError::InvalidRequestObjectPayload)?;
+        if contains_private_jwk_material(key) {
+            return Err(Oid4vpError::InvalidRequestObjectPayload);
+        }
+        if !is_supported_recipient(key)? {
+            continue;
+        }
+        if selected.is_some() {
+            return Err(Oid4vpError::InvalidRequestObjectPayload);
+        }
+        let x = decode_coordinate(key.get("x"))?;
+        let y = decode_coordinate(key.get("y"))?;
+        let kid = key
+            .get("kid")
+            .map(|value| {
+                value
+                    .as_str()
+                    .ok_or(Oid4vpError::InvalidRequestObjectPayload)
+            })
+            .transpose()?;
+        selected = Some(
+            JweRecipientPublicKey::p256_coordinates(&x, &y, kid, limits)
+                .map_err(|_| Oid4vpError::InvalidRequestObjectPayload)?,
+        );
+    }
+    let recipient = selected.ok_or(Oid4vpError::InvalidRequestObjectPayload)?;
+    Ok(Some(DirectPostEncryptionPlan {
+        recipient,
+        key_management: JweKeyManagementAlgorithm::EcdhEs,
+        content_encryption: JweContentEncryptionAlgorithm::A128Gcm,
+    }))
+}
+
+fn validate_content_encryption(metadata: &Map<String, Value>) -> Result<(), Oid4vpError> {
+    let Some(values) = metadata.get("encrypted_response_enc_values_supported") else {
+        return Ok(());
+    };
+    let values = values
+        .as_array()
+        .ok_or(Oid4vpError::InvalidRequestObjectPayload)?;
+    if values.is_empty() || values.len() > 16 {
+        return Err(Oid4vpError::InvalidRequestObjectPayload);
+    }
+    let mut supported = 0_usize;
+    let mut seen = std::collections::BTreeSet::new();
+    for value in values {
+        let value = value
+            .as_str()
+            .ok_or(Oid4vpError::InvalidRequestObjectPayload)?;
+        if value.is_empty() || !seen.insert(value) {
+            return Err(Oid4vpError::InvalidRequestObjectPayload);
+        }
+        supported += usize::from(value == "A128GCM");
+    }
+    if supported != 1 {
+        return Err(Oid4vpError::UnsupportedResponseMode);
+    }
+    Ok(())
+}
+
+fn contains_private_jwk_material(key: &Map<String, Value>) -> bool {
+    ["d", "p", "q", "dp", "dq", "qi", "oth", "k"]
+        .iter()
+        .any(|name| key.contains_key(*name))
+}
+
+fn is_supported_recipient(key: &Map<String, Value>) -> Result<bool, Oid4vpError> {
+    if key.get("kty").and_then(Value::as_str) != Some("EC")
+        || key.get("crv").and_then(Value::as_str) != Some("P-256")
+        || key.get("alg").and_then(Value::as_str) != Some("ECDH-ES")
+    {
+        return Ok(false);
+    }
+    if key
+        .get("use")
+        .is_some_and(|value| value.as_str() != Some("enc"))
+    {
+        return Ok(false);
+    }
+    if let Some(operations) = key.get("key_ops") {
+        let operations = operations
+            .as_array()
+            .ok_or(Oid4vpError::InvalidRequestObjectPayload)?;
+        let compatible = operations
+            .iter()
+            .any(|value| matches!(value.as_str(), Some("deriveKey" | "deriveBits")));
+        if !compatible {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+fn decode_coordinate(value: Option<&Value>) -> Result<[u8; 32], Oid4vpError> {
+    let encoded = value
+        .and_then(Value::as_str)
+        .ok_or(Oid4vpError::InvalidRequestObjectPayload)?;
+    let decoded = URL_SAFE_NO_PAD
+        .decode(encoded)
+        .map_err(|_| Oid4vpError::InvalidRequestObjectPayload)?;
+    decoded
+        .try_into()
+        .map_err(|_| Oid4vpError::InvalidRequestObjectPayload)
 }
 
 fn validate_nonce(
@@ -213,21 +636,51 @@ const fn is_unreserved_ascii(byte: u8) -> bool {
 
 fn validate_response_destination(
     request: &Map<String, Value>,
+    mode: AuthorizationResponseMode,
     limits: AuthorizationRequestValidationLimits,
-) -> Result<Zeroizing<String>, Oid4vpError> {
-    if request.contains_key("redirect_uri") {
+) -> Result<AuthorizationResponseDestination, Oid4vpError> {
+    let response_uri = request.get("response_uri");
+    let redirect_uri = request.get("redirect_uri");
+    if response_uri.is_some() && redirect_uri.is_some() {
         return Err(Oid4vpError::ConflictingResponseDestination);
     }
-    let response_uri = request
-        .get("response_uri")
-        .ok_or(Oid4vpError::MissingResponseUri)?
-        .as_str()
-        .ok_or(Oid4vpError::UnsafeResponseUri)?;
-    if response_uri.len() > limits.max_response_uri_bytes() {
+    let (value, is_redirect) = match mode {
+        AuthorizationResponseMode::DirectPost | AuthorizationResponseMode::DirectPostJwt => {
+            (response_uri.ok_or(Oid4vpError::MissingResponseUri)?, false)
+        }
+        AuthorizationResponseMode::Fragment
+        | AuthorizationResponseMode::Query
+        | AuthorizationResponseMode::FormPost => {
+            (redirect_uri.ok_or(Oid4vpError::MissingResponseUri)?, true)
+        }
+    };
+    let value = value.as_str().ok_or(Oid4vpError::UnsafeResponseUri)?;
+    if value.len() > limits.max_response_uri_bytes() {
         return Err(Oid4vpError::ResponseUriTooLarge);
     }
-    validate_https_response_uri(response_uri)?;
-    Ok(Zeroizing::new(response_uri.to_owned()))
+    if is_redirect {
+        validate_absolute_redirect_uri(value)?;
+        Ok(AuthorizationResponseDestination::RedirectUri(
+            Zeroizing::new(value.to_owned()),
+        ))
+    } else {
+        validate_https_response_uri(value)?;
+        Ok(AuthorizationResponseDestination::ResponseUri(
+            Zeroizing::new(value.to_owned()),
+        ))
+    }
+}
+
+fn validate_absolute_redirect_uri(value: &str) -> Result<(), Oid4vpError> {
+    let parsed = ParsedUri::parse(value).map_err(|_| Oid4vpError::UnsafeResponseUri)?;
+    if parsed.scheme().as_str().is_empty()
+        || parsed
+            .authority()
+            .is_some_and(|authority| authority.userinfo().is_some())
+    {
+        return Err(Oid4vpError::UnsafeResponseUri);
+    }
+    Ok(())
 }
 
 fn validate_https_response_uri(value: &str) -> Result<(), Oid4vpError> {

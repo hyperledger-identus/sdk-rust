@@ -42,9 +42,11 @@ def copy_fixture(destination: Path) -> None:
         "docs/release/release-trains.toml",
         "docs/release/did-candidate.toml",
         "docs/release/did-candidate.lock",
+        "docs/release/did-api-origin-rebaseline.toml",
         "docs/release/identus-did-0.1.0-rc.1.api.txt",
         "docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt",
         "docs/release/crypto-candidate.toml",
+        "docs/release/identus-crypto-0.1.0-rc.1.api.txt",
         "docs/adr/0153-use-primary-package-tags-for-independent-release-trains.md",
         "docs/adr/0154-use-first-candidate-api-snapshots-as-semver-origin.md",
         "docs/adr/0155-qualify-staged-did-candidate-matrix.md",
@@ -88,7 +90,7 @@ def rebind_lock_digest(root: Path) -> None:
     descriptor = root / "docs/release/did-candidate.toml"
     replace(
         descriptor,
-        'staged_lock_sha256       = "1f1d4206e2ced5bd74675d654876684536dd8f82bf79cd6de4c2fa67db904447"',
+        'staged_lock_sha256       = "f7535a6819c9b9e4474c95b427b54646d46ccac51703c680086ef75c790fba4f"',
         f'staged_lock_sha256       = "{digest}"',
     )
 
@@ -465,6 +467,40 @@ def main() -> int:
                 "DID descriptor differs: compatibility_status",
             ),
             (
+                lambda root: (root / "docs/release/did-api-origin-rebaseline.toml").unlink(),
+                "DID API-origin rebaseline must be a regular repository file",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-api-origin-rebaseline.toml",
+                    'classification = "additive-only"',
+                    'classification = "compatible"',
+                ),
+                "DID API-origin rebaseline evidence differs",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-api-origin-rebaseline.toml",
+                    'pub identus_did::JsonWireError::Malformed',
+                    'pub identus_did::JsonWireError::Other',
+                ),
+                "DID API-origin rebaseline evidence differs",
+            ),
+            (
+                lambda root: append(
+                    root / "docs/release/identus-did-0.1.0-rc.1.api.txt", "\n# drift\n",
+                ),
+                "DID API-origin rebaseline digest differs from current baseline",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/did-candidate.toml",
+                    'api_origin_rebaseline    = "docs/release/did-api-origin-rebaseline.toml"',
+                    'api_origin_rebaseline    = "docs/release/missing.toml"',
+                ),
+                "DID descriptor differs: api_origin_rebaseline",
+            ),
+            (
                 lambda root: (root / "docs/release/did-candidate.lock").unlink(),
                 "DID staged lock must be a regular repository file",
             ),
@@ -536,6 +572,14 @@ def main() -> int:
                     root / ".github/workflows/nix-checks.yml", "\npull_request:\n",
                 ),
                 "slow workflow must not gain a pull_request trigger",
+            ),
+            (
+                lambda root: replace(
+                    root / ".github/workflows/nix-checks.yml",
+                    "      - name: Upload candidate evidence\n        if: ${{ always() }}\n",
+                    "      - name: Upload candidate evidence\n",
+                ),
+                "slow workflow must retain crypto candidate evidence after failure",
             ),
             (
                 lambda root: replace(
@@ -751,6 +795,21 @@ def main() -> int:
                     'release_tag              = "identus-crypto-v0.1.0-rc.1"',
                 ),
                 "immutable crypto descriptor tag differs",
+            ),
+            (
+                lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'api_baseline_status      = "published-origin"',
+                    'api_baseline_status      = "unpublished-origin"',
+                ),
+                "immutable crypto descriptor api_baseline_status differs",
+            ),
+            (
+                lambda root: append(
+                    root / "docs/release/identus-crypto-0.1.0-rc.1.api.txt",
+                    "# drift\n",
+                ),
+                "published crypto API baseline digest differs",
             ),
         )
         for position, (mutation, expected) in enumerate(cases):

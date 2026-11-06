@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 572,
+  "change": "qualify-legacy-vc-sd-jwt-adapter",
+  "branch": "codex/feat/issue-572",
+  "baseRef": "origin/develop",
+  "baseSha": "0fa814d1ab1872717d56c420a40884060ddcb14e",
+  "contractHeadSha": "40ab7733380e946b9fd0fd0f1b87f9292be09e17",
+  "createdAt": "2026-10-29T01:54:26.921Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import shutil
 import tempfile
 from pathlib import Path
@@ -47,6 +48,7 @@ def copy_fixture(destination: Path) -> None:
         "crates/core/README.md",
         "crates/crypto/Cargo.toml",
         "crates/crypto/README.md",
+        "crates/crypto/tests/fixtures/crypto/v1/vectors.json",
     )
     for relative in files:
         target = destination / relative
@@ -73,6 +75,10 @@ def replace_all(path: Path, old: str, new: str) -> None:
     if old not in source:
         raise AssertionError(f"fixture text not found: {old}")
     path.write_text(source.replace(old, new), encoding="utf-8")
+
+
+def append(path: Path, text: str) -> None:
+    path.write_text(path.read_text(encoding="utf-8") + text, encoding="utf-8")
 
 
 def has_git_ancestor(path: Path) -> bool:
@@ -117,6 +123,40 @@ def main() -> int:
                 pass
             else:
                 raise AssertionError(f"invalid {tool} preparation version was accepted")
+        additive = runner.classify_public_api("a\na\nb\n", "a\na\nb\nc\n")
+        assert additive == {
+            "classification": "additive-compatible",
+            "added": ["c"],
+            "removed": [],
+        }
+        duplicate_removal = runner.classify_public_api("a\na\nb\n", "a\nb\n")
+        assert duplicate_removal["classification"] == "incompatible"
+        assert duplicate_removal["removed"] == ["a"]
+        equal = runner.classify_public_api("a\nb\n", "a\nb\n")
+        assert equal == {"classification": "equal", "added": [], "removed": []}
+        rejected = {
+            "classification": "incompatible",
+            "added": [],
+            "removed": ["published item"],
+        }
+        rejection_bytes = runner.encode_api_compatibility(rejected, 1024)
+        assert json.loads(rejection_bytes) == rejected
+        try:
+            runner.encode_api_compatibility(rejected, len(rejection_bytes) - 1)
+        except runner.CandidateError:
+            pass
+        else:
+            raise AssertionError("oversized API compatibility evidence was accepted")
+        rejection = runner.ApiCompatibilityError("incompatible", rejection_bytes)
+        assert rejection.evidence == rejection_bytes
+        try:
+            runner.require_api_initialization_allowed(
+                {"api_baseline_status": "published-origin"}, True
+            )
+        except runner.CandidateError:
+            pass
+        else:
+            raise AssertionError("published API origin initialization was accepted")
         foreign_repository = test_root / "foreign-repository"
         foreign_scratch = foreign_repository / "temporary/build"
         foreign_scratch.mkdir(parents=True)
@@ -134,6 +174,35 @@ def main() -> int:
             raise AssertionError(f"valid fixture failed: {errors!r}")
 
         cases = (
+            (
+                lambda root: replace(
+                    root / "docs/release/crypto-candidate.toml",
+                    'api_baseline_status      = "published-origin"',
+                    'api_baseline_status      = "unpublished-origin"',
+                ),
+                "descriptor api_baseline_status",
+            ),
+            (
+                lambda root: append(
+                    root / "docs/release/identus-crypto-0.1.0-rc.1.api.txt",
+                    "# drift\n",
+                ),
+                "published public API baseline digest differs",
+            ),
+            (
+                lambda root: replace(
+                    root / "scripts/prepare-crypto-candidate.py",
+                    "except ApiCompatibilityError as error:",
+                    "except CandidateError as error:",
+                ),
+                "except ApiCompatibilityError as error:",
+            ),
+            (
+                lambda root: (
+                    root / "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
+                ).unlink(),
+                "cannot read canonical crypto packet",
+            ),
             (
                 lambda root: replace(
                     root / "docs/release/crypto-candidate.toml",
@@ -242,8 +311,8 @@ def main() -> int:
             (
                 lambda root: replace(
                     root / "docs/release/crypto-candidate.toml",
-                    'name          = "identus-crypto"',
-                    'name          = "identus-unknown"',
+                    'name           = "identus-crypto"',
+                    'name           = "identus-unknown"',
                 ),
                 "descriptor package metadata is missing",
             ),

@@ -6,8 +6,9 @@
 [`platform-core-adoption-milestones.toml`](platform-core-adoption-milestones.toml)
 
 **Architecture:** ADRs [0170](../adr/0170-make-rust-contracts-canonical-and-language-adapters-transitional.md),
-[0171](../adr/0171-own-a-portable-effect-driven-agent-runtime.md), and
-[0172](../adr/0172-version-didcomm-engine-and-application-protocols-separately.md)
+[0171](../adr/0171-own-a-portable-effect-driven-agent-runtime.md),
+[0172](../adr/0172-version-didcomm-engine-and-application-protocols-separately.md),
+and [0174](../adr/0174-separate-peer-and-prism-did-method-ownership.md)
 
 ## Why milestones are capability proofs
 
@@ -41,8 +42,8 @@ cannot skip a predecessor contract or proof.
 | --- | --- | --- | --- |
 | A0 | Correct canonical ownership, adapters, DID/DIDComm/runtime boundaries, quality rules, and this roadmap | #497 | offline inventories reject donor-shaped ownership and incomplete milestone records |
 | A1 | Shared compatibility foundation: vector catalog, change ledger, adapter/error mapping rules, and risk-routed evidence plan | #504 with #420, #422, #501, #505 | four versioned contracts form one immutable, consumer-ready DID packet |
-| A2 | Portable DID platform: complete generic DID domain/service binding sequence, peer DID, and separately bounded Prism portable semantics | #492, #493 | SDK-TS DID facade and one native binding use Rust without duplicated DID semantics |
-| A3 | Credential format engines: RFC 9901 base, pinned SD-JWT VC profile, bounded legacy adapter, and independently qualified AnonCreds 1.0 facade | #489, #490 | shared cross-language issuance/presentation vectors pass for each delivered format |
+| A2 | Portable DID platform: generic DID bindings, versioned peer profiles, and separately bounded PRISM method, VDR, and indexer capabilities | #420, #492, #493, #501, #524, #521, #522, #523 | SDK-TS DID facade and a measured NeoPRISM path use Rust without duplicated covered semantics |
+| A3 | Credential format engines: RFC 9901 base, pinned SD-JWT VC profile, named-consumer-gated legacy adapter, and independently qualified AnonCreds 1.0 facade | #489, #568, #569, #490 | shared cross-language issuance/presentation vectors pass for each delivered format |
 | A4 | DIDComm v2.1 core: qualified engine facade, DID/secret ports, pack/unpack/routing, attachment/resource/error contracts | #491 | immutable existing agent/Mediator endpoint interoperates with exact engine capabilities |
 | A5 | Portable agent kernel: deterministic events/transitions/effects/checkpoints and multi-executor contract | #498 | one fixture produces identical results in reference, native-async, and WASM-shaped executors |
 | A6 | Versioned DIDComm application protocols delivered one bounded state machine at a time | #500, #419 | selected existing Cloud Agent/Mediator issue, present, revoke, and mediation/pickup E2E flows pass at pinned versions |
@@ -103,10 +104,18 @@ do not wait for every future protocol and do not mutate SDK-TS inside A1.
 ### A2 — portable DID platform
 
 Keep #492's value-only path as the first canary, then create separate slices
-for documents/verification relationships/services, resolver/dereferencer/
-registrar ports, peer DID, and method adapters. #493 decides exact peer DID
-numalgos and whether `did-peer` is a dependency or differential oracle. Prism
-portable codec/method work remains separate from Cardano/indexer/node effects.
+for documents/verification relationships/services and resolver/dereferencer/
+registrar ports. Issue #523 delivers peer DID numalgo 4 as the current profile
+and opt-in numalgo 2 compatibility; `did-peer` and `equs-vcx-did-peer` are
+differential oracles, not public dependencies. Issue #521 owns portable PRISM
+syntax, protobufs, CRUD, validation, state reduction, and document projection,
+after #524 establishes compatible finite generic DID and PRISM long-form
+budgets without widening the generic crypto text codec.
+Issue #522 then owns PRISM-specific VDR semantics and deterministic bounded
+indexing behind ports. Concrete Cardano clients, database adapters, HTTP/CLI,
+deployment, and node orchestration stay in NeoPRISM initially. A released SDK
+pin and same-snapshot correctness and QoS comparison must precede deletion of
+covered NeoPRISM behavior.
 
 ### A3 — credential format engines
 
@@ -115,6 +124,14 @@ separately pinned VC profile, and evidence-driven legacy `vc+sd-jwt` adapter.
 AnonCreds targets current 1.0 behavior and a maintained Rust engine with VDR,
 link-secret, revocation, native/mobile/WASM, and supply-chain boundaries. One
 format does not block the other's research or delivery.
+
+Issue #489 and ADR 0193 completed the SD-JWT build-versus-adopt decision:
+implement a focused Identus-owned RFC 9901 engine in #568, then the exact
+draft-22 profile in #569. Assessed crates remain immutable differential
+oracles. A legacy adapter is not an unconditional milestone deliverable: #569
+first requires a named released consumer and records `not-activated` otherwise.
+The milestone remains planned until executable base/profile evidence and
+consumer adoption exist; research completion is not implementation completion.
 
 ### A4 — DIDComm v2.1 core
 

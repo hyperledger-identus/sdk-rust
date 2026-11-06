@@ -14,6 +14,26 @@ ROOT = Path(__file__).resolve().parents[2]
 CHECKER = ROOT / "scripts/check-cross-language-vectors.py"
 CATALOG = ROOT / "docs/conformance/cross-language-vector-catalog.toml"
 PACKET = ROOT / "docs/conformance/fixtures/did/v1/vectors.json"
+PEER_PACKET = ROOT / "docs/conformance/fixtures/did-peer/v1/vectors.json"
+DID_KEY_PACKET = ROOT / "docs/conformance/fixtures/did-key/v1/vectors.json"
+DID_WEB_PACKET = ROOT / "docs/conformance/fixtures/did-web/v1/vectors.json"
+DID_JWK_PACKET = ROOT / "docs/conformance/fixtures/did-jwk/v1/vectors.json"
+PRISM_PACKET = ROOT / "docs/conformance/fixtures/did-prism/v1/vectors.json"
+CRYPTO_PACKET = ROOT / "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
+PRISM_VDR_INDEXING_PACKET = ROOT / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+OID4VP_DIRECT_POST_PACKET = ROOT / "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+OID4VP_ENCRYPTED_DIRECT_POST_PACKET = (
+    ROOT / "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
+)
+OID4VP_TRANSACTION_FORMAT_PACKET = (
+    ROOT / "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+)
+SIOPV2_PACKET = ROOT / "docs/conformance/fixtures/siopv2/v1/vectors.json"
+SD_JWT_PACKET = ROOT / "docs/conformance/fixtures/sd-jwt-rfc9901/v1/vectors.json"
+SD_JWT_VC_PACKET = ROOT / "docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json"
+SD_JWT_VC_LEGACY_PACKET = (
+    ROOT / "docs/conformance/fixtures/sd-jwt-vc-draft03-adapter/v1/vectors.json"
+)
 
 
 def replace_once(text: str, before: str, after: str) -> str:
@@ -29,7 +49,7 @@ def replace_first(text: str, before: str, after: str) -> str:
     return text.replace(before, after, 1)
 
 
-def run(catalog: str, packet: str, should_pass: bool) -> None:
+def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | None = None) -> None:
     with tempfile.TemporaryDirectory(prefix="cross-language-vectors-") as temporary:
         root = Path(temporary)
         catalog_target = root / "docs/conformance/cross-language-vector-catalog.toml"
@@ -38,6 +58,57 @@ def run(catalog: str, packet: str, should_pass: bool) -> None:
         packet_target.parent.mkdir(parents=True)
         catalog_target.write_text(catalog, encoding="utf-8")
         packet_target.write_text(packet, encoding="utf-8")
+        peer_target = root / "docs/conformance/fixtures/did-peer/v1/vectors.json"
+        peer_target.parent.mkdir(parents=True)
+        shutil.copy2(PEER_PACKET, peer_target)
+        did_key_target = root / "docs/conformance/fixtures/did-key/v1/vectors.json"
+        did_key_target.parent.mkdir(parents=True)
+        shutil.copy2(DID_KEY_PACKET, did_key_target)
+        did_web_target = root / "docs/conformance/fixtures/did-web/v1/vectors.json"
+        did_web_target.parent.mkdir(parents=True)
+        shutil.copy2(DID_WEB_PACKET, did_web_target)
+        did_jwk_target = root / "docs/conformance/fixtures/did-jwk/v1/vectors.json"
+        did_jwk_target.parent.mkdir(parents=True)
+        shutil.copy2(DID_JWK_PACKET, did_jwk_target)
+        prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
+        prism_target.parent.mkdir(parents=True)
+        shutil.copy2(PRISM_PACKET, prism_target)
+        crypto_target = root / "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
+        crypto_target.parent.mkdir(parents=True)
+        crypto_target.write_text(
+            CRYPTO_PACKET.read_text(encoding="utf-8") if crypto_packet is None else crypto_packet,
+            encoding="utf-8",
+        )
+        prism_vdr_indexing_target = root / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+        prism_vdr_indexing_target.parent.mkdir(parents=True)
+        shutil.copy2(PRISM_VDR_INDEXING_PACKET, prism_vdr_indexing_target)
+        oid4vp_direct_post_target = root / "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+        oid4vp_direct_post_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_DIRECT_POST_PACKET, oid4vp_direct_post_target)
+        oid4vp_encrypted_direct_post_target = (
+            root / "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
+        )
+        oid4vp_encrypted_direct_post_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_ENCRYPTED_DIRECT_POST_PACKET, oid4vp_encrypted_direct_post_target)
+        oid4vp_transaction_format_target = (
+            root / "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+        )
+        oid4vp_transaction_format_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_TRANSACTION_FORMAT_PACKET, oid4vp_transaction_format_target)
+        siopv2_target = root / "docs/conformance/fixtures/siopv2/v1/vectors.json"
+        siopv2_target.parent.mkdir(parents=True)
+        shutil.copy2(SIOPV2_PACKET, siopv2_target)
+        sd_jwt_target = root / "docs/conformance/fixtures/sd-jwt-rfc9901/v1/vectors.json"
+        sd_jwt_target.parent.mkdir(parents=True)
+        shutil.copy2(SD_JWT_PACKET, sd_jwt_target)
+        sd_jwt_vc_target = root / "docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json"
+        sd_jwt_vc_target.parent.mkdir(parents=True)
+        shutil.copy2(SD_JWT_VC_PACKET, sd_jwt_vc_target)
+        sd_jwt_vc_legacy_target = (
+            root / "docs/conformance/fixtures/sd-jwt-vc-draft03-adapter/v1/vectors.json"
+        )
+        sd_jwt_vc_legacy_target.parent.mkdir(parents=True)
+        shutil.copy2(SD_JWT_VC_LEGACY_PACKET, sd_jwt_vc_legacy_target)
         result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
         if (result.returncode == 0) != should_pass:
             raise AssertionError(
@@ -55,10 +126,33 @@ def run_packet_mutation(catalog: str, packet: str) -> None:
     run(catalog_for_packet(catalog, packet), packet, False)
 
 
+def catalog_for_crypto_packet(catalog: str, packet: str) -> str:
+    old_digest = hashlib.sha256(CRYPTO_PACKET.read_bytes()).hexdigest()
+    new_digest = hashlib.sha256(packet.encode()).hexdigest()
+    return replace_once(catalog, f'sha256         = "{old_digest}"', f'sha256         = "{new_digest}"')
+
+
 def main() -> None:
     catalog = CATALOG.read_text(encoding="utf-8")
     packet = PACKET.read_text(encoding="utf-8")
+    crypto_packet = CRYPTO_PACKET.read_text(encoding="utf-8")
     run(catalog, packet, True)
+    negative_crypto_packet = replace_once(
+        crypto_packet,
+        '"kind": "success",\n        "errorCode": null,\n        "redacted": null,\n        "fields": {\n          "operationKind": "verified"\n        }',
+        '"kind": "error",\n        "errorCode": "crypto.signature_invalid",\n        "redacted": true,\n        "fields": {}',
+    )
+    negative_crypto_catalog = replace_once(
+        catalog_for_crypto_packet(catalog, negative_crypto_packet),
+        'operation          = "crypto.secp256k1.verify"\nexpected           = "success"',
+        'operation          = "crypto.secp256k1.verify"\nexpected           = "crypto.signature_invalid"',
+    )
+    run(
+        negative_crypto_catalog,
+        packet,
+        True,
+        crypto_packet=negative_crypto_packet,
+    )
     run(
         replace_first(
             catalog,
@@ -69,7 +163,7 @@ def main() -> None:
         False,
     )
     run(replace_once(catalog, 'revision       = "edf03abcc963d37703daa61192940394bdc553ca"', 'revision       = "develop"'), packet, False)
-    run(replace_once(catalog, 'public_data    = true', 'public_data    = false'), packet, False)
+    run(replace_first(catalog, 'public_data    = true', 'public_data    = false'), packet, False)
     run(
         replace_first(
             catalog,
@@ -80,7 +174,16 @@ def main() -> None:
         False,
     )
     run(replace_once(catalog, 'case               = "did.syntax.valid-basic"', 'case               = "did.syntax.missing"'), packet, False)
-    run(replace_once(catalog, 'sha256         = "72ebf6603594fe3b2b93f9d1a9cd9dc40bf8708f6bc8a7b4370ee9b9f173679a"', 'sha256         = "' + "0" * 64 + '"'), packet, False)
+    packet_digest = hashlib.sha256(PACKET.read_bytes()).hexdigest()
+    run(
+        replace_once(
+            catalog,
+            f'sha256         = "{packet_digest}"',
+            'sha256         = "' + "0" * 64 + '"',
+        ),
+        packet,
+        False,
+    )
     run(
         replace_first(
             catalog,
@@ -105,7 +208,14 @@ def main() -> None:
         False,
     )
     run_packet_mutation(catalog, replace_once(packet, '"schemaVersion": 1,', '"schemaVersion": 1,\n  "unknown": true,'))
-    run_packet_mutation(catalog, replace_once(packet, '"count": 2036', '"count": 10001'))
+    run_packet_mutation(
+        catalog,
+        replace_once(
+            packet,
+            '"generated": { "prefix": "did:example:", "repeat": "a", "count": 131060, "suffix": "" }',
+            '"generated": { "prefix": "did:example:", "repeat": "a", "count": 262145, "suffix": "" }',
+        ),
+    )
     run_packet_mutation(
         catalog,
         replace_once(
@@ -132,12 +242,62 @@ def main() -> None:
         catalog_target.parent.mkdir(parents=True)
         packet_target.parent.mkdir(parents=True)
         catalog_target.write_text(catalog, encoding="utf-8")
+        peer_target = root / "docs/conformance/fixtures/did-peer/v1/vectors.json"
+        peer_target.parent.mkdir(parents=True)
+        shutil.copy2(PEER_PACKET, peer_target)
+        did_key_target = root / "docs/conformance/fixtures/did-key/v1/vectors.json"
+        did_key_target.parent.mkdir(parents=True)
+        shutil.copy2(DID_KEY_PACKET, did_key_target)
+        did_web_target = root / "docs/conformance/fixtures/did-web/v1/vectors.json"
+        did_web_target.parent.mkdir(parents=True)
+        shutil.copy2(DID_WEB_PACKET, did_web_target)
+        did_jwk_target = root / "docs/conformance/fixtures/did-jwk/v1/vectors.json"
+        did_jwk_target.parent.mkdir(parents=True)
+        shutil.copy2(DID_JWK_PACKET, did_jwk_target)
+        prism_target = root / "docs/conformance/fixtures/did-prism/v1/vectors.json"
+        prism_target.parent.mkdir(parents=True)
+        shutil.copy2(PRISM_PACKET, prism_target)
+        crypto_target = root / "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
+        crypto_target.parent.mkdir(parents=True)
+        shutil.copy2(CRYPTO_PACKET, crypto_target)
+        prism_vdr_indexing_target = root / "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+        prism_vdr_indexing_target.parent.mkdir(parents=True)
+        shutil.copy2(PRISM_VDR_INDEXING_PACKET, prism_vdr_indexing_target)
+        oid4vp_direct_post_target = root / "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+        oid4vp_direct_post_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_DIRECT_POST_PACKET, oid4vp_direct_post_target)
+        oid4vp_encrypted_direct_post_target = (
+            root / "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json"
+        )
+        oid4vp_encrypted_direct_post_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_ENCRYPTED_DIRECT_POST_PACKET, oid4vp_encrypted_direct_post_target)
+        oid4vp_transaction_format_target = (
+            root / "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+        )
+        oid4vp_transaction_format_target.parent.mkdir(parents=True)
+        shutil.copy2(OID4VP_TRANSACTION_FORMAT_PACKET, oid4vp_transaction_format_target)
+        siopv2_target = root / "docs/conformance/fixtures/siopv2/v1/vectors.json"
+        siopv2_target.parent.mkdir(parents=True)
+        shutil.copy2(SIOPV2_PACKET, siopv2_target)
+        sd_jwt_target = root / "docs/conformance/fixtures/sd-jwt-rfc9901/v1/vectors.json"
+        sd_jwt_target.parent.mkdir(parents=True)
+        shutil.copy2(SD_JWT_PACKET, sd_jwt_target)
+        sd_jwt_vc_target = root / "docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json"
+        sd_jwt_vc_target.parent.mkdir(parents=True)
+        shutil.copy2(SD_JWT_VC_PACKET, sd_jwt_vc_target)
+        sd_jwt_vc_legacy_target = (
+            root / "docs/conformance/fixtures/sd-jwt-vc-draft03-adapter/v1/vectors.json"
+        )
+        sd_jwt_vc_legacy_target.parent.mkdir(parents=True)
+        shutil.copy2(SD_JWT_VC_LEGACY_PACKET, sd_jwt_vc_legacy_target)
         external = root / "outside.json"
         shutil.copy2(PACKET, external)
         packet_target.symlink_to(external)
         result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
         if result.returncode == 0:
             raise AssertionError("symlinked packets must fail validation")
+        if "did.syntax.v1.path must not resolve through a symlink" not in result.stderr:
+            raise AssertionError(f"missing symlink diagnostic: {result.stderr}")
 
     print("cross-language-vectors-tests: mutation suite passed")
 

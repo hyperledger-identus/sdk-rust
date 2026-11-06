@@ -70,7 +70,8 @@ class BootstrapInventoryTests(unittest.TestCase):
     def test_canonical_inventory_passes(self) -> None:
         result = self.run_checker()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("contract passed (21 packages)", result.stdout)
+        expected = self.inventory_text().count("[[packages]]")
+        self.assertIn(f"contract passed ({expected} packages)", result.stdout)
 
     def test_missing_package_fails(self) -> None:
         header, blocks = self.package_blocks()

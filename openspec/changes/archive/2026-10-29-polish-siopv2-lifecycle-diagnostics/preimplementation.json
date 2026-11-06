@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 543,
+  "change": "polish-siopv2-lifecycle-diagnostics",
+  "branch": "codex/refactor/issue-543",
+  "baseRef": "origin/develop",
+  "baseSha": "b9c2be2ed7877172d8461266a6522ff4a9b72187",
+  "contractHeadSha": "013a5d5cf6a04fdaf00975ac8476645015e63452",
+  "createdAt": "2026-10-29T07:31:09.210Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

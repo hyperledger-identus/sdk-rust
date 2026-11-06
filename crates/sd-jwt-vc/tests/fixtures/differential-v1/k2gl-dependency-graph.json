@@ -1,0 +1,545 @@
+{
+  "schemaVersion": 1,
+  "oracle": "k2gl.sd-jwt-vc.2.1.0",
+  "root": "k2gl/sd-jwt-vc@2.1.0",
+  "sourceRevision": "7d938daf0a1e14974420651e7ce84146ed1875bb",
+  "lockSha256": "d52af17e05a3082df954dd1e27b6e29d6a51a4938660e6d865f1f4a6478b0a56",
+  "nodes": [
+    {
+      "id": "k2gl/composer-attest@1.3.0",
+      "name": "k2gl/composer-attest",
+      "version": "1.3.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/k2gl/composer-attest/zipball/dd9acdd14ebd9729d11195ef95a24926dafd8336",
+      "reference": "dd9acdd14ebd9729d11195ef95a24926dafd8336",
+      "sha256": "20436a0fd95fdbd04b7555f4e4eb451304647b43bfaa3f6fbc98624f62ce8493",
+      "dependencies": [
+        "k2gl/dsse@1.4.0",
+        "k2gl/sigstore-verify@1.6.1",
+        "k2gl/slsa-provenance@1.3.1"
+      ]
+    },
+    {
+      "id": "k2gl/composer-license-gate@1.0.1",
+      "name": "k2gl/composer-license-gate",
+      "version": "1.0.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/k2gl/composer-license-gate/zipball/b76b8b7d2333045fff405a81f2ce30a31b92233b",
+      "reference": "b76b8b7d2333045fff405a81f2ce30a31b92233b",
+      "sha256": "2b2cf1c1b125b88bd8ab9de1e23ffbb14a0bbe625edab31cedbfb6e13f676fbd",
+      "dependencies": []
+    },
+    {
+      "id": "k2gl/dsse@1.4.0",
+      "name": "k2gl/dsse",
+      "version": "1.4.0",
+      "scope": "production",
+      "source": "https://api.github.com/repos/k2gl/dsse/zipball/71b9e5ca1f21ce225ac82a15aadde5bcb63d2439",
+      "reference": "71b9e5ca1f21ce225ac82a15aadde5bcb63d2439",
+      "sha256": "0ae9f4f39cb52689fb0098fef2bc8d46d7f653bf5745c1a3aaad2d138bb8169c",
+      "dependencies": []
+    },
+    {
+      "id": "k2gl/in-toto-attestation@1.3.0",
+      "name": "k2gl/in-toto-attestation",
+      "version": "1.3.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/k2gl/in-toto-attestation/zipball/aa11895b6fb701698ae05ed566cd62c3851abf01",
+      "reference": "aa11895b6fb701698ae05ed566cd62c3851abf01",
+      "sha256": "e8dece6e1a3d591d00e863c8a5fb3fd45e92412debaddeb728368c9c89248793",
+      "dependencies": [
+        "k2gl/dsse@1.4.0"
+      ]
+    },
+    {
+      "id": "k2gl/phpunit-fluent-assertions@12.12.0",
+      "name": "k2gl/phpunit-fluent-assertions",
+      "version": "12.12.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/k2gl/phpunit-fluent-assertions/zipball/ab9194fe6a4faef0e5798ebe0f4734cbd6e7c186",
+      "reference": "ab9194fe6a4faef0e5798ebe0f4734cbd6e7c186",
+      "sha256": "d6764ca55660dd6df34e68f3bbdb69ee2b2646d1096368932aaaba4c514916f2",
+      "dependencies": [
+        "phpunit/phpunit@12.5.42"
+      ]
+    },
+    {
+      "id": "k2gl/sd-jwt-vc@2.1.0",
+      "name": "k2gl/sd-jwt-vc",
+      "version": "2.1.0",
+      "scope": "root",
+      "source": "https://api.github.com/repos/k2gl/sd-jwt-vc/zipball/7d938daf0a1e14974420651e7ce84146ed1875bb",
+      "reference": "7d938daf0a1e14974420651e7ce84146ed1875bb",
+      "sha256": "fe86f82ce0b1345f163086f9d0b09265643982f07b9ec15d08c1596bc46586c2",
+      "dependencies": [
+        "k2gl/composer-attest@1.3.0",
+        "k2gl/composer-license-gate@1.0.1",
+        "k2gl/phpunit-fluent-assertions@12.12.0",
+        "k2gl/sd-jwt@1.2.0",
+        "laravel/pint@v1.20.0",
+        "nyholm/psr7@1.8.2",
+        "phpstan/phpstan@2.3.4",
+        "phpunit/phpunit@12.5.42",
+        "psr/http-client@1.0.3",
+        "psr/http-factory@1.1.0",
+        "psr/http-message@2.0"
+      ]
+    },
+    {
+      "id": "k2gl/sd-jwt@1.2.0",
+      "name": "k2gl/sd-jwt",
+      "version": "1.2.0",
+      "scope": "production",
+      "source": "https://api.github.com/repos/k2gl/sd-jwt/zipball/c0dc032c47a8c0022b47abebd0f4d9b5d3adffb5",
+      "reference": "c0dc032c47a8c0022b47abebd0f4d9b5d3adffb5",
+      "sha256": "3b21a7cc721a7c1706019d9d5186cd962ecb8bafc8850a2de0d1d815c668948c",
+      "dependencies": [
+        "k2gl/dsse@1.4.0"
+      ]
+    },
+    {
+      "id": "k2gl/signed-note@1.1.0",
+      "name": "k2gl/signed-note",
+      "version": "1.1.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/k2gl/signed-note/zipball/948692721eb349eef18bed2435dd7db926b68a37",
+      "reference": "948692721eb349eef18bed2435dd7db926b68a37",
+      "sha256": "4f0e74fdd3b6262e970a28e73cf2de35fe8cbbd816b15e97374f3668c92b4998",
+      "dependencies": [
+        "k2gl/dsse@1.4.0"
+      ]
+    },
+    {
+      "id": "k2gl/sigstore-verify@1.6.1",
+      "name": "k2gl/sigstore-verify",
+      "version": "1.6.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/k2gl/sigstore-verify/zipball/a7ca7834ccbbf68db2b156dfedb289f494aae9bd",
+      "reference": "a7ca7834ccbbf68db2b156dfedb289f494aae9bd",
+      "sha256": "6c925ed4edc70b28846c2b90e64f64ebd0fae74490e8fded0aec00d6ec97bc56",
+      "dependencies": [
+        "k2gl/in-toto-attestation@1.3.0",
+        "k2gl/signed-note@1.1.0",
+        "k2gl/tuf@1.2.1",
+        "phpseclib/phpseclib@4.0.2"
+      ]
+    },
+    {
+      "id": "k2gl/slsa-provenance@1.3.1",
+      "name": "k2gl/slsa-provenance",
+      "version": "1.3.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/k2gl/slsa-provenance/zipball/0faa030887cd7d7684810a0d98ad7280d3ec415a",
+      "reference": "0faa030887cd7d7684810a0d98ad7280d3ec415a",
+      "sha256": "9824f57338d7709bc4e04395b807fe8eafe7d5534ab8ee7de05c596e67913e75",
+      "dependencies": [
+        "k2gl/in-toto-attestation@1.3.0"
+      ]
+    },
+    {
+      "id": "k2gl/tuf@1.2.1",
+      "name": "k2gl/tuf",
+      "version": "1.2.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/k2gl/tuf/zipball/0c324cd765e04c9d47d01fe0e9887d6ab8153bfd",
+      "reference": "0c324cd765e04c9d47d01fe0e9887d6ab8153bfd",
+      "sha256": "cc56aa268f66e60d3f9529ff59ad02cb32cb532930a3e66000826d7e25d585de",
+      "dependencies": []
+    },
+    {
+      "id": "laravel/pint@v1.20.0",
+      "name": "laravel/pint",
+      "version": "v1.20.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/laravel/pint/zipball/53072e8ea22213a7ed168a8a15b96fbb8b82d44b",
+      "reference": "53072e8ea22213a7ed168a8a15b96fbb8b82d44b",
+      "sha256": "623ea8816fab4615cc687f0f2b5a1ff359e0cb820087aa353e45a451842a5e1c",
+      "dependencies": []
+    },
+    {
+      "id": "myclabs/deep-copy@1.14.0",
+      "name": "myclabs/deep-copy",
+      "version": "1.14.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/myclabs/DeepCopy/zipball/8680aa248f8e07bc8fb43f56f0f5fc77a0c96aae",
+      "reference": "8680aa248f8e07bc8fb43f56f0f5fc77a0c96aae",
+      "sha256": "56bd5cff0d8ac15818301fcc26712dfeffef322d2120bb4f4d67dca8089e6380",
+      "dependencies": []
+    },
+    {
+      "id": "nikic/php-parser@v5.9.0",
+      "name": "nikic/php-parser",
+      "version": "v5.9.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/nikic/PHP-Parser/zipball/9e33da9553fe7786f0962b35f4e4ecf01be89def",
+      "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def",
+      "sha256": "c307260c466a105f12460f1866dc3600938ef4f7f8665e86f0d743a544848846",
+      "dependencies": []
+    },
+    {
+      "id": "nyholm/psr7@1.8.2",
+      "name": "nyholm/psr7",
+      "version": "1.8.2",
+      "scope": "development",
+      "source": "https://api.github.com/repos/Nyholm/psr7/zipball/a71f2b11690f4b24d099d6b16690a90ae14fc6f3",
+      "reference": "a71f2b11690f4b24d099d6b16690a90ae14fc6f3",
+      "sha256": "0d1dd73f054267f15f28a594e2514955e46bdf8a51d848226913c7ee12af7523",
+      "dependencies": [
+        "psr/http-factory@1.1.0",
+        "psr/http-message@2.0"
+      ]
+    },
+    {
+      "id": "paragonie/constant_time_encoding@v3.1.3",
+      "name": "paragonie/constant_time_encoding",
+      "version": "v3.1.3",
+      "scope": "development",
+      "source": "https://api.github.com/repos/paragonie/constant_time_encoding/zipball/d5b01a39b3415c2cd581d3bd3a3575c1ebbd8e77",
+      "reference": "d5b01a39b3415c2cd581d3bd3a3575c1ebbd8e77",
+      "sha256": "a2997299df0a6307136355ec36e8aee3c0b730e3602f80a7dcf2839dc30662dc",
+      "dependencies": []
+    },
+    {
+      "id": "phar-io/manifest@2.0.4",
+      "name": "phar-io/manifest",
+      "version": "2.0.4",
+      "scope": "development",
+      "source": "https://api.github.com/repos/phar-io/manifest/zipball/54750ef60c58e43759730615a392c31c80e23176",
+      "reference": "54750ef60c58e43759730615a392c31c80e23176",
+      "sha256": "b4368b44d24c60a0561e1e1284daa8743dfb2fd78dafeaec84849b264f045a75",
+      "dependencies": [
+        "phar-io/version@3.2.1"
+      ]
+    },
+    {
+      "id": "phar-io/version@3.2.1",
+      "name": "phar-io/version",
+      "version": "3.2.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/phar-io/version/zipball/4f7fd7836c6f332bb2933569e566a0d6c4cbed74",
+      "reference": "4f7fd7836c6f332bb2933569e566a0d6c4cbed74",
+      "sha256": "4f6f4fab8bfeac95934cec75be23743e38b6d864876f52dcdd5b54e003fcab55",
+      "dependencies": []
+    },
+    {
+      "id": "phpseclib/phpseclib@4.0.2",
+      "name": "phpseclib/phpseclib",
+      "version": "4.0.2",
+      "scope": "development",
+      "source": "https://api.github.com/repos/phpseclib/phpseclib/zipball/1fe20b9acb08ce810cec24d8a9d02e7c13426e4c",
+      "reference": "1fe20b9acb08ce810cec24d8a9d02e7c13426e4c",
+      "sha256": "e7e19b48f0ea967b1e8959faa420cebd87fd5baecaf540b8ca36258b8010206a",
+      "dependencies": [
+        "paragonie/constant_time_encoding@v3.1.3",
+        "symfony/polyfill-php82@v1.43.0"
+      ]
+    },
+    {
+      "id": "phpstan/phpstan@2.3.4",
+      "name": "phpstan/phpstan",
+      "version": "2.3.4",
+      "scope": "development",
+      "source": "https://api.github.com/repos/phpstan/phpstan/zipball/f20ce6f3c82556cfcfc086b152445a12d1d64fff",
+      "reference": "f20ce6f3c82556cfcfc086b152445a12d1d64fff",
+      "sha256": "9b3c290f6dbdbd070b087cbaa8fe88b775d8f58dd35900ed349bb338407761f3",
+      "dependencies": []
+    },
+    {
+      "id": "phpunit/php-code-coverage@12.5.8",
+      "name": "phpunit/php-code-coverage",
+      "version": "12.5.8",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/7440368d94738d54f2c1de24dbd3871793bbb0dd",
+      "reference": "7440368d94738d54f2c1de24dbd3871793bbb0dd",
+      "sha256": "9275a73d52a1c5ef32d2f4b02fa1cf449bb067731a0cc5711d21475be0a2feb9",
+      "dependencies": [
+        "nikic/php-parser@v5.9.0",
+        "phpunit/php-text-template@5.0.1",
+        "sebastian/complexity@5.0.0",
+        "sebastian/environment@8.1.2",
+        "sebastian/lines-of-code@4.0.1",
+        "sebastian/version@6.0.1",
+        "theseer/tokenizer@2.0.1"
+      ]
+    },
+    {
+      "id": "phpunit/php-file-iterator@6.0.2",
+      "name": "phpunit/php-file-iterator",
+      "version": "6.0.2",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/php-file-iterator/zipball/a248d1640ab059b075f53a2ef0f9856e864e06b5",
+      "reference": "a248d1640ab059b075f53a2ef0f9856e864e06b5",
+      "sha256": "9aee244d9e54c796475a1f93ea309448fe8df73c8dcb8cb3096ce9f45525b155",
+      "dependencies": []
+    },
+    {
+      "id": "phpunit/php-invoker@6.0.0",
+      "name": "phpunit/php-invoker",
+      "version": "6.0.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/php-invoker/zipball/12b54e689b07a25a9b41e57736dfab6ec9ae5406",
+      "reference": "12b54e689b07a25a9b41e57736dfab6ec9ae5406",
+      "sha256": "ae7b79930eede6270ffcff312fa782520a8e37873b0bd4c0a10b7396fe1aeb10",
+      "dependencies": []
+    },
+    {
+      "id": "phpunit/php-text-template@5.0.1",
+      "name": "phpunit/php-text-template",
+      "version": "5.0.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/php-text-template/zipball/babab73b7ef9fae406f2eb3ee11323a61caa63d5",
+      "reference": "babab73b7ef9fae406f2eb3ee11323a61caa63d5",
+      "sha256": "3af1ad153f464999ec028d5c1841b3f7ab163f5754ba1f3fbb210c7c3f1aeabf",
+      "dependencies": []
+    },
+    {
+      "id": "phpunit/php-timer@8.0.0",
+      "name": "phpunit/php-timer",
+      "version": "8.0.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/php-timer/zipball/f258ce36aa457f3aa3339f9ed4c81fc66dc8c2cc",
+      "reference": "f258ce36aa457f3aa3339f9ed4c81fc66dc8c2cc",
+      "sha256": "d74e75de7ba9a8ff1e3779ac46253190efb051145a93deb7d88c4453cfe82ef6",
+      "dependencies": []
+    },
+    {
+      "id": "phpunit/phpunit@12.5.42",
+      "name": "phpunit/phpunit",
+      "version": "12.5.42",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/1d6dbe748c079e5d2b03bca1be69d0f4cc52a578",
+      "reference": "1d6dbe748c079e5d2b03bca1be69d0f4cc52a578",
+      "sha256": "07822f2f5aa1760a4fab1752b3ea910cea09d7d65cda716e1f44667d1ccf884b",
+      "dependencies": [
+        "myclabs/deep-copy@1.14.0",
+        "phar-io/manifest@2.0.4",
+        "phar-io/version@3.2.1",
+        "phpunit/php-code-coverage@12.5.8",
+        "phpunit/php-file-iterator@6.0.2",
+        "phpunit/php-invoker@6.0.0",
+        "phpunit/php-text-template@5.0.1",
+        "phpunit/php-timer@8.0.0",
+        "sebastian/cli-parser@4.2.1",
+        "sebastian/comparator@7.1.8",
+        "sebastian/diff@7.0.1",
+        "sebastian/environment@8.1.2",
+        "sebastian/exporter@7.0.3",
+        "sebastian/global-state@8.0.3",
+        "sebastian/object-enumerator@7.0.0",
+        "sebastian/recursion-context@7.0.1",
+        "sebastian/type@6.0.4",
+        "sebastian/version@6.0.1",
+        "staabm/side-effects-detector@1.0.5"
+      ]
+    },
+    {
+      "id": "psr/http-client@1.0.3",
+      "name": "psr/http-client",
+      "version": "1.0.3",
+      "scope": "production",
+      "source": "https://api.github.com/repos/php-fig/http-client/zipball/bb5906edc1c324c9a05aa0873d40117941e5fa90",
+      "reference": "bb5906edc1c324c9a05aa0873d40117941e5fa90",
+      "sha256": "5d3fc583e721d451a0cc2073680476236199cd1680a0d9da1756e8152496deb5",
+      "dependencies": [
+        "psr/http-message@2.0"
+      ]
+    },
+    {
+      "id": "psr/http-factory@1.1.0",
+      "name": "psr/http-factory",
+      "version": "1.1.0",
+      "scope": "production",
+      "source": "https://api.github.com/repos/php-fig/http-factory/zipball/2b4765fddfe3b508ac62f829e852b1501d3f6e8a",
+      "reference": "2b4765fddfe3b508ac62f829e852b1501d3f6e8a",
+      "sha256": "a3c397252b6c1c15e60ad6fae927d61edbf4059f3473080bb1b3b40deabf80d2",
+      "dependencies": [
+        "psr/http-message@2.0"
+      ]
+    },
+    {
+      "id": "psr/http-message@2.0",
+      "name": "psr/http-message",
+      "version": "2.0",
+      "scope": "production",
+      "source": "https://api.github.com/repos/php-fig/http-message/zipball/402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+      "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+      "sha256": "d561d2c36e2e3c0ee8b54e0e9652b3bfa13cd763e5e6f93400969001f3a7968d",
+      "dependencies": []
+    },
+    {
+      "id": "sebastian/cli-parser@4.2.1",
+      "name": "sebastian/cli-parser",
+      "version": "4.2.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/cli-parser/zipball/7d05781b13f7dec9043a629a21d086ed74582a15",
+      "reference": "7d05781b13f7dec9043a629a21d086ed74582a15",
+      "sha256": "2b22108c4c0fef57209bf7d285db27d059356c695fa718e9a237e646dbeeaa6b",
+      "dependencies": []
+    },
+    {
+      "id": "sebastian/comparator@7.1.8",
+      "name": "sebastian/comparator",
+      "version": "7.1.8",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/comparator/zipball/7c65c1e79836812819705b473a90c12399542485",
+      "reference": "7c65c1e79836812819705b473a90c12399542485",
+      "sha256": "86841e308bb2a2fcdba30b86e9027576d0a57fdbe96863cec9ee0a5c14e8ea3a",
+      "dependencies": [
+        "sebastian/diff@7.0.1",
+        "sebastian/exporter@7.0.3"
+      ]
+    },
+    {
+      "id": "sebastian/complexity@5.0.0",
+      "name": "sebastian/complexity",
+      "version": "5.0.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/complexity/zipball/bad4316aba5303d0221f43f8cee37eb58d384bbb",
+      "reference": "bad4316aba5303d0221f43f8cee37eb58d384bbb",
+      "sha256": "16dfbb06ea7137cab56a35ab417e2b0db532d91e406572fd5456e0567f41fca4",
+      "dependencies": [
+        "nikic/php-parser@v5.9.0"
+      ]
+    },
+    {
+      "id": "sebastian/diff@7.0.1",
+      "name": "sebastian/diff",
+      "version": "7.0.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/diff/zipball/cd4cabe39f8a4e8ee6818ba99f10a05561ea4ad6",
+      "reference": "cd4cabe39f8a4e8ee6818ba99f10a05561ea4ad6",
+      "sha256": "425ea46a59dda488a0fca06c98d2c321761dd344b232913e8a865b1be30386bd",
+      "dependencies": []
+    },
+    {
+      "id": "sebastian/environment@8.1.2",
+      "name": "sebastian/environment",
+      "version": "8.1.2",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/environment/zipball/9d32c685773823b1983e256ae4ecd48a10d6e439",
+      "reference": "9d32c685773823b1983e256ae4ecd48a10d6e439",
+      "sha256": "1684e7b30ffaf77f405ccb27703839abb16880e476ed7024006ed9c339dc9d0a",
+      "dependencies": []
+    },
+    {
+      "id": "sebastian/exporter@7.0.3",
+      "name": "sebastian/exporter",
+      "version": "7.0.3",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/exporter/zipball/c5e21b5de653ce0a769fb36f5cdfcb5e7a32cf23",
+      "reference": "c5e21b5de653ce0a769fb36f5cdfcb5e7a32cf23",
+      "sha256": "c207456be013cfe14d890896cb0a15290ca07d39c9ea7794b9154574e8bda84f",
+      "dependencies": [
+        "sebastian/recursion-context@7.0.1"
+      ]
+    },
+    {
+      "id": "sebastian/global-state@8.0.3",
+      "name": "sebastian/global-state",
+      "version": "8.0.3",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/global-state/zipball/b164d3274d6537ab462591c5755f76a8f5b1aae9",
+      "reference": "b164d3274d6537ab462591c5755f76a8f5b1aae9",
+      "sha256": "1965cc5dc7f865815d1e17e42e34a750ec0c8dbdc2650a284b237d12ad225019",
+      "dependencies": [
+        "sebastian/object-reflector@5.0.0",
+        "sebastian/recursion-context@7.0.1"
+      ]
+    },
+    {
+      "id": "sebastian/lines-of-code@4.0.1",
+      "name": "sebastian/lines-of-code",
+      "version": "4.0.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/lines-of-code/zipball/d543b8ef219dcd8da262cbb958639a96bedba10e",
+      "reference": "d543b8ef219dcd8da262cbb958639a96bedba10e",
+      "sha256": "9dfad7a8811c332c387130bc09f29f3c489dfa07e562e7fa61ae1aecb778bf11",
+      "dependencies": [
+        "nikic/php-parser@v5.9.0"
+      ]
+    },
+    {
+      "id": "sebastian/object-enumerator@7.0.0",
+      "name": "sebastian/object-enumerator",
+      "version": "7.0.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/object-enumerator/zipball/1effe8e9b8e068e9ae228e542d5d11b5d16db894",
+      "reference": "1effe8e9b8e068e9ae228e542d5d11b5d16db894",
+      "sha256": "333401d87207e65ba744ac35caee2af443ebe6d29d274a71dc96a6a5fa754a5b",
+      "dependencies": [
+        "sebastian/object-reflector@5.0.0",
+        "sebastian/recursion-context@7.0.1"
+      ]
+    },
+    {
+      "id": "sebastian/object-reflector@5.0.0",
+      "name": "sebastian/object-reflector",
+      "version": "5.0.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/object-reflector/zipball/4bfa827c969c98be1e527abd576533293c634f6a",
+      "reference": "4bfa827c969c98be1e527abd576533293c634f6a",
+      "sha256": "1756e28a0bbd0835ab20bbe0ed642cf97dd15c4268977347ea70976359e2b192",
+      "dependencies": []
+    },
+    {
+      "id": "sebastian/recursion-context@7.0.1",
+      "name": "sebastian/recursion-context",
+      "version": "7.0.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/recursion-context/zipball/0b01998a7d5b1f122911a66bebcb8d46f0c82d8c",
+      "reference": "0b01998a7d5b1f122911a66bebcb8d46f0c82d8c",
+      "sha256": "3c6202ef78a9c4e5c5ecbdee442e9ecfda5a5e03201f807930851827c7514f1e",
+      "dependencies": []
+    },
+    {
+      "id": "sebastian/type@6.0.4",
+      "name": "sebastian/type",
+      "version": "6.0.4",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/type/zipball/82ff822c2edc46724be9f7411d3163021f602773",
+      "reference": "82ff822c2edc46724be9f7411d3163021f602773",
+      "sha256": "301c822219ed505cd1e38dbdbb095e22f1a4aae8cf00de06856481a037b1c664",
+      "dependencies": []
+    },
+    {
+      "id": "sebastian/version@6.0.1",
+      "name": "sebastian/version",
+      "version": "6.0.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/sebastianbergmann/version/zipball/9e935a16187e14f39b0e79910dabd614972cdb26",
+      "reference": "9e935a16187e14f39b0e79910dabd614972cdb26",
+      "sha256": "476663cc7690258c55b81e7f3c145d657ba3591761412541e1b8df7bfb22e7fe",
+      "dependencies": []
+    },
+    {
+      "id": "staabm/side-effects-detector@1.0.5",
+      "name": "staabm/side-effects-detector",
+      "version": "1.0.5",
+      "scope": "development",
+      "source": "https://api.github.com/repos/staabm/side-effects-detector/zipball/d8334211a140ce329c13726d4a715adbddd0a163",
+      "reference": "d8334211a140ce329c13726d4a715adbddd0a163",
+      "sha256": "90d82ccadb62ce54331fc8d9f10bd0ed53011411d48451f9b0ccbecb9ffb7b12",
+      "dependencies": []
+    },
+    {
+      "id": "symfony/polyfill-php82@v1.43.0",
+      "name": "symfony/polyfill-php82",
+      "version": "v1.43.0",
+      "scope": "development",
+      "source": "https://api.github.com/repos/symfony/polyfill-php82/zipball/843bbe8b2a7934307b749751eede0f111f5d1cfc",
+      "reference": "843bbe8b2a7934307b749751eede0f111f5d1cfc",
+      "sha256": "ab96ee62e8db90679222c8fcfd40a0557de830f46e0950ddb1e0bf4d91d4e22f",
+      "dependencies": []
+    },
+    {
+      "id": "theseer/tokenizer@2.0.1",
+      "name": "theseer/tokenizer",
+      "version": "2.0.1",
+      "scope": "development",
+      "source": "https://api.github.com/repos/theseer/tokenizer/zipball/7989e43bf381af0eac72e4f0ca5bcbfa81658be4",
+      "reference": "7989e43bf381af0eac72e4f0ca5bcbfa81658be4",
+      "sha256": "97cd673fdcf90b2f151bc6a21c71a595f55b70e6d48308ed968b7a6952d719b4",
+      "dependencies": []
+    }
+  ]
+}

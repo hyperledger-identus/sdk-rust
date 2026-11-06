@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 532,
+  "change": "construct-oid4vp-direct-post-error-response",
+  "branch": "codex/feat/issue-532",
+  "baseRef": "origin/develop",
+  "baseSha": "273063e8dbca6c3b631206bdd9914f66cc40aefa",
+  "contractHeadSha": "899745dd04c4fdadab4eba603c1255206e804595",
+  "createdAt": "2026-10-27T14:50:00.538Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

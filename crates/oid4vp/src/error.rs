@@ -58,6 +58,35 @@ pub mod error_code {
         ErrorCode::new("oid4vp.request_object_client_id_mismatch");
     pub const REQUEST_OBJECT_WALLET_NONCE_MISMATCH: ErrorCode =
         ErrorCode::new("oid4vp.request_object_wallet_nonce_mismatch");
+    pub const INVALID_REQUEST_OBJECT_SECURITY_POLICY: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_request_object_security_policy");
+    pub const INVALID_REQUEST_OBJECT_SECURITY_CLAIMS: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_request_object_security_claims");
+    pub const REQUEST_OBJECT_AUDIENCE_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_audience_mismatch");
+    pub const REQUEST_OBJECT_EXPIRED: ErrorCode = ErrorCode::new("oid4vp.request_object_expired");
+    pub const REQUEST_OBJECT_NOT_YET_VALID: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_not_yet_valid");
+    pub const REQUEST_OBJECT_STALE: ErrorCode = ErrorCode::new("oid4vp.request_object_stale");
+    pub const REQUEST_OBJECT_ISSUED_IN_FUTURE: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_issued_in_future");
+    pub const REQUEST_OBJECT_REPLAY_REJECTED: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_replay_rejected");
+    pub const REQUEST_OBJECT_REPLAY_UNAVAILABLE: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_replay_unavailable");
+    pub const REQUEST_OBJECT_CLOCK_UNAVAILABLE: ErrorCode =
+        ErrorCode::new("oid4vp.request_object_clock_unavailable");
+    pub const UNSUPPORTED_CLIENT_IDENTIFIER_SCHEME: ErrorCode =
+        ErrorCode::new("oid4vp.unsupported_client_identifier_scheme");
+    pub const INVALID_CLIENT_IDENTIFIER: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_client_identifier");
+    pub const INVALID_VERIFIER_METADATA: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_verifier_metadata");
+    pub const VERIFIER_METADATA_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.verifier_metadata_too_large");
+    pub const VERIFIER_TRUST_REJECTED: ErrorCode = ErrorCode::new("oid4vp.verifier_trust_rejected");
+    pub const VERIFIER_TRUST_UNAVAILABLE: ErrorCode =
+        ErrorCode::new("oid4vp.verifier_trust_unavailable");
     pub const MISSING_DCQL_QUERY: ErrorCode = ErrorCode::new("oid4vp.missing_dcql_query");
     pub const UNSUPPORTED_DCQL_SCOPE: ErrorCode = ErrorCode::new("oid4vp.unsupported_dcql_scope");
     pub const INVALID_DCQL_QUERY: ErrorCode = ErrorCode::new("oid4vp.invalid_dcql_query");
@@ -82,6 +111,39 @@ pub mod error_code {
         ErrorCode::new("oid4vp.conflicting_response_destination");
     pub const RESPONSE_URI_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.response_uri_too_large");
     pub const UNSAFE_RESPONSE_URI: ErrorCode = ErrorCode::new("oid4vp.unsafe_response_uri");
+    pub const INVALID_STATE: ErrorCode = ErrorCode::new("oid4vp.invalid_state");
+    pub const STATE_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.state_too_large");
+    pub const TOO_MANY_QUERY_RESULTS: ErrorCode = ErrorCode::new("oid4vp.too_many_query_results");
+    pub const UNKNOWN_DCQL_RESULT: ErrorCode = ErrorCode::new("oid4vp.unknown_dcql_result");
+    pub const DUPLICATE_DCQL_RESULT: ErrorCode = ErrorCode::new("oid4vp.duplicate_dcql_result");
+    pub const MISSING_DCQL_RESULT: ErrorCode = ErrorCode::new("oid4vp.missing_dcql_result");
+    pub const EMPTY_PRESENTATION_LIST: ErrorCode = ErrorCode::new("oid4vp.empty_presentation_list");
+    pub const TOO_MANY_PRESENTATIONS: ErrorCode = ErrorCode::new("oid4vp.too_many_presentations");
+    pub const DCQL_CARDINALITY_MISMATCH: ErrorCode =
+        ErrorCode::new("oid4vp.dcql_cardinality_mismatch");
+    pub const INVALID_PRESENTATION: ErrorCode = ErrorCode::new("oid4vp.invalid_presentation");
+    pub const PRESENTATION_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.presentation_too_large");
+    pub const RESPONSE_JSON_TOO_LARGE: ErrorCode = ErrorCode::new("oid4vp.response_json_too_large");
+    pub const DIRECT_POST_FORM_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.direct_post_form_too_large");
+    pub const INVALID_PROTOCOL_ERROR_DESCRIPTION: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_protocol_error_description");
+    pub const PROTOCOL_ERROR_DESCRIPTION_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.protocol_error_description_too_large");
+    pub const INVALID_PROTOCOL_ERROR_URI: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_protocol_error_uri");
+    pub const PROTOCOL_ERROR_URI_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.protocol_error_uri_too_large");
+    pub const DIRECT_POST_ERROR_FORM_TOO_LARGE: ErrorCode =
+        ErrorCode::new("oid4vp.direct_post_error_form_too_large");
+    pub const RESPONSE_MODE_MISMATCH: ErrorCode = ErrorCode::new("oid4vp.response_mode_mismatch");
+    pub const RESPONSE_ENCRYPTION_FAILED: ErrorCode =
+        ErrorCode::new("oid4vp.response_encryption_failed");
+    pub const INVALID_DIRECT_POST_ACKNOWLEDGEMENT: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_direct_post_acknowledgement");
+    pub const AMBIGUOUS_RESPONSE_CODE: ErrorCode = ErrorCode::new("oid4vp.ambiguous_response_code");
+    pub const INVALID_TRANSACTION_DATA: ErrorCode =
+        ErrorCode::new("oid4vp.invalid_transaction_data");
 }
 
 /// Public error categories for OID4VP invocation parsing.
@@ -138,11 +200,50 @@ pub enum Oid4vpError {
     ConflictingResponseDestination,
     ResponseUriTooLarge,
     UnsafeResponseUri,
+    InvalidState,
+    StateTooLarge,
+    TooManyQueryResults,
+    UnknownDcqlResult,
+    DuplicateDcqlResult,
+    MissingDcqlResult,
+    EmptyPresentationList,
+    TooManyPresentations,
+    DcqlCardinalityMismatch,
+    InvalidPresentation,
+    PresentationTooLarge,
+    ResponseJsonTooLarge,
+    DirectPostFormTooLarge,
+    InvalidProtocolErrorDescription,
+    ProtocolErrorDescriptionTooLarge,
+    InvalidProtocolErrorUri,
+    ProtocolErrorUriTooLarge,
+    DirectPostErrorFormTooLarge,
+    ResponseModeMismatch,
+    ResponseEncryptionFailed,
+    InvalidRequestObjectSecurityPolicy,
+    InvalidRequestObjectSecurityClaims,
+    RequestObjectAudienceMismatch,
+    RequestObjectExpired,
+    RequestObjectNotYetValid,
+    RequestObjectStale,
+    RequestObjectIssuedInFuture,
+    RequestObjectReplayRejected,
+    RequestObjectReplayUnavailable,
+    RequestObjectClockUnavailable,
+    UnsupportedClientIdentifierScheme,
+    InvalidClientIdentifier,
+    InvalidVerifierMetadata,
+    VerifierMetadataTooLarge,
+    VerifierTrustRejected,
+    VerifierTrustUnavailable,
+    InvalidDirectPostAcknowledgement,
+    AmbiguousResponseCode,
+    InvalidTransactionData,
 }
 
 impl Oid4vpError {
-    /// Ordered error inventory frozen by the v1 contract fixture.
-    pub const CONTRACT_VARIANTS: [Self; 50] = [
+    /// Ordered error inventory with the frozen v1 fixture as its append-only prefix.
+    pub const CONTRACT_VARIANTS: [Self; 89] = [
         Self::InvalidLimits,
         Self::InvocationTooLarge,
         Self::InvalidInvocation,
@@ -193,9 +294,48 @@ impl Oid4vpError {
         Self::ConflictingResponseDestination,
         Self::ResponseUriTooLarge,
         Self::UnsafeResponseUri,
+        Self::InvalidState,
+        Self::StateTooLarge,
+        Self::TooManyQueryResults,
+        Self::UnknownDcqlResult,
+        Self::DuplicateDcqlResult,
+        Self::MissingDcqlResult,
+        Self::EmptyPresentationList,
+        Self::TooManyPresentations,
+        Self::DcqlCardinalityMismatch,
+        Self::InvalidPresentation,
+        Self::PresentationTooLarge,
+        Self::ResponseJsonTooLarge,
+        Self::DirectPostFormTooLarge,
+        Self::InvalidProtocolErrorDescription,
+        Self::ProtocolErrorDescriptionTooLarge,
+        Self::InvalidProtocolErrorUri,
+        Self::ProtocolErrorUriTooLarge,
+        Self::DirectPostErrorFormTooLarge,
+        Self::ResponseModeMismatch,
+        Self::ResponseEncryptionFailed,
+        Self::InvalidRequestObjectSecurityPolicy,
+        Self::InvalidRequestObjectSecurityClaims,
+        Self::RequestObjectAudienceMismatch,
+        Self::RequestObjectExpired,
+        Self::RequestObjectNotYetValid,
+        Self::RequestObjectStale,
+        Self::RequestObjectIssuedInFuture,
+        Self::RequestObjectReplayRejected,
+        Self::RequestObjectReplayUnavailable,
+        Self::RequestObjectClockUnavailable,
+        Self::UnsupportedClientIdentifierScheme,
+        Self::InvalidClientIdentifier,
+        Self::InvalidVerifierMetadata,
+        Self::VerifierMetadataTooLarge,
+        Self::VerifierTrustRejected,
+        Self::VerifierTrustUnavailable,
+        Self::InvalidDirectPostAcknowledgement,
+        Self::AmbiguousResponseCode,
+        Self::InvalidTransactionData,
     ];
 
-    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 50] = {
+    const CONTRACTS: [(identus_core::ErrorCode, ErrorKind, &'static str); 89] = {
         use error_code as code;
         [
             (
@@ -447,6 +587,201 @@ impl Oid4vpError {
                 code::UNSAFE_RESPONSE_URI,
                 ErrorKind::InvalidInput,
                 "OID4VP response URI is unsafe",
+            ),
+            (
+                code::INVALID_STATE,
+                ErrorKind::InvalidInput,
+                "OID4VP state is invalid",
+            ),
+            (
+                code::STATE_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP state exceeds its byte limit",
+            ),
+            (
+                code::TOO_MANY_QUERY_RESULTS,
+                ErrorKind::InvalidInput,
+                "OID4VP response has too many query results",
+            ),
+            (
+                code::UNKNOWN_DCQL_RESULT,
+                ErrorKind::InvalidInput,
+                "OID4VP response contains an unknown DCQL result",
+            ),
+            (
+                code::DUPLICATE_DCQL_RESULT,
+                ErrorKind::InvalidInput,
+                "OID4VP response contains a duplicate DCQL result",
+            ),
+            (
+                code::MISSING_DCQL_RESULT,
+                ErrorKind::InvalidInput,
+                "OID4VP response does not satisfy required DCQL results",
+            ),
+            (
+                code::EMPTY_PRESENTATION_LIST,
+                ErrorKind::InvalidInput,
+                "OID4VP response presentation list is empty",
+            ),
+            (
+                code::TOO_MANY_PRESENTATIONS,
+                ErrorKind::InvalidInput,
+                "OID4VP response has too many presentations for one query",
+            ),
+            (
+                code::DCQL_CARDINALITY_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VP response violates DCQL result cardinality",
+            ),
+            (
+                code::INVALID_PRESENTATION,
+                ErrorKind::InvalidInput,
+                "OID4VP presentation value is invalid",
+            ),
+            (
+                code::PRESENTATION_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP presentation value exceeds its resource limits",
+            ),
+            (
+                code::RESPONSE_JSON_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP response JSON exceeds its byte limit",
+            ),
+            (
+                code::DIRECT_POST_FORM_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post form exceeds its byte limit",
+            ),
+            (
+                code::INVALID_PROTOCOL_ERROR_DESCRIPTION,
+                ErrorKind::InvalidInput,
+                "OID4VP protocol error description is invalid",
+            ),
+            (
+                code::PROTOCOL_ERROR_DESCRIPTION_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP protocol error description exceeds its byte limit",
+            ),
+            (
+                code::INVALID_PROTOCOL_ERROR_URI,
+                ErrorKind::InvalidInput,
+                "OID4VP protocol error URI is invalid",
+            ),
+            (
+                code::PROTOCOL_ERROR_URI_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP protocol error URI exceeds its byte limit",
+            ),
+            (
+                code::DIRECT_POST_ERROR_FORM_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post error form exceeds its byte limit",
+            ),
+            (
+                code::RESPONSE_MODE_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VP response constructor does not match the validated mode",
+            ),
+            (
+                code::RESPONSE_ENCRYPTION_FAILED,
+                ErrorKind::Crypto,
+                "OID4VP response encryption failed",
+            ),
+            (
+                code::INVALID_REQUEST_OBJECT_SECURITY_POLICY,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object security policy is invalid",
+            ),
+            (
+                code::INVALID_REQUEST_OBJECT_SECURITY_CLAIMS,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object security claims are invalid",
+            ),
+            (
+                code::REQUEST_OBJECT_AUDIENCE_MISMATCH,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object audience does not match",
+            ),
+            (
+                code::REQUEST_OBJECT_EXPIRED,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object is expired",
+            ),
+            (
+                code::REQUEST_OBJECT_NOT_YET_VALID,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object is not yet valid",
+            ),
+            (
+                code::REQUEST_OBJECT_STALE,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object is stale",
+            ),
+            (
+                code::REQUEST_OBJECT_ISSUED_IN_FUTURE,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object was issued in the future",
+            ),
+            (
+                code::REQUEST_OBJECT_REPLAY_REJECTED,
+                ErrorKind::InvalidInput,
+                "OID4VP Request Object replay policy rejected the object",
+            ),
+            (
+                code::REQUEST_OBJECT_REPLAY_UNAVAILABLE,
+                ErrorKind::Internal,
+                "OID4VP Request Object replay policy is unavailable",
+            ),
+            (
+                code::REQUEST_OBJECT_CLOCK_UNAVAILABLE,
+                ErrorKind::Internal,
+                "OID4VP Request Object clock is unavailable",
+            ),
+            (
+                code::UNSUPPORTED_CLIENT_IDENTIFIER_SCHEME,
+                ErrorKind::Unsupported,
+                "OID4VP client identifier scheme is not supported",
+            ),
+            (
+                code::INVALID_CLIENT_IDENTIFIER,
+                ErrorKind::InvalidInput,
+                "OID4VP client identifier is invalid for its scheme",
+            ),
+            (
+                code::INVALID_VERIFIER_METADATA,
+                ErrorKind::InvalidInput,
+                "OID4VP verifier metadata is invalid",
+            ),
+            (
+                code::VERIFIER_METADATA_TOO_LARGE,
+                ErrorKind::InvalidInput,
+                "OID4VP verifier metadata exceeds its resource limits",
+            ),
+            (
+                code::VERIFIER_TRUST_REJECTED,
+                ErrorKind::InvalidInput,
+                "OID4VP verifier trust policy rejected the request",
+            ),
+            (
+                code::VERIFIER_TRUST_UNAVAILABLE,
+                ErrorKind::Internal,
+                "OID4VP verifier trust policy is unavailable",
+            ),
+            (
+                code::INVALID_DIRECT_POST_ACKNOWLEDGEMENT,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post acknowledgement is invalid",
+            ),
+            (
+                code::AMBIGUOUS_RESPONSE_CODE,
+                ErrorKind::InvalidInput,
+                "OID4VP direct-post acknowledgement response code is ambiguous",
+            ),
+            (
+                code::INVALID_TRANSACTION_DATA,
+                ErrorKind::InvalidInput,
+                "OID4VP transaction data is invalid or unsupported",
             ),
         ]
     };

@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 487
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive identus-oid4vp response transition exposes bounded public presentation inputs and a direct-post output envelope while preserving existing request APIs."
+ledger_ids     = [ "oid4vp.direct-post-response.v1" ]

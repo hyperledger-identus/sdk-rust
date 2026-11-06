@@ -8,13 +8,23 @@ identus-core               = { path = "crates/core", version = "=0.1.0-rc.1" }
 identus-crypto             = { path = "crates/crypto", version = "=0.1.0-rc.1", default-features = false }
 identus-derive             = { path = "crates/derive", version = "=0.1.0-rc.1" }
 identus-did                = { path = "crates/did" }
+identus-did-key            = { path = "crates/did-key" }
+identus-did-jwk            = { path = "crates/did-jwk" }
+identus-did-web            = { path = "crates/did-web" }
+identus-did-peer           = { path = "crates/did-peer" }
+identus-prism-did          = { path = "crates/prism-did" }
+identus-prism-vdr          = { path = "crates/prism-vdr" }
+identus-prism-indexer      = { path = "crates/prism-indexer" }
 identus-did-resolver-http  = { path = "crates/did-resolver-http" }
 identus-trust              = { path = "crates/trust" }
 identus-credentials        = { path = "crates/credentials" }
 identus-presentations      = { path = "crates/presentations" }
 identus-jose               = { path = "crates/jose" }
+identus-sd-jwt             = { path = "crates/sd-jwt" }
+identus-sd-jwt-vc          = { path = "crates/sd-jwt-vc" }
 identus-messaging          = { path = "crates/messaging" }
 identus-openid4vc          = { path = "crates/openid4vc" }
+identus-siopv2             = { path = "crates/siopv2" }
 identus-oid4vci            = { path = "crates/oid4vci" }
 identus-oid4vp             = { path = "crates/oid4vp" }
 identus-wallet             = { path = "crates/wallet" }
@@ -38,13 +48,14 @@ trybuild                   = "1"
 uriparse                   = "=0.6.4"
 uniffi                     = { version = "=0.32.0", default-features = false }
 wasm-bindgen               = "=0.2.121"
+prost                      = { version = "=0.14.4", default-features = false, features = [ "derive", "std" ] }
 
 # identus-did-resolver-http external dependencies. Axum is deliberately built
 # without listener/runtime defaults; Tokio and Tower `util` are test-only.
 axum           = { version = "=0.8.9", default-features = false, features = [ "json" ] }
 headers-accept = "=0.3.0"
 mediatype      = "=0.21.0"
-tokio          = "1"
+tokio          = "1.54.1"
 tower          = "0.5"
 utoipa         = { version = "=5.5.0", default-features = false, features = [ "macros" ] }
 
@@ -56,8 +67,8 @@ utoipa         = { version = "=5.5.0", default-features = false, features = [ "m
 ed25519-dalek = { version = "2", default-features = false, features = [ "fast", "zeroize" ] }
 ed25519-bip32 = { version = "=0.4.3", default-features = false }
 bip39         = { version = "=2.2.2", default-features = false, features = [ "alloc", "zeroize" ] }
-k256          = { version = "0.13", default-features = false, features = [ "arithmetic", "ecdsa" ] }
-p256          = { version = "0.13", default-features = false, features = [ "arithmetic", "ecdsa" ] }
+k256          = { version = "0.14", default-features = false, features = [ "arithmetic", "ecdsa" ] }
+p256          = { version = "0.14", default-features = false, features = [ "arithmetic", "ecdsa" ] }
 x25519-dalek  = { version = "2", features = [ "static_secrets" ] }
 sha2          = "0.10"
 hmac          = "0.12"

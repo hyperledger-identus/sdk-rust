@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "prism-vdr-indexing"
+requirement      = "ancestry and replay work are bounded"
+canonical_sha256 = "3b217b5bd0c4205f0cb2fc2dc2d1a257d84091b61366a7113c29a282c294f537"
+reason           = "Replace obsolete SDK-owned channel and retry limits with the synchronous transaction-batch, lookup-work and caller-owned retry model accepted by ADR 0177."

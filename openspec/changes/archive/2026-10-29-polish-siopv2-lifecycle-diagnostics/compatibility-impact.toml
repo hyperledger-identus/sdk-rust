@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 543
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The existing pre-release SIOPv2 error enum gains precise redacted wallet-nonce and response-encoding categories while successful API and wire behavior stays unchanged."
+ledger_ids     = [ "siopv2.did-authentication.diagnostics.v1" ]

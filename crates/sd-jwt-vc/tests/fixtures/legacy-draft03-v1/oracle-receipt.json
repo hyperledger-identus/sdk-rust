@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-29",
+  "consumer": {
+    "id": "hyperledger-identus/sdk-ts",
+    "version": "8.1.4",
+    "revision": "4bf86ebf69d5e96616a148e4c973f831f95fa38e",
+    "license": "Apache-2.0",
+    "selectors": [
+      "packages/shared/domain/src/models/Credential.ts",
+      "packages/lib/sdk/src/plugins/internal/oea/types.ts",
+      "packages/lib/sdk/src/pollux/utils/jwt/SDJWT.ts",
+      "packages/lib/sdk/src/pollux/utils/jwt/CreateSDJWT.ts"
+    ],
+    "observations": [
+      "protected-type-vc+sd-jwt",
+      "credential-format-vc+sd-jwt",
+      "millisecond-date-heuristic"
+    ]
+  },
+  "oracle": {
+    "id": "@sd-jwt/sd-jwt-vc",
+    "version": "0.7.2",
+    "revision": "d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a",
+    "license": "Apache-2.0",
+    "npmIntegrity": "sha512-rryYmnoJHRSNqHcrs0Atta+bfJzU2yT7mYumR2D4lTfxJKWZd0OHHFq57uZSEm/wXPI6uytUJXYbEboCqLUAtw==",
+    "tarballSha512": "aebc989a7a091d148da8772bb3402db5af9b7c9cd4db24fb998ba64760f89537f124a5997743871c5ab9eee652126ff05cf23abb2b5425761b11ba02a8b500b7",
+    "observations": [
+      "draft03-source-link",
+      "protected-type-vc+sd-jwt",
+      "embedded-status-retrieval"
+    ]
+  },
+  "normativeSources": [
+    {
+      "id": "draft-ietf-oauth-sd-jwt-vc-03",
+      "sha256": "9599225eb8732c0ef3f9a6524589e637f9272ba742da185c43ecfd272b81bf5a"
+    },
+    {
+      "id": "draft-ietf-oauth-sd-jwt-vc-22",
+      "sha256": "da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124"
+    }
+  ],
+  "cases": [
+    {
+      "id": "credentials.sd-jwt-vc.draft03-common-subset",
+      "consumerResult": "accept",
+      "oracleResult": "accept",
+      "rustResult": "success",
+      "disposition": "agreement",
+      "sourceSelectors": [
+        "sdk-ts@4bf86ebf69d5e96616a148e4c973f831f95fa38e:SDJWT.ts#verify",
+        "sd-jwt-vc@d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a:SDJwtVcInstance#verify"
+      ]
+    },
+    {
+      "id": "credentials.sd-jwt-vc.draft03-status-rejected",
+      "consumerResult": "accept",
+      "oracleResult": "accept",
+      "rustResult": "sd_jwt_vc.legacy_draft_feature",
+      "disposition": "intentional-safer-rejection",
+      "sourceSelectors": [
+        "sdk-ts@4bf86ebf69d5e96616a148e4c973f831f95fa38e:SDJWT.ts#verify",
+        "sd-jwt-vc@d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a:SDJwtVcInstance#verifyStatus"
+      ]
+    },
+    {
+      "id": "credentials.sd-jwt-vc.draft03-additional-types-rejected",
+      "consumerResult": "accept",
+      "oracleResult": "accept",
+      "rustResult": "sd_jwt_vc.legacy_draft_feature",
+      "disposition": "intentional-safer-rejection",
+      "sourceSelectors": [
+        "sdk-ts@4bf86ebf69d5e96616a148e4c973f831f95fa38e:SDJWT.ts#verify",
+        "sd-jwt-vc@d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a:SDJwtVcInstance#verify"
+      ]
+    },
+    {
+      "id": "credentials.sd-jwt-vc.draft03-integrity-rejected",
+      "consumerResult": "accept",
+      "oracleResult": "accept",
+      "rustResult": "sd_jwt_vc.legacy_draft_feature",
+      "disposition": "intentional-safer-rejection",
+      "sourceSelectors": [
+        "sdk-ts@4bf86ebf69d5e96616a148e4c973f831f95fa38e:SDJWT.ts#verify",
+        "sd-jwt-vc@d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a:SDJwtVcInstance#verify"
+      ]
+    }
+  ]
+}

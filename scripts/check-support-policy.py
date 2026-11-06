@@ -72,10 +72,17 @@ REQUIRED_COMPILE_PACKAGES = {
     "identus-core",
     "identus-crypto",
     "identus-did",
+    "identus-did-key",
+    "identus-did-jwk",
+    "identus-did-web",
+    "identus-did-peer",
     "identus-jose",
     "identus-oid4vci",
     "identus-oid4vp",
+    "identus-prism-did",
     "identus-adapters-entropy",
+    "identus-sd-jwt",
+    "identus-sd-jwt-vc",
 }
 REQUIRED_FEATURE_SURFACES = {
     "workspace-default",

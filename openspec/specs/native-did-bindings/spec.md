@@ -24,10 +24,11 @@ out of generic domain crates.
 
 ### Requirement: Native DID failures are bounded and redacted
 
-The facade SHALL preserve the domain parser's 2,048-byte DID and 4,096-byte DID
-URL bounds. Invalid, oversized and unexpected-panic failures SHALL return closed
-error cases with stable SDK-owned codes and SHALL NOT return caller text, domain
-details, panic payloads or implementation diagnostics.
+The facade SHALL preserve the domain parser's 131,072-byte DID and
+139,264-byte DID URL bounds. Invalid, oversized and unexpected-panic failures
+SHALL return closed error cases with stable SDK-owned codes and SHALL NOT
+return caller text, domain details, panic payloads or implementation
+diagnostics.
 
 #### Scenario: invalid input is rejected
 
@@ -66,6 +67,10 @@ separately locked generator supply-chain checks SHALL run in the active hosted
 weekly/manual slow macOS job or its exact local reproduction, not the
 Linux-only fast pull-request lane.
 
+A temporary generator advisory acceptance SHALL be limited to one exact
+build-only dependency path and advisory, SHALL expire automatically, and SHALL
+NOT weaken runtime, root or fuzz audit policy.
+
 #### Scenario: host language consumes API version one
 
 - **WHEN** the Swift and Kotlin/JVM smoke programs load the generated binding
@@ -78,6 +83,12 @@ Linux-only fast pull-request lane.
 - **THEN** the Linux fast line SHALL retain factory, build, lint and test gates,
   while macOS host execution and generator deny/audit evidence remain in the
   native weekly/manual slow workflow or exact local reproduction
+
+#### Scenario: accepted generator graph remains exact and current
+
+- **WHEN** the weekly lane evaluates the temporary RUSTSEC-2026-0374 acceptance
+- **THEN** it SHALL fail before host execution if the date is expired, the exact
+  reviewed inverse dependency path has changed, or any other audit finding exists
 
 ### Requirement: Host proof does not activate mobile or public FFI support
 
@@ -256,3 +267,4 @@ test SHALL NOT depend on Google APIs or Play Store.
 - **WHEN** the native DID smoke test provisions its API-35 x86_64 AVD
 - **THEN** it selects the default AOSP image and makes no Google API, Play Store
   or additional license dependency part of the proof
+

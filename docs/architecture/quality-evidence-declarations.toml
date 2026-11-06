@@ -2,10 +2,695 @@ schema_version   = 1
 registry_version = "1.0.0"
 status           = "active"
 owner_issue      = 501
-evaluated_at     = "2026-09-30"
+evaluated_at     = "2026-10-29"
 allowed_classes  = [ "property", "fuzz", "benchmark", "differential" ]
 allowed_lanes    = [ "focused", "fast", "slow", "release", "none" ]
 allowed_cadences = [ "on-change", "per-pull-request", "weekly-or-manual", "per-candidate", "not-applicable" ]
+
+[[declarations]]
+id          = "oid4vp.redirect-response.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Bounded redirect response modes and direct-post acknowledgement"
+owner       = "SDK-Rust OID4VP maintainers"
+owner_issue = 546
+risk        = "Redirect encoding or acknowledgement parsing can lose request lineage, leak presentation data, create ambiguous destinations, or authorize effects."
+targets     = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.direct-post-response.final-string-state" ]
+limitations = "Inert protocol material only; no HTTP, browser navigation, HTML, leakage policy, response-code redemption, entropy proof, storage, publication, or certification claim."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Mode/destination combinations, escaping, collisions, and boundary arithmetic can create ambiguous or unbounded output."
+selectors         = [ "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md#Decision" ]
+command           = "cargo test -p identus-oid4vp --test redirect_response property"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Sweep every supported mode, query/fragment output boundaries, form-post collision bounds, all reserved fields, and the exact acknowledgement body boundary."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/tests/redirect_response.rs"
+evidence_revision = "30b90193044bdabdafb97a4f309c249e30f275cc"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/tests/redirect_response.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 546
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Only exact authorized mode/destination pairs produce bounded inert output", "domain=fragment, query, form_post and acknowledgement", "cases=success, mismatch, collision, malformed URI, oversize and ambiguity" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile acknowledgement JSON or URI components can panic, amplify work, bypass bounds, or mint navigation evidence."
+selectors         = [ "fuzz/fuzz_targets/direct_post_response.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#direct_post_response" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/direct_post_response.rs"
+evidence_revision = "30b90193044bdabdafb97a4f309c249e30f275cc"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/direct_post_response.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 546
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded mode, URI, headers and JSON", "corpus=Clean-room Final examples", "seed=libFuzzer-managed failures promoted to regressions", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "URI assembly, encoding, JSON scanning, or collision checks can regress portable latency."
+selectors         = [ "crates/oid4vp/benches/direct_post_response.rs#main" ]
+command           = "cargo bench -p identus-oid4vp --bench direct_post_response"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure ordinary and near-limit redirect construction plus acknowledgement parsing."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/benches/direct_post_response.rs"
+evidence_revision = "30b90193044bdabdafb97a4f309c249e30f275cc"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/benches/direct_post_response.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 546
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Construct redirect material and parse acknowledgement", "fixture=Ordinary and near-limit clean-room packets", "environment=Rust 1.98 etalon", "statistic=Median directional wall time", "samples=21 samples with 20 iterations", "threshold=Directional baseline" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK behavior can drift from OpenID4VP Final and OAuth response-mode encoding."
+selectors         = [ "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md#Decision" ]
+command           = "cargo test -p identus-oid4vp --test redirect_response"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Compare clean-room fragment, query, form_post, and acknowledgement cases to pinned rules."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json"
+evidence_revision = "30b90193044bdabdafb97a4f309c249e30f275cc"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 546
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=OpenID4VP 1.0 Final sections 3.1, 5.6, 8.1, 8.2 and 13.3 plus OAuth response modes", "oracle-revision=Final 2025-07-09", "normalization=Exact parameters, placement and stable categories", "deviations=Effects and redemption caller-owned" ]
+
+[[declarations]]
+id          = "oid4vp.direct-post-response.request-object-security.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Bounded Request Object audience, freshness and atomic replay evidence"
+owner       = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+risk        = "A signed Request Object can target the wrong Wallet, be accepted outside its validity window, or be replayed before typed authorization routing."
+targets     = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.direct-post-response.final-string-state" ]
+limitations = "This declaration proves local Final audience, integral temporal policy, atomic replay decision and typed state lineage; it does not prove verifier trust, persistence, transport, consent, credential validity or product policy."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Temporal boundary arithmetic or consuming state transitions can accept stale/future input or expose typed routing before security acceptance."
+selectors = [ "crates/oid4vp/src/request_object.rs#bypass_security", "crates/oid4vp/tests/request_object_security.rs#generated_temporal_boundary_properties_hold", "crates/oid4vp/tests/request_object_security.rs#stateful_replay_guard_accepts_each_payload_once" ]
+command = "cargo test -p identus-oid4vp --test request_object_security && cargo test -p identus-oid4vp --doc"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-oid4vp", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Sweep generated age/skew/expiry/not-before boundaries and exercise a stateful atomic replay decision with consuming-state compile/runtime canaries."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/tests/request_object_security.rs"
+evidence_revision = "4fc60ef685a035e56e9b79ad73c41924047e95ec"
+recorded_at = "2026-10-28"
+artifact = "crates/oid4vp/tests/request_object_security.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Only an audience/time-valid atomically accepted Request Object reaches typed routing",
+  "domain=Singleton static/dynamic audiences plus generated integral age/skew/expiry/not-before boundaries",
+  "cases=Exact boundary, one-before, one-after, missing, malformed, mismatch, stateful duplicate rejection and guard failure",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "satisfied"
+risk = "Malformed audience arrays or NumericDate tokens can panic, amplify parser work, overflow arithmetic or bypass policy."
+selectors = [ "fuzz/fuzz_targets/request_object_security.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#request_object_security" ]
+command = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak request_object_security"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Run the bounded claims and policy path for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
+receipt_kind = "source"
+receipt = "source:fuzz/fuzz_targets/request_object_security.rs"
+evidence_revision = "643773773b40a3571f94e676a22d01cd43393aff"
+recorded_at = "2026-10-28"
+artifact = "fuzz/fuzz_targets/request_object_security.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "harness=Route arbitrary bounded payload claims through scanning and deterministic security policy",
+  "corpus=Clean-room Final static and mismatch cases plus generated temporal boundaries",
+  "seed=libFuzzer-managed reproducible failures with checked-in regression promotion",
+  "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "Additional claim scanning, time arithmetic or replay-port invocation can materially regress portable request latency."
+selectors = [ "crates/oid4vp/benches/request_object_security.rs#security.ordinary.end-to-end", "crates/oid4vp/benches/request_object_security.rs#security.boundary.end-to-end" ]
+command = "cargo bench -p identus-oid4vp --bench request_object_security"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure deterministic ordinary and near-limit local security transitions over a stable sample set."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/benches/request_object_security.rs"
+evidence_revision = "21f16a0fc91244a0ff6304f14d2b80cb6e7c2fab"
+recorded_at = "2026-10-28"
+artifact = "crates/oid4vp/benches/request_object_security.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Parse verified claims, validate audience/time and invoke one in-memory replay decision",
+  "fixture=Deterministic clean-room Final static ordinary audience and dynamic near-limit audience/JWT-ID strings",
+  "environment=Rust 1.98 etalon on the executing development host with Linux as comparison lane",
+  "statistic=Median wall time from the dependency-free directional harness",
+  "samples=21 samples with 20 iterations each",
+  "threshold=Directional baseline before downstream adoption; functional limits remain blocking",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "SDK audience and temporal behavior can drift from OpenID4VP Final and RFC 7519 while internal round trips remain green."
+selectors = [ "crates/oid4vp/tests/direct_post_response.rs#packet_executes_full_invocation_jar_dcql_and_response_lineage", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.direct-post-response.final-string-state" ]
+command = "cargo test -p identus-oid4vp --test direct_post_response packet_executes_full_invocation_jar_dcql_and_response_lineage"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Execute the pinned clean-room Final/RFC packet and compare normalized result classes rather than foreign DTOs or error strings."
+receipt_kind = "source"
+receipt = "source:docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+evidence_revision = "547ef60adea10a8d97c2948043e51c82f793d9be"
+recorded_at = "2026-10-28"
+artifact = "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 544
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=OpenID4VP 1.0 Final section 5.8 and RFC 7519 clean-room cases",
+  "oracle-revision=OpenID4VP-Final-2025-07-09-current-errata;RFC7519-May-2015",
+  "normalization=Compare exact audience and stable policy result categories without importing foreign DTOs",
+  "deviations=Integral NumericDate profile and caller-owned atomic replay are explicit SDK constraints",
+]
+
+[[declarations]]
+id          = "crypto.quality.v1"
+capability  = "crypto.secp256k1"
+slice       = "RustCrypto advisory remediation"
+owner       = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+risk        = "A curve-family security upgrade can silently change key encodings, signature acceptance, target portability or cross-implementation verification behavior."
+targets     = [ "package:identus-crypto", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "crypto.secp256k1.jvm-compat" ]
+limitations = "This declaration proves the existing SDK cryptographic facade across the RustCrypto 0.14 migration; it does not make upstream tuple-field types stable or add a new algorithm claim."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Key parsing, public-key derivation, encoding and signing round trips may disagree after the coordinated curve-family upgrade."
+selectors = [
+  "crates/crypto/tests/curves.rs#secp256k1_compressed_uncompressed_roundtrip",
+  "crates/crypto/tests/curves.rs#p256_fixed_signature_preserves_der_api_and_rejects_tampering",
+]
+command = "cargo test -p identus-crypto --all-features --test curves"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-crypto", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Exercise deterministic lifecycle and exact encoding round trips for every supported curve with tamper rejection."
+receipt_kind = "source"
+receipt = "source:crates/crypto/tests/curves.rs"
+evidence_revision = "67c30d599a538b873646a6e857809f2106391bb1"
+recorded_at = "2026-10-27"
+artifact = ""
+owner = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=SDK key bytes, public derivation, encodings and signature verification remain mutually consistent",
+  "domain=Ed25519, X25519, secp256k1 and P-256 lifecycle surfaces with deterministic inputs",
+  "cases=Compressed and uncompressed SEC1, DER and fixed-width signatures, JWK and tamper rejection",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "required"
+risk = "Malformed public JWK or COSE values can trigger parser panics, excessive allocation or invalid curve-point acceptance."
+selectors = [
+  "fuzz/fuzz_targets/crypto_support.rs#fuzz_public_jwk",
+  "fuzz/fuzz_targets/crypto_support.rs#fuzz_public_cose",
+  "scripts/fuzz-crypto.sh#max_total_time",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak all"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-crypto", "host:linux", "sanitizer:address" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Run public JWK and COSE fuzz targets for 300 seconds each with max_len=8192, timeout=5 and rss_limit_mb=1024."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = "crypto-fuzz-artifacts-<sha>-<attempt> on failure"
+owner = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+debt_status = "open"
+debt_issue = 525
+rationale = ""
+details = [
+  "harness=libFuzzer public JWK and COSE parse and round-trip targets",
+  "corpus=fuzz/corpus/public_jwk and fuzz/corpus/public_cose",
+  "seed=libFuzzer-managed reproducible failing inputs",
+  "bounds=max_len=8192;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "A curve-family upgrade can cause material signing, verification or key-derivation regressions even while functional vectors pass."
+selectors = [
+  "scripts/benchmark-crypto.sh#samples",
+  "crates/crypto/examples/crypto_baseline.rs#main",
+]
+command = "./scripts/benchmark-crypto.sh --samples 20 --output artifacts/crypto-baseline.json"
+lane = "release"
+cadence = "per-candidate"
+targets = [ "package:identus-crypto", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure 20 samples for the maintained representative crypto operations and validate the bounded baseline artifact."
+receipt_kind = "source"
+receipt = "source:scripts/benchmark-crypto.sh"
+evidence_revision = "67c30d599a538b873646a6e857809f2106391bb1"
+recorded_at = "2026-10-27"
+artifact = "artifacts/crypto-baseline.json"
+owner = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Representative key derivation, signing and verification operations maintained by identus-crypto",
+  "fixture=Deterministic dependency-free crypto_baseline example inputs",
+  "environment=Release-mode local or Nix slow-lane host recorded with the receipt",
+  "statistic=Per-operation median and dispersion emitted by the validated artifact",
+  "samples=20 samples per maintained operation",
+  "threshold=Artifact validation is blocking; historical performance comparison remains advisory until a stable host baseline is accepted",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "RustCrypto verification behavior may diverge from signatures produced by the JVM PRISM implementation or its bitcoin-transcode compatibility path."
+selectors = [
+  "crates/crypto/tests/secp256k1_compat.rs#crypto_packet_jvm_compat_case_verifies",
+  "crates/crypto/tests/secp256k1_compat.rs#test_secp256k1_apollo_test_cases",
+  "crates/crypto/tests/secp256k1_compat.rs#secp256k1_bitcoin_transcode_fallback_verifies_reversed_signature",
+  "docs/conformance/cross-language-vector-catalog.toml#crypto.secp256k1.jvm-compat",
+]
+command = "cargo test -p identus-crypto --all-features --test secp256k1_compat"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-crypto", "host:rust", "consumer:jvm-prism" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Verify all 50 published JVM signatures plus the deciding bitcoin-transcode fallback regression."
+receipt_kind = "source"
+receipt = "source:crates/crypto/tests/secp256k1_compat.rs"
+evidence_revision = "67c30d599a538b873646a6e857809f2106391bb1"
+recorded_at = "2026-10-27"
+artifact = "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
+owner = "SDK-Rust cryptography maintainers"
+owner_issue = 525
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=Published Identus JVM PRISM secp256k1 verification vectors",
+  "oracle-revision=67c30d599a538b873646a6e857809f2106391bb1",
+  "normalization=Compare acceptance of exact public-key, message and DER signature bytes without mapping upstream Rust types",
+  "deviations=SDK retains the documented raw, normalized-s and bitcoin-transcode verification sequence",
+]
+
+[[declarations]]
+id          = "oid4vp.direct-post-response.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Bounded OpenID4VP Final plain direct-post success and protocol-error construction"
+owner       = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+risk        = "Response construction can detach success or error material from validated request lineage, emit malformed wire values, leak credentials or developer context, or amplify hostile input."
+targets     = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.direct-post-response.final-string-state", "oid4vp.direct-post-response.final-error-state" ]
+limitations = "This declaration covers plain OpenID4VP Final direct_post success and explicitly selected protocol-error construction only; it does not prove HTTP delivery, presentation authenticity, error truth, End-User interaction, consent, privacy safety, trust, encryption, direct_post.jwt, SIOPv2, DC API or HAIP."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Generated success or error inputs may bypass required coverage, optional-field syntax, independent limits, exclusivity, or round-trip form invariants."
+selectors = [
+  "crates/oid4vp/tests/direct_post_response.rs#direct_post_property_generated_matrix_round_trips",
+  "crates/oid4vp/tests/direct_post_response.rs#unknown_duplicate_and_absent_all_query_results_are_rejected",
+  "crates/oid4vp/tests/direct_post_response.rs#required_alternatives_optional_sets_and_multiple_cardinality_are_enforced",
+  "crates/oid4vp/tests/direct_post_response.rs#presentation_and_aggregate_limits_fail_before_returning_an_envelope",
+  "crates/oid4vp/tests/direct_post_response.rs#direct_post_error_vocabulary_and_optional_values_round_trip",
+  "crates/oid4vp/tests/direct_post_response.rs#direct_post_error_details_and_output_are_independently_bounded",
+]
+command = "cargo test -p identus-oid4vp --test direct_post_response"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-oid4vp", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Generate bounded success matrices and every closed error code with optional detail forms; round-trip accepted output and reject independent boundary violations."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/tests/direct_post_response.rs"
+evidence_revision = "86efc29b517ad4fe53c2a345c6cc47076556509e"
+recorded_at = "2026-10-27"
+artifact = "crates/oid4vp/tests/direct_post_response.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Every accepted branch remains request-bound, mutually exclusive, within policy and form-decodes to the selected protocol values and exact state",
+  "domain=Bounded required and optional query rules, presentations, all closed error codes, optional developer fields and state",
+  "cases=Deterministic generated success matrices plus malformed, empty, oversized, redacted and valid error combinations",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "satisfied"
+risk = "Malformed bounded presentations or protocol-error descriptions may panic, exceed parser work limits, escape wire encoding, or leak bytes in a request-bound envelope."
+selectors = [
+  "fuzz/fuzz_targets/direct_post_response.rs#fuzz_target",
+  "scripts/fuzz-oid4vp.sh#direct_post_response",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Run both success and error direct-post constructors for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024."
+receipt_kind = "source"
+receipt = "source:fuzz/fuzz_targets/direct_post_response.rs"
+evidence_revision = "86efc29b517ad4fe53c2a345c6cc47076556509e"
+recorded_at = "2026-10-27"
+artifact = "fuzz/fuzz_targets/direct_post_response.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "harness=LibFuzzer routes arbitrary bounded bytes into success string/object presentations or an error description under one fixed valid request lineage",
+  "corpus=Minimal success seeds plus arbitrary error-description bytes; vocabulary, URI, cardinality and alternatives remain covered by focused integration",
+  "seed=libFuzzer-managed reproducible failures promoted into regression tests",
+  "bounds=max_len=65536;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "The complete invocation, JAR, DCQL and response pipeline may show material latency drift for ordinary or near-limit success and error forms."
+selectors = [
+  "crates/oid4vp/benches/direct_post_response.rs#main",
+]
+command = "cargo bench -p identus-oid4vp --bench direct_post_response"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure the complete deterministic pipeline for ordinary and near-limit success presentations and error descriptions; this diagnostic does not isolate construction or measure allocations."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/benches/direct_post_response.rs"
+evidence_revision = "86efc29b517ad4fe53c2a345c6cc47076556509e"
+recorded_at = "2026-10-27"
+artifact = "crates/oid4vp/benches/direct_post_response.rs"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Parse invocation, bind and verify JAR, validate DCQL, then construct deterministic success or error form output",
+  "fixture=Ordinary and near-limit presentation strings plus ordinary and exact-limit protocol-error descriptions",
+  "environment=Pinned toolchain release-mode benchmark process; compare results only within a recorded environment",
+  "statistic=Median wall time across 21 samples with 10 iterations per sample; allocation observation is explicitly unavailable",
+  "samples=21 measured samples per ordinary and near-limit success/error end-to-end operation",
+  "threshold=Diagnostic only; introduce a regression threshold after a stable CI baseline exists",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "The SDK success JSON or protocol-error form encoding may diverge from normative OpenID4VP Final examples and independent decoders."
+selectors = [
+  "crates/oid4vp/tests/direct_post_response.rs#packet_executes_full_invocation_jar_dcql_and_response_lineage",
+  "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json#oid4vp.direct-post-response.final-string-state",
+  "crates/oid4vp/tests/direct_post_response.rs#direct_post_error_matches_final_example_and_preserves_request_lineage",
+  "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json#oid4vp.direct-post-response.final-error-state",
+]
+command = "cargo test -p identus-oid4vp --test direct_post_response"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Reproduce attributed Final success and error response shapes and round-trip form bodies through an independent strict decoder."
+receipt_kind = "source"
+receipt = "source:docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+evidence_revision = "86efc29b517ad4fe53c2a345c6cc47076556509e"
+recorded_at = "2026-10-27"
+artifact = "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json"
+owner = "SDK-Rust OID4VP maintainers"
+owner_issue = 487
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=OpenID4VP 1.0 Final sections 8.1, 8.2 and 8.5 clean-room success and Authorization Error Response examples",
+  "oracle-revision=Final 2025-07-09 with current errata retrieved 2026-10-27",
+  "normalization=Compare decoded parameter names, exact state, structural JSON presentation types and typed error codes rather than language DTO shapes",
+  "deviations=The SDK uses deterministic field order, a closed Final error vocabulary and conservative public limits that do not change conforming wire meaning",
+]
+
+[[declarations]]
+id          = "oid4vp.direct-post-response.encrypted.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Bounded OpenID4VP Final direct_post.jwt response construction through an SDK-owned JWE capability port"
+owner       = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+risk        = "Encrypted response construction can select an attacker-controlled or ambiguous key, detach plaintext from verified request lineage, expose sensitive response material, accept malformed compact output, or amplify hostile metadata."
+targets     = [ "package:identus-jose", "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.encrypted-direct-post-response.final-p256-a128gcm" ]
+limitations = "This declaration covers Final direct_post.jwt metadata selection, bounded SDK-owned P-256 ECDH-ES/A128GCM port input, opaque compact-output validation and response-only form construction; it does not prove a production JWE engine, HTTP delivery, wallet authentication, consent, trust, presentation verification or foreign DTO shape."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Bounded metadata, key sets and compact outputs may bypass deterministic selection, algorithm closure, independent bounds, request lineage or response-only form invariants."
+selectors = [
+  "crates/jose/tests/jwe_port.rs#bounded_request_matrix_preserves_only_explicitly_revealed_values",
+  "crates/jose/tests/jwe_port.rs#compact_header_and_segment_profile_rejects_each_independent_defect",
+  "crates/oid4vp/tests/encrypted_direct_post_response.rs#metadata_rejects_private_ambiguous_and_unsupported_keys",
+  "crates/oid4vp/tests/encrypted_direct_post_response.rs#stop_boundaries_precede_encryption_and_plain_mode_cannot_use_protected_constructor",
+]
+command = "cargo test -p identus-jose --test jwe_port && cargo test -p identus-oid4vp --test encrypted_direct_post_response"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-jose", "package:identus-oid4vp", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Exercise deterministic key-identifier and plaintext boundaries, required and optional metadata, wrong-mode constructors, private or ambiguous keys, unsupported algorithms, presentation lineage, every compact-header rule and segment grammar."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/tests/encrypted_direct_post_response.rs"
+evidence_revision = "15d500b639c67e824e1ac29459a9038730c0cb1b"
+recorded_at = "2026-10-27"
+artifact = "crates/jose/tests/jwe_port.rs"
+owner = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Every accepted encrypted response remains bound to one verified request, one eligible public recipient, one closed algorithm pair and one response-only form",
+  "domain=Bounded P-256 public keys, selected JWK metadata cases, encryption preferences, DCQL results and compact JWE segment shapes",
+  "cases=Deterministic boundary matrices plus explicit ambiguous, private, malformed, unsupported, empty, oversized, wrong-mode and redaction-sensitive inputs",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "satisfied"
+risk = "Malformed verifier metadata or adapter-controlled compact material may panic, cause unbounded parser work, bypass segment grammar, or disclose hostile bytes through errors."
+selectors = [
+  "fuzz/fuzz_targets/encrypted_direct_post_response.rs#fuzz_target!",
+  "scripts/fuzz-oid4vp.sh#encrypted_direct_post_response",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak encrypted_direct_post_response"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Run metadata selection and returned compact-material validation for 300 seconds with max_len=65536, timeout=5 and rss_limit_mb=1024."
+receipt_kind = "source"
+receipt = "source:fuzz/fuzz_targets/encrypted_direct_post_response.rs"
+evidence_revision = "dd1996086d72510ae9e9c806886823614a8a1567"
+recorded_at = "2026-10-27"
+artifact = "fuzz/corpus/encrypted_direct_post_response"
+owner = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "harness=LibFuzzer routes arbitrary bounded bytes into verifier metadata and compact JWE result validation under fixed verified request lineage",
+  "corpus=Minimal eligible public JWK and five-segment compact response seeds plus arbitrary metadata and segment bytes",
+  "seed=libFuzzer-managed reproducible failures promoted into focused regression tests",
+  "bounds=max_len=65536;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "Metadata selection, response serialization or compact-output validation may regress materially at ordinary or near-limit sizes before any cryptographic adapter work begins."
+selectors = [
+  "crates/oid4vp/benches/encrypted_direct_post_response.rs#main",
+]
+command = "cargo bench -p identus-oid4vp --bench encrypted_direct_post_response"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-oid4vp", "host:linux" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure ordinary and near-limit verified request metadata selection, response JSON construction, one port invocation and compact/form validation without claiming cryptographic engine performance."
+receipt_kind = "source"
+receipt = "source:crates/oid4vp/benches/encrypted_direct_post_response.rs"
+evidence_revision = "dd1996086d72510ae9e9c806886823614a8a1567"
+recorded_at = "2026-10-27"
+artifact = "crates/oid4vp/benches/encrypted_direct_post_response.rs"
+owner = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Select one eligible verifier recipient, construct Final response plaintext, invoke a deterministic test port and validate compact form output",
+  "fixture=Ordinary and near-limit public metadata, presentation JSON and compact segment lengths",
+  "environment=Pinned toolchain release-mode benchmark process; compare results only within a recorded environment",
+  "statistic=Median wall time across 21 samples with 10 iterations per sample; allocation observation is explicitly unavailable",
+  "samples=21 measured samples per ordinary and near-limit end-to-end operation",
+  "threshold=Diagnostic only; introduce a regression threshold after a stable CI baseline exists",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "required"
+risk = "The SDK metadata interpretation, plaintext members, response-only form or future adapter output may diverge from OpenID4VP Final and a conforming independent compact-JWE implementation."
+selectors = [
+  "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json#oid4vp.encrypted-direct-post-response.final-p256-a128gcm",
+  "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md#Decision",
+  "docs/adr/0192-require-all-gates-before-adopting-a-jwe-engine.md#Decision",
+  "scripts/qualify-jwe-engine.py#struct JoseRsAdapter",
+]
+command = "cargo test -p identus-jose --test jwe_production_adapter"
+lane = "release"
+cadence = "per-candidate"
+targets = [ "package:identus-jose", "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Adopt an exact all-gates production engine, execute the SDK port through that supported adapter, validate protected-header and compact grammar, independently decrypt with the corresponding private key, and pass native/portable and clean audit evidence."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust OID4VP and JOSE maintainers"
+owner_issue = 535
+debt_status = "open"
+debt_issue = 566
+rationale = ""
+details = [
+  "oracle=OpenID4VP 1.0 Final sections 8.3 and 8.3.1 plus a future all-gates production adapter; isolated jose-rs 0.10.0 is feasibility evidence only",
+  "oracle-revision=Final 2025-07-09 with current errata; isolated jose-rs 0.10.0 lock digest 2e893f1a3a046b55c26c9399e761d3ab812d65c9a2bf736862526b9cb47d4638",
+  "normalization=Compare SDK request algorithms, selected public-key bytes, kid, bounded plaintext, protected-header members, compact grammar and recovered plaintext rather than randomized ciphertext bytes",
+  "deviations=The isolated adapter passes independent decryptability but its graph fails RUSTSEC-2023-0071; issue #566 owns supported production integration and the differential obligation remains open",
+]
 
 [[declarations]]
 id = "did.syntax.quality.v1"
@@ -60,10 +745,10 @@ cadence = "on-change"
 targets = [ "package:identus-did", "host:rust" ]
 freshness = "source-bound"
 freshness_days = 0
-budget = "Exhaust ASCII bytes 0..127 in each grammar position and verify exact 2,048-byte DID and 4,096-byte DID URL limits."
+budget = "Exhaust ASCII bytes 0..127 in each grammar position and verify exact 131,072-byte DID and 139,264-byte DID URL limits."
 receipt_kind = "source"
 receipt = "source:crates/did/tests/did_syntax.rs"
-evidence_revision = "d3543e3eec42dd519c57a7250950c01fa628145a"
+evidence_revision = "a2683961fb07305d12e96fbcabdb07bb7c0cbab8"
 recorded_at = "2026-09-30"
 artifact = ""
 owner = "SDK-Rust DID maintainers"
@@ -95,9 +780,9 @@ freshness = "max-age-days"
 freshness_days = 8
 budget = "Run each DID and DID URL fuzz target for 300 seconds with max_len=8192, timeout=5, and rss_limit_mb=1024."
 receipt_kind = "github-run"
-receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/36517752658"
-evidence_revision = "d27e455901c501d9611abbe0065e6a9b7270dd57"
-recorded_at = "2026-09-29"
+receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925"
+evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
+recorded_at = "2026-10-27"
 artifact = "did-fuzz-artifacts-<sha>-<attempt> on failure"
 owner = "SDK-Rust DID maintainers"
 owner_issue = 501
@@ -153,7 +838,7 @@ freshness_days = 0
 budget = "Evaluate all 22 immutable DID syntax packet cases without network access or an unpublished consumer dependency."
 receipt_kind = "source"
 receipt = "source:crates/conformance/tests/cross_language_did_vectors.rs"
-evidence_revision = "d3543e3eec42dd519c57a7250950c01fa628145a"
+evidence_revision = "a2683961fb07305d12e96fbcabdb07bb7c0cbab8"
 recorded_at = "2026-09-30"
 artifact = "docs/conformance/fixtures/did/v1/vectors.json"
 owner = "SDK-Rust conformance maintainers"
@@ -167,3 +852,1565 @@ details = [
   "normalization=compare accept/reject and canonical parsed component expectations, not foreign DTO or error shapes",
   "deviations=none for the lexical syntax packet",
 ]
+
+[[declarations]]
+id = "did.prism.quality.v1"
+capability = "did.prism"
+slice = "Portable chain-neutral PRISM DID method"
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+risk = "Wire reconstruction, invalid key profiles, non-atomic updates or unstable projection can split PRISM history and expose unauthorized DID state."
+targets = [ "package:identus-prism-did", "host:rust", "target:wasm32-unknown-unknown" ]
+vector_ids = [
+  "did.prism.preprod.signed-create",
+  "did.prism.preprod.signed-create-second",
+  "did.prism.wire.duplicate-envelope-field",
+]
+limitations = "The declaration covers portable DID operations and projection only; Cardano indexing, VDR payload semantics, persistence and downstream adoption remain separate capabilities."
+active = true
+supersedes = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Long ordered action sequences and historical churn may violate rollback, identifier reservation, active-count or master-key invariants."
+selectors = [
+  "crates/prism-did/src/state.rs#property_generated_state_traces_preserve_atomic_invariants",
+]
+command = "cargo test -p identus-prism-did property"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-prism-did", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Generate deterministic create/update/deactivate traces covering ordered rollback, tombstones, active-only 50-item limits and final master-key invariants."
+receipt_kind = "source"
+receipt = "source:crates/prism-did/src/state.rs"
+evidence_revision = "5ce2deaf9ca61642fc8b81ee4baa593bababe98f"
+recorded_at = "2026-10-26"
+artifact = ""
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Every accepted trace preserves history linkage, identifier reservation, active limits and at least one active master key",
+  "domain=Bounded create, ordered update-action and deactivate sequences with valid and invalid identifiers, keys, services and contexts",
+  "cases=Deterministic generated traces plus shrinking-ready operation constructors",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "required"
+risk = "Malformed protobuf, base64url or nested JSON inputs may trigger panics, allocation amplification, parser disagreement or signature confusion."
+selectors = [
+  "crates/prism-did/src/wire.rs#rejects_malformed_and_oversized_inputs",
+  "fuzz/fuzz_targets/prism_operation.rs#fuzz_target!",
+  "fuzz/fuzz_targets/prism_did.rs#fuzz_target!",
+  "scripts/fuzz-did-prism.sh#-max_len=139264",
+  ".github/workflows/did-fuzz.yml#Run bounded PRISM DID soak",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-did-prism.sh soak all"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-prism-did", "host:linux", "sanitizer:address" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Bound raw inputs at the public envelope and identifier ceilings, five seconds per case, 1024 MiB RSS and 300 seconds per target."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+debt_status = "open"
+debt_issue = 521
+rationale = ""
+details = [
+  "harness=Planned libFuzzer targets for exact envelope, long-form syntax, typed create/update decoding and state traces",
+  "corpus=Pinned PRISM specification examples, donor negatives and public Preprod signed envelopes",
+  "seed=libFuzzer-managed reproducible failing inputs with checked-in regression promotion",
+  "bounds=max_len=139264;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "required"
+risk = "Exact-byte scanning, typed decoding and clone-then-commit reduction may introduce material latency or allocation regressions on portable targets."
+selectors = [
+  "crates/prism-did/benches/directional.rs#did-prism-benchmark",
+]
+command = "cargo bench -p identus-prism-did"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-prism-did", "host:linux" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Measure ordinary and maximum-profile parse, signature verification, projection and state transition paths with fixed fixtures and allocation observations."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+debt_status = "open"
+debt_issue = 521
+rationale = ""
+details = [
+  "operation=Exact envelope parse, create verification, update reduction and DID document projection",
+  "fixture=Historical Preprod envelope plus deterministic ordinary and maximum-profile operations",
+  "environment=Pinned Linux Nix toolchain with isolated benchmark process",
+  "statistic=Median wall time with allocation count and peak retained bytes where available",
+  "samples=At least 100 measured iterations after warm-up per stable fixture",
+  "threshold=Directional baseline in this slice; regression thresholds require the first accepted source-bound baseline",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "Portable operation hashes, signature verification, state semantics or document projection may diverge from the public ledger and pinned method behavior."
+selectors = [
+  "crates/prism-did/src/state.rs#verifies_pinned_preprod_signed_create_envelope",
+  "crates/conformance/tests/cross_language_prism_vectors.rs#portable_prism_packet_matches_identus_prism_did",
+  "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json#5873d42d38408e10f5e9dc624c0fc18fbf4b5a7871046501eb7f7e4997f11360",
+]
+command = "cargo test -p identus-prism-did verifies_pinned_preprod && cargo test -p identus-conformance --test cross_language_prism_vectors"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-prism-did", "host:rust", "network:preprod-fixture" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Verify both pinned public Preprod create envelopes and compare exact operation ID, DID suffix, signature and projected document evidence offline."
+receipt_kind = "source"
+receipt = "source:crates/conformance/tests/cross_language_prism_vectors.rs"
+evidence_revision = "5ce2deaf9ca61642fc8b81ee4baa593bababe98f"
+recorded_at = "2026-10-26"
+artifact = "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json"
+owner = "SDK-Rust PRISM DID maintainers"
+owner_issue = 521
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=Public Cardano Preprod operation facts reproduced by NeoPRISM 0.14.2 and the pinned donor revision",
+  "oracle-revision=04a43c3ff8afde4218011e58bd02b246e4d9ab6194e356467dd2319aba5015f9",
+  "normalization=Compare exact signed bytes, nested operation hash, signature result and semantic projection rather than donor DTO shapes",
+  "deviations=Active-count correction, missing-action rejection, duplicate singular-field rejection and exact-byte signature verification are explicit SDK hardening",
+]
+
+[[declarations]]
+id = "did.prism.vdr-indexing.quality.v1"
+capability = "did.prism.vdr-indexing"
+slice = "Portable chain-neutral PRISM VDR and deterministic indexer cores"
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+risk = "Unbounded ancestry, ambiguous replay, partial commits, or wire drift can authorize invalid storage history or split deterministic index state."
+targets = [
+  "package:identus-prism-vdr",
+  "package:identus-prism-indexer",
+  "host:rust",
+  "target:wasm32-unknown-unknown",
+  "target:aarch64-apple-ios",
+  "target:aarch64-linux-android",
+]
+vector_ids = [
+  "did.prism.vdr-indexing.empty-nonce",
+  "did.prism.vdr-indexing.transition-digest",
+]
+limitations = "Effect-neutral VDR and indexing semantics only; no Cardano source, persistence, SQL, HTTP, scheduler, retry loop, device runtime, FFI, deployment, or downstream NeoPRISM adoption is claimed."
+active = true
+supersedes = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Generated ancestry depths and operation orders may violate finite traversal, canonical ordering, framing, root, or current-head invariants."
+selectors = [
+  "crates/prism-vdr/tests/vdr.rs#property_generated_ancestry_lengths_preserve_root_and_head",
+  "crates/prism-indexer/tests/batch.rs#property_exhaustive_four_record_orders_are_bounded_and_domain_separated",
+]
+command = "cargo test -p identus-prism-vdr property && cargo test -p identus-prism-indexer property"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-prism-vdr", "package:identus-prism-indexer", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Exercise every accepted ancestry length from zero through 200 predecessor hops and all 24 permutations of four framed transaction records."
+receipt_kind = "source"
+receipt = "source:docs/architecture/prism-vdr-indexer-quality-baseline.md"
+evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
+recorded_at = "2026-10-27"
+artifact = ""
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Traversal remains finite and preserves root, owner and current head while record order remains framed and digest-distinct",
+  "domain=Every supported ancestry length and every permutation of four complete bounded records",
+  "cases=Deterministic generated chains and exhaustive order enumeration",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "satisfied"
+risk = "Malformed exact-wire storage envelopes and adversarial batch boundaries may trigger panics, allocation amplification, parser disagreement, or digest instability."
+selectors = [
+  "fuzz/fuzz_targets/prism_vdr.rs#fuzz_target!",
+  "fuzz/fuzz_targets/prism_indexer_batch.rs#fuzz_target!",
+  "scripts/fuzz-prism-vdr-indexer.sh#-max_total_time=300",
+  ".github/workflows/did-fuzz.yml#Run bounded PRISM VDR and indexer soak",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-prism-vdr-indexer.sh soak all"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-prism-vdr", "package:identus-prism-indexer", "host:linux", "sanitizer:address" ]
+freshness = "max-age-days"
+freshness_days = 8
+budget = "Run each target for 300 seconds with 139264-byte inputs, five seconds per case and 1024 MiB RSS; promote failures into checked-in regression seeds."
+receipt_kind = "github-run"
+receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925"
+evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
+recorded_at = "2026-10-27"
+artifact = "did-fuzz-artifacts-<sha>-<attempt> on failure"
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "harness=libFuzzer exact VDR parsing and complete transaction batch construction targets",
+  "corpus=Checked-in empty-wire and bounded-indexer seed inputs with regression promotion",
+  "seed=libFuzzer-managed reproducible failing inputs",
+  "bounds=max_len=139264;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "Root traversal, canonical batch hashing, exact-wire parsing, or full planning may introduce material latency as reusable consumers adopt the cores."
+selectors = [
+  "crates/prism-indexer/benches/directional.rs#prism-vdr-indexer-benchmark",
+  "docs/architecture/prism-vdr-indexer-quality-baseline.md#Directional benchmark",
+]
+command = "cargo bench -p identus-prism-indexer --bench directional"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-prism-vdr", "package:identus-prism-indexer", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure VDR parse, 100-node traversal, 128-record digest construction and same-transaction DID plus VDR planning over 101 samples."
+receipt_kind = "source"
+receipt = "source:docs/architecture/prism-vdr-indexer-quality-baseline.md"
+evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
+recorded_at = "2026-10-27"
+artifact = "docs/architecture/prism-vdr-indexer-quality-baseline.md"
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=VDR parse and traversal plus indexer digest construction and pure planning",
+  "fixture=Deterministic ordinary VDR create, 100-node ancestry, 128 records and same-transaction DID plus VDR create",
+  "environment=Rust 1.98.1 on Apple Silicon macOS; stable Linux comparison remains directional until separately recorded",
+  "statistic=Median wall time in nanoseconds per iteration",
+  "samples=101 measured samples after 100 warm-up iterations",
+  "threshold=Directional source-bound baseline only; no blocking regression threshold is declared",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "Rust storage parsing and transaction identity semantics may drift from the pinned PRISM schema and NeoPRISM-shaped source ordering."
+selectors = [
+  "crates/prism-vdr/tests/vdr.rs#accepts_the_schema_default_empty_nonce",
+  "crates/prism-indexer/tests/batch.rs#canonical_transition_digest_matches_the_portable_vector",
+  "crates/prism-indexer/tests/indexing.rs#neoprism_shaped_metadata_maps_to_one_complete_ordered_batch",
+  "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json#did.prism.vdr-indexing.transition-digest",
+]
+command = "cargo test -p identus-prism-vdr accepts_the_schema_default_empty_nonce && cargo test -p identus-prism-indexer canonical_transition_digest_matches_the_portable_vector && cargo test -p identus-prism-indexer neoprism_shaped_metadata"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-prism-vdr", "package:identus-prism-indexer", "host:rust", "consumer:neoprism" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Compare exact empty-nonce storage parsing, the canonical transition digest and NeoPRISM-shaped transaction metadata mapping without donor dependencies."
+receipt_kind = "source"
+receipt = "source:docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
+recorded_at = "2026-10-27"
+artifact = "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json"
+owner = "SDK-Rust PRISM VDR and indexer maintainers"
+owner_issue = 522
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=Pinned public PRISM storage schema plus NeoPRISM donor metadata shape at revision a2ddbc5a8a316841e2c8df3831e7904fef01c356",
+  "oracle-revision=a2ddbc5a8a316841e2c8df3831e7904fef01c356",
+  "normalization=Compare exact wire semantics, source order and SDK-owned replay digest rather than donor DTO, async, SQL or Cardano types",
+  "deviations=Invalid operations fail the complete batch instead of being silently ignored; persistence and source effects remain downstream",
+]
+
+[[declarations]]
+id = "did.peer.profiles.quality.v1"
+capability = "did.peer.profiles"
+slice = "Bounded numalgo-4 and explicit numalgo-2 compatibility profiles"
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+risk = "Ambiguous encodings, malformed public material, secret-bearing input or unbounded projection can split peer DID identity state or expose private material in public identifiers."
+targets = [
+  "package:identus-did-peer",
+  "host:rust",
+  "target:wasm32-unknown-unknown",
+  "target:aarch64-apple-ios",
+  "target:aarch64-linux-android",
+]
+vector_ids = [
+  "did.peer.numalgo4.reference-minimal",
+  "did.peer.numalgo2.affinidi-compat",
+]
+limitations = "Effect-free public-material construction, parsing and local resolution only; no custody, private keys, networking, persistence, DIDComm engine, language bindings or historical numalgo 0, 1 and 3 support is claimed."
+active = true
+supersedes = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class = "property"
+disposition = "satisfied"
+risk = "Supported purpose combinations or input sizes may fail round-trip, hash-linkage or local-resolution invariants."
+selectors = [
+  "crates/did-peer/src/numalgo2_compat.rs#property_each_supported_purpose_round_trips",
+  "crates/did-peer/src/numalgo4.rs#property_generated_input_sizes_preserve_short_long_linkage",
+]
+command = "cargo test -p identus-did-peer property"
+lane = "focused"
+cadence = "on-change"
+targets = [ "package:identus-did-peer", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Exercise every supported numalgo-2 purpose and deterministic numalgo-4 JSON sizes from zero through 512 bytes."
+receipt_kind = "source"
+receipt = "source:docs/architecture/did-peer-quality-baseline.md"
+evidence_revision = "fcf7083d712baa1c4ff45c2933b7bec48c44531e"
+recorded_at = "2026-10-27"
+artifact = ""
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "invariant=Every accepted value recreates, reparses and resolves while retaining its profile and short/long linkage",
+  "domain=All supported purpose codes plus deterministic input-document sizes",
+  "cases=Numalgo-2 V, E, A, I and D plus numalgo-4 sizes 0 through 512",
+]
+
+[[declarations.obligations]]
+class = "fuzz"
+disposition = "required"
+risk = "Malformed UTF-8, multibase, compact service JSON or nested input documents may panic, allocate excessively, disagree across parsers or retain secret-shaped fields."
+selectors = [
+  "fuzz/fuzz_targets/peer_did.rs#fuzz_target!",
+  "scripts/fuzz-did-peer.sh#-max_total_time=300",
+  ".github/workflows/did-fuzz.yml#Run bounded peer DID soak",
+]
+command = "nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-did-peer", "host:linux", "sanitizer:address" ]
+freshness = "pending"
+freshness_days = 0
+budget = "Run both peer DID profiles for 300 seconds with 131072-byte inputs, five seconds per case and 1024 MiB RSS."
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+debt_status = "open"
+debt_issue = 523
+rationale = ""
+details = [
+  "harness=One libFuzzer target routes arbitrary bytes through both parsers, creation, hash linkage and local resolution",
+  "corpus=Pinned numalgo-4 reference and numalgo-2 compatibility vectors",
+  "seed=libFuzzer-managed reproducible failures with checked-in regression promotion",
+  "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "sanitizer=address",
+]
+
+[[declarations.obligations]]
+class = "benchmark"
+disposition = "satisfied"
+risk = "Base58, JSON scanning, hashing or generic DID-document projection may introduce material latency before portable adoption."
+selectors = [
+  "crates/did-peer/benches/directional.rs#did-peer-benchmark",
+  "docs/architecture/did-peer-quality-baseline.md#Directional benchmark",
+]
+command = "cargo bench -p identus-did-peer --bench directional"
+lane = "slow"
+cadence = "weekly-or-manual"
+targets = [ "package:identus-did-peer", "host:rust" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Measure numalgo-4 create, numalgo-4 parse/resolve and numalgo-2 parse/resolve over 101 samples."
+receipt_kind = "source"
+receipt = "source:docs/architecture/did-peer-quality-baseline.md"
+evidence_revision = "fcf7083d712baa1c4ff45c2933b7bec48c44531e"
+recorded_at = "2026-10-27"
+artifact = "docs/architecture/did-peer-quality-baseline.md"
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "operation=Profile creation, exact parsing, hash verification and local generic-document projection",
+  "fixture=Pinned deterministic numalgo-4 document and numalgo-2 public key material",
+  "environment=Rust 1.98.1 on Apple Silicon macOS; Linux comparison remains directional",
+  "statistic=Median wall time in nanoseconds per iteration",
+  "samples=101 measured samples after 500 warm-up iterations",
+  "threshold=Order-of-magnitude advisory baseline; no cross-host release threshold",
+]
+
+[[declarations.obligations]]
+class = "differential"
+disposition = "satisfied"
+risk = "SDK-Rust profile output may diverge from the pinned numalgo-4 reference or established numalgo-2 Rust compatibility behavior."
+selectors = [
+  "crates/did-peer/tests/conformance.rs#portable_peer_did_packet_matches_both_profiles",
+  "docs/conformance/cross-language-vector-catalog.toml#did.peer.numalgo4.reference-minimal",
+  "docs/conformance/cross-language-vector-catalog.toml#did.peer.numalgo2.affinidi-compat",
+]
+command = "cargo test -p identus-did-peer --test conformance"
+lane = "fast"
+cadence = "per-pull-request"
+targets = [ "package:identus-did-peer", "host:rust", "consumer:portable-sdk" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Compare exact numalgo-4 output and numalgo-2 parse/create/resolve behavior against two pinned public oracle cases."
+receipt_kind = "source"
+receipt = "source:docs/conformance/fixtures/did-peer/v1/vectors.json"
+evidence_revision = "fcf7083d712baa1c4ff45c2933b7bec48c44531e"
+recorded_at = "2026-10-27"
+artifact = "docs/conformance/fixtures/did-peer/v1/vectors.json"
+owner = "SDK-Rust peer DID maintainers"
+owner_issue = 523
+debt_status = "none"
+debt_issue = 0
+rationale = ""
+details = [
+  "oracle=Pinned peer DID numalgo-4 reference implementation and did-peer 0.7.5 numalgo-2 vector",
+  "oracle-revision=1c95404a7b6787001a86ce7e5a36254c9688ac0f;3bca5b6358d05b07773ee6445834427b0411d083",
+  "normalization=Compare exact DID text and resolved semantic counts rather than foreign DTO or error shapes",
+  "deviations=Numalgo-2 is explicitly compatibility-only; unsupported historical algorithms fail closed",
+]
+
+[[declarations]]
+id          = "siopv2.did-authentication.quality.v1"
+capability  = "siopv2.did-authentication"
+slice       = "Pinned SIOPv2 draft-13 DID-subject direct_post protocol core"
+owner       = "SDK-Rust OpenID maintainers"
+owner_issue = 514
+risk        = "Ambiguous request binding, signature lineage, token claims or lifecycle retries can authenticate the wrong relying party, disclose identity material or duplicate a response."
+targets     = [ "package:identus-siopv2", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
+vector_ids  = [ "siopv2.did-authentication.draft13-ed25519" ]
+limitations = "Experimental draft-13 DID-subject direct_post profile only; no transport, durable replay storage, trust, custody, UI, DID resolution, language adapter, publication or certification claim."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "required"
+risk              = "Boundary times, event replay and request/response round trips may violate deterministic profile invariants."
+selectors         = [ "crates/siopv2/tests/property.rs#siopv2_property" ]
+command           = "cargo test -p identus-siopv2 --test property"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-siopv2", "host:rust" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Exercise every accepted event-ID length plus deterministic current-state idempotency, superseded-event rejection, conflict rejection and state preservation."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust OpenID maintainers"
+owner_issue       = 514
+debt_status       = "open"
+debt_issue        = 514
+rationale         = ""
+details           = [ "invariant=Only the current state's identical receipt is idempotent; conflicting and superseded events leave state unchanged", "domain=Every accepted event-ID length and terminal refusal/delivery receipts", "cases=Empty, exact limits, one-over limit, duplicate current event, conflicting current event and superseded event" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "required"
+risk              = "Malformed JSON, compact JWS, form values or events may panic, allocate excessively or bypass validation order."
+selectors         = [ "fuzz/fuzz_targets/siopv2.rs#fuzz_target!", "scripts/fuzz-siopv2.sh#-max_total_time=300" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-siopv2.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-siopv2", "host:linux", "sanitizer:address" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Run bounded SIOPv2 parsing and lifecycle inputs for 300 seconds with finite input, timeout and RSS limits."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust OpenID maintainers"
+owner_issue       = 514
+debt_status       = "open"
+debt_issue        = 514
+rationale         = ""
+details           = [ "harness=Route arbitrary bytes through request parsing, compact input, form parsing and lifecycle events", "corpus=Pinned clean-room and attributed SIOPv2 draft-13 cases", "seed=libFuzzer-managed reproducible failures with checked-in regression promotion", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "required"
+risk              = "Bounded request validation or response planning may introduce material portable-client latency."
+selectors         = [ "crates/siopv2/benches/protocol.rs#siopv2-benchmark" ]
+command           = "cargo bench -p identus-siopv2 --bench protocol"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-siopv2", "host:rust" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Measure deterministic ordinary signed-request verification over a stable sample set; response planning remains an unmeasured follow-up."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust OpenID maintainers"
+owner_issue       = 514
+debt_status       = "open"
+debt_issue        = 514
+rationale         = ""
+details           = [ "operation=Validate one signed request and its claims", "fixture=Pinned deterministic draft-13 DID-subject request", "environment=Rust 1.98 etalon on the executing development host; Linux remains the comparison lane", "statistic=Median wall time from the dependency-free harness", "samples=21 samples with 20 iterations each", "threshold=Directional baseline before downstream adoption" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "required"
+risk              = "SDK-owned claims or failure classes may diverge from the pinned specification and independent implementations."
+selectors         = [ "crates/siopv2/tests/e2e.rs#complete_did_subject_flow_round_trips_through_an_independent_verifier", "crates/siopv2/tests/e2e.rs#idempotency_is_local_to_the_current_lifecycle_state", "crates/siopv2/tests/e2e.rs#refined_diagnostics_are_stable_and_redacted", "docs/conformance/fixtures/siopv2/v1/vectors.json#siopv2.did-authentication.draft13-ed25519" ]
+command           = "cargo test -p identus-siopv2"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-siopv2", "host:rust", "consumer:portable-sdk" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Execute the pinned clean-room draft-13 vector, independently verify normalized request/response claims, and prove state-local idempotency plus redacted diagnostic categories; foreign implementations remain research oracles."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust OpenID maintainers"
+owner_issue       = 514
+debt_status       = "open"
+debt_issue        = 514
+rationale         = ""
+details           = [ "oracle=Normative SIOPv2 draft 13 clean-room vector plus independent SDK verification", "oracle-revision=3ceea617557dce795a247fdd9c6180a873f1611e;siopv2-0.2.0;affinidi-siopv2-0.1.4 (research pins only)", "normalization=Compare exact protocol claims and form fields rather than foreign DTO or error strings", "deviations=Automated foreign-oracle fixtures are deferred; SDK uses redirect_uri and protocol-neutral invocation per draft 13" ]
+
+[[declarations]]
+id          = "oid4vp.direct-post-response.verifier-authorization.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Final client identifier schemes, verifier metadata and exact-key trust policy"
+owner       = "SDK-Rust OID4VP maintainers"
+owner_issue = 545
+risk        = "A syntactically valid signed request can route with a key unauthorized for its full client identifier or with malformed or mis-sourced verifier evidence."
+targets     = [ "package:identus-oid4vp", "package:identus-jose", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.direct-post-response.final-string-state" ]
+limitations = "The declaration proves bounded classification, evidence lineage and one caller-owned trust decision; it does not prove any concrete DID, PKI, Federation or attestation adapter, transport, consent or product policy."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Prefix, header, metadata source or credential-reference ambiguity can bypass exact-key authorization or invoke product trust on malformed evidence."
+selectors         = [ "crates/oid4vp/tests/verifier_authorization.rs#every_signed_final_scheme_binds_the_exact_verified_key_before_routing", "crates/oid4vp/tests/verifier_authorization.rs#unsupported_and_invalid_schemes_fail_before_policy", "crates/oid4vp/tests/verifier_authorization.rs#metadata_references_limits_and_source_rules_fail_closed" ]
+command           = "cargo test -p identus-oid4vp --test verifier_authorization"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Exercise every Final scheme, first-colon disposition, exact key lineage, metadata source rule, verifier-info reference and independent collection limit."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/tests/verifier_authorization.rs"
+evidence_revision = "0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/tests/verifier_authorization.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 545
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Only one exact full-client-id and verified-key binding accepted by the selected scheme policy reaches routing", "domain=Pre-registration, Federation, DID, verifier attestation, X.509 SAN DNS, X.509 hash, redirect URI, origin and unknown prefixes", "cases=Success, unsupported, malformed header, mismatched DID key, invalid DNS/hash, metadata source, unknown DCQL reference, rejection, unavailability and redaction" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile metadata and verifier-info nested in an otherwise signed request can panic, amplify parser work or bypass bounds."
+selectors         = [ "fuzz/fuzz_targets/request_object_security.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#request_object_security" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak request_object_security"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run security and verifier authorization over arbitrary bounded claims and metadata for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/request_object_security.rs"
+evidence_revision = "0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/request_object_security.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 545
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Route arbitrary bounded verified payload claims, client metadata and verifier-info through deterministic security and trust ports", "corpus=Existing clean-room request security seeds plus arbitrary metadata", "seed=libFuzzer-managed reproducible failures promoted to focused regressions", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Scheme and metadata validation plus one trust-port call can materially regress portable request latency."
+selectors         = [ "crates/oid4vp/benches/request_object_security.rs#security.ordinary.end-to-end", "crates/oid4vp/benches/request_object_security.rs#security.boundary.end-to-end" ]
+command           = "cargo bench -p identus-oid4vp --bench request_object_security"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure ordinary and near-limit request security followed by exact verifier authorization with one deterministic accepting port."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/benches/request_object_security.rs"
+evidence_revision = "0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/benches/request_object_security.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 545
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Verify claims, audience, time, replay, DID client-id/header binding and invoke one trust decision", "fixture=Ordinary and maximum-string clean-room signed request", "environment=Rust 1.98 etalon on the executing host; Linux remains comparison lane", "statistic=Median wall time from the dependency-free harness", "samples=21 samples with 20 iterations each", "threshold=Directional baseline before downstream adoption" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK prefix and metadata rules can drift from OpenID4VP Final while internal round trips remain green."
+selectors         = [ "crates/oid4vp/tests/verifier_authorization.rs#every_signed_final_scheme_binds_the_exact_verified_key_before_routing", "docs/adr/0184-bind-oid4vp-verifier-identity-through-policy-ports.md#Decision" ]
+command           = "cargo test -p identus-oid4vp --test verifier_authorization"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Compare every Final-defined prefix and metadata source disposition against the pinned normative matrix using normalized SDK states and errors."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/tests/verifier_authorization.rs"
+evidence_revision = "0c194d4a365ae9dc8b51efe2f8abb40eb54ac6ba"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/tests/verifier_authorization.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 545
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=OpenID4VP 1.0 Final sections 5.9, 5.11, 11, 12 and 14.8", "oracle-revision=Final published 2025-07-09; retrieved 2026-10-28", "normalization=Compare scheme class, policy invocation, metadata presence and stable result category", "deviations=Unsigned redirect_uri and DC-API origin are deliberately unsupported by this signed non-DC-API profile" ]
+
+[[declarations]]
+id          = "oid4vp.direct-post-response.transaction-format.quality.v1"
+capability  = "oid4vp.direct-post-response"
+slice       = "Bounded transaction data and credential-format capability ports"
+owner       = "SDK-Rust OID4VP maintainers"
+owner_issue = 547
+risk        = "Unbounded or detached transaction data can amplify parser work, bypass credential selection, disclose authorization context, or couple the protocol core to one proof engine."
+targets     = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+vector_ids  = [ "oid4vp.transaction-format.sd-jwt-shaped", "oid4vp.transaction-format.mdoc-shaped", "oid4vp.transaction-format.generic-extension" ]
+limitations = "This declaration proves protocol envelope, resource, capability and selected-query linkage only; it does not create or verify SD-JWT VC, mdoc, W3C VC or extension proofs, execute transport, authorize disclosure, or certify a wallet."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Exact encoding, multi-reference selection and consumed response lineage can diverge across valid transaction and DCQL combinations."
+selectors         = [ "crates/oid4vp/tests/authorization_request.rs#transaction_bindings_cover_every_selected_reference_and_match_success_results", "crates/oid4vp/tests/authorization_request.rs#transaction_data_rejects_bad_encoding_references_and_resource_policy" ]
+command           = "cargo test -p identus-oid4vp --test authorization_request transaction"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Exercise exact unpadded base64url, resource boundaries, unique references, alternative selections, every selected compatible reference, response-result linkage and error-response recovery."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/tests/authorization_request.rs"
+evidence_revision = "58057823d2c05830a1fb05271fbfad5f05c4b485"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/tests/authorization_request.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 547
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Every accepted transaction retains its exact encoding and binds every selected compatible query before successful response construction", "domain=Bounded transaction arrays, JSON objects, DCQL references, formats and selection alternatives", "cases=Ordinary, exact encoding, duplicate, malformed, oversize, unknown, incompatible, multi-reference, mismatched result and protocol error" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Arbitrary encoded transaction input can panic, amplify JSON work, bypass canonical encoding or mint detached query bindings."
+selectors         = [ "fuzz/fuzz_targets/transaction_data.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#transaction_data" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak transaction_data"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run the bounded transaction parser and linkage path for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/transaction_data.rs"
+evidence_revision = "58057823d2c05830a1fb05271fbfad5f05c4b485"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/transaction_data.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 547
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded transaction arrays, encodings and selected-query linkage", "corpus=Clean-room valid transaction seed plus libFuzzer-managed mutations", "seed=Reproducible failures promoted to focused regression cases", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Canonical decoding, bounded JSON traversal and capability dispatch can materially regress portable authorization latency."
+selectors         = [ "crates/oid4vp/benches/direct_post_response.rs#transaction.ordinary.end-to-end", "crates/oid4vp/benches/direct_post_response.rs#transaction.boundary.end-to-end" ]
+command           = "cargo bench -p identus-oid4vp --bench direct_post_response"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-oid4vp", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure deterministic ordinary and maximum-string transaction validation, binding and response construction over a stable sample set."
+receipt_kind      = "source"
+receipt           = "source:crates/oid4vp/benches/direct_post_response.rs"
+evidence_revision = "58057823d2c05830a1fb05271fbfad5f05c4b485"
+recorded_at       = "2026-10-28"
+artifact          = "crates/oid4vp/benches/direct_post_response.rs"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 547
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Validate signed request transaction data, dispatch two deterministic ports, bind one selection and construct inert response", "fixture=Ordinary and 4096-byte maximum-string clean-room transaction objects", "environment=Rust 1.98 etalon on the executing host with Linux as comparison lane", "statistic=Median directional wall time", "samples=21 samples with 20 iterations", "threshold=Directional baseline; functional resource limits remain blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK format identities, common transaction fields and extension behavior can drift from OpenID4VP Final while internal round trips remain green."
+selectors         = [ "crates/oid4vp/tests/authorization_request.rs#transaction_format_packet_covers_sd_jwt_mdoc_and_generic_extension_ports", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.transaction-format.sd-jwt-shaped" ]
+command           = "cargo test -p identus-oid4vp --test authorization_request transaction_format_packet"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-oid4vp", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Execute clean-room SD-JWT-shaped, mdoc-shaped and generic-extension packets and compare exact retained encoding plus stable binding results."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+evidence_revision = "58057823d2c05830a1fb05271fbfad5f05c4b485"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json"
+owner             = "SDK-Rust OID4VP maintainers"
+owner_issue       = 547
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=OpenID4VP 1.0 Final sections 6.1, 8.4, 8.5 and 10.1", "oracle-revision=Final published 2025-07-09; retrieved 2026-10-28", "normalization=Compare SDK-owned format identifiers, exact encoded transaction bytes and stable binding categories", "deviations=Proof-engine metadata semantics and proof creation remain behind caller-owned ports" ]
+
+[[declarations]]
+id          = "did.key.profile.quality.v1"
+capability  = "did.key.profile"
+slice       = "Bounded effect-free did:key creation, parsing and local resolution"
+owner       = "SDK-Rust DID maintainers"
+owner_issue = 557
+risk        = "Non-canonical multicodec or curve encodings, unusable public material, unbounded base58 work or relationship drift can split portable identity state or expose key content."
+targets     = [ "package:identus-did-key", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
+vector_ids  = [ "did.key.ed25519.w3c-example", "did.key.x25519.rust-oracle-example", "did.key.base64url.rejected", "did.key.unsupported-codec.rejected", "did.key.low-order-x25519.rejected", "did.key.oversized-identifier.rejected" ]
+limitations = "Effect-free direct public-key creation, parsing and local resolution only; no private keys, generation, derivation, signing, custody, network resolution, persistence, runtime, bindings or global registry is claimed."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Supported public keys may fail canonical round-trip or registry projection invariants."
+selectors         = [ "crates/did-key/tests/conformance.rs#constructor_parser_property_covers_deterministic_public_material", "crates/did-key/tests/conformance.rs#rejects_aliased_and_weak_ed25519_keys", "crates/did-key/tests/registry_e2e.rs#opt_in_registry_round_trip_is_deterministic_and_effect_free" ]
+command           = "cargo test -p identus-did-key --all-features"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-did-key", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Sweep 64 deterministic Ed25519 and X25519 seed classes, then create, opt-in resolve, serialize and reparse one complete generic DID document."
+receipt_kind      = "source"
+receipt           = "source:crates/did-key/tests/conformance.rs"
+evidence_revision = "9d032d8397e8afb1ed7133b95119ab522755e25f"
+recorded_at       = "2026-10-28"
+artifact          = "crates/did-key/tests/conformance.rs"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 557
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Every constructed key reparses identically, aliased or unusable Edwards/Montgomery material is rejected, and opt-in registry projection preserves fingerprint and relationships", "domain=Direct Ed25519 and X25519 public material plus generic registry/document serialization", "cases=64 deterministic public-key classes, non-canonical and weak Ed25519 regressions, and one complete effect-free E2E" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile UTF-8, multibase, varint or curve material can panic, amplify work, bypass bounds or leak content through errors."
+selectors         = [ "fuzz/fuzz_targets/did_key.rs#fuzz_target!", "scripts/fuzz-did-key.sh#-max_total_time=300" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-did-key.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did-key", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run bounded parse, canonical recreation and local resolution for 300 seconds with max_len=144, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/did_key.rs"
+evidence_revision = "9d032d8397e8afb1ed7133b95119ab522755e25f"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/did_key.rs"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 557
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded bytes route through parser, canonical recreation and local resolution", "corpus=Attributed Ed25519 and X25519 values", "seed=libFuzzer-managed reproducible failures promoted to checked-in regressions", "bounds=max_len=144;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Base58, curve validation or generic document projection can materially regress portable latency or move oversized rejection behind expensive work."
+selectors         = [ "crates/did-key/benches/directional.rs#did-key-benchmark", "docs/architecture/did-key-quality-baseline.md#Directional benchmark" ]
+command           = "cargo bench -p identus-did-key --bench directional"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did-key", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure create, parse, local resolve and early oversized rejection over 101 samples with 500 iterations per sample."
+receipt_kind      = "source"
+receipt           = "source:docs/architecture/did-key-quality-baseline.md"
+evidence_revision = "9d032d8397e8afb1ed7133b95119ab522755e25f"
+recorded_at       = "2026-10-28"
+artifact          = "docs/architecture/did-key-quality-baseline.md"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 557
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Create, canonical parse, deterministic local resolution and early resource rejection", "fixture=Deterministic Ed25519 public key plus an oversized method-specific identifier", "environment=Rust 1.98 etalon on Apple Silicon macOS; Linux remains directional comparison", "statistic=Median wall time in nanoseconds per iteration", "samples=101 measured samples after 500 warm-up iterations", "threshold=Order-of-magnitude advisory baseline; functional resource limits remain blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK-Rust fingerprints or relationship projection may drift from the pinned specification and independent Rust behavior while internal round trips remain green."
+selectors         = [ "crates/did-key/tests/conformance.rs#attributed_vector_packet_matches_selected_profile", "docs/conformance/cross-language-vector-catalog.toml#did.key.ed25519.w3c-example", "docs/conformance/cross-language-vector-catalog.toml#did.key.x25519.rust-oracle-example", "docs/conformance/cross-language-vector-catalog.toml#did.key.base64url.rejected", "docs/conformance/cross-language-vector-catalog.toml#did.key.unsupported-codec.rejected", "docs/conformance/cross-language-vector-catalog.toml#did.key.low-order-x25519.rejected", "docs/conformance/cross-language-vector-catalog.toml#did.key.oversized-identifier.rejected" ]
+command           = "cargo test -p identus-did-key --test conformance attributed_vector_packet_matches_selected_profile"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-did-key", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Compare exact Ed25519 and X25519 DIDs, semantic relationship counts, strict encoding/category rejection and the public identifier ceiling against the attributed packet."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/fixtures/did-key/v1/vectors.json"
+evidence_revision = "9d032d8397e8afb1ed7133b95119ab522755e25f"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/did-key/v1/vectors.json"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 557
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=Pinned did:key v0.9 specification plus DIF, Spruce and Impierce Rust implementations", "oracle-revision=2cc490c38c5aacf58497a87fc0cf8794668bf716;eb00da6074d8bc61e5d4c8129fbdd9dc05735cbf;886a6cf694dfdb6b019d5f69a04dd16f01cb58a4;183f3eb061938404060d75817de53dd99adb18b0", "normalization=Compare exact DID text and resolved semantic relationship counts rather than foreign DTO or error shapes; clear the RFC 7748 ignored high bit in the X25519 oracle value to obtain the one canonical SDK identifier", "deviations=Base58-btc only, canonical direct X25519 only, Multikey projection and no implicit Ed25519 conversion" ]
+
+[[declarations]]
+id          = "did.web.profile.quality.v1"
+capability  = "did.web.profile"
+slice       = "Bounded did:web parsing, request derivation, injected retrieval and exact document binding"
+owner       = "SDK-Rust DID maintainers"
+owner_issue = 559
+risk        = "Ambiguous authority parsing, unbounded remote data, transport-policy leakage, or document mismatch can redirect identity resolution or amplify work."
+targets     = [ "package:identus-did-web", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
+vector_ids  = [ "did.web.path.pinned-example" ]
+limitations = "Portable method core only; concrete HTTP, DNS, TLS, redirect, proxy, cache, retry, cancellation, SSRF policy, registration, persistence, bindings, consumer migration and publication remain separate."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Accepted identifiers may fail stable parse, format, URL derivation, or exact-document binding invariants."
+selectors         = [ "crates/did-web/tests/conformance.rs#parse_format_and_url_property_covers_sixty_four_domain_classes", "crates/did-web/tests/conformance.rs#strict_profile_rejects_unsafe_or_ambiguous_forms", "crates/did-web/tests/fetch_port_e2e.rs#public_fetch_port_resolves_one_exact_document_end_to_end" ]
+command           = "cargo test -p identus-did-web --all-features"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-did-web", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Sweep deterministic valid and invalid authority, port and path classes plus complete in-memory fetch-port E2E."
+receipt_kind      = "source"
+receipt           = "source:crates/did-web/tests/conformance.rs"
+evidence_revision = "561302c59f4259033e99e767ed5ebb1f8c634693"
+recorded_at       = "2026-10-28"
+artifact          = "crates/did-web/tests/conformance.rs"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 559
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Every accepted DID reparses and derives the same exact HTTPS request while only an exact document ID succeeds", "domain=Bounded ASCII FQDN, encoded port, path, response envelope and DID document inputs", "cases=Deterministic equivalence classes and one complete injected-port E2E" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile method text, media types or response bytes can panic, amplify work, reinterpret authority, or bypass exact ID binding."
+selectors         = [ "fuzz/fuzz_targets/did_web.rs#fuzz_target!", "scripts/fuzz-did-web.sh#-max_total_time=300" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-did-web.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did-web", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run bounded parse and response binding for 300 seconds with timeout 5 seconds and RSS limit 1024 MiB."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/did_web.rs"
+evidence_revision = "561302c59f4259033e99e767ed5ebb1f8c634693"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/did_web.rs"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 559
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded bytes route through identifier parsing and response binding", "corpus=Pinned path mapping and exact valid DID document", "seed=libFuzzer-managed reproducible failures promoted to checked-in regressions", "bounds=max_len=140000;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Authority parsing, URL derivation, response validation, or oversized rejection can materially regress latency or allocation behavior."
+selectors         = [ "crates/did-web/benches/directional.rs#did-web-benchmark", "docs/architecture/did-web-quality-baseline.md#Directional benchmark" ]
+command           = "cargo bench -p identus-did-web --bench directional"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did-web", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure parse/derive, response binding, and early oversized rejection over deterministic samples."
+receipt_kind      = "source"
+receipt           = "source:docs/architecture/did-web-quality-baseline.md"
+evidence_revision = "561302c59f4259033e99e767ed5ebb1f8c634693"
+recorded_at       = "2026-10-28"
+artifact          = "docs/architecture/did-web-quality-baseline.md"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 559
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Identifier parse, request derivation, successful response binding and early resource rejection", "fixture=Pinned path DID, exact document and oversized identifier", "environment=Rust 1.98.1 etalon on Apple Silicon macOS; parse-derive=187ns; bind-response=374ns; reject-oversize=2ns", "statistic=Median wall time in nanoseconds per iteration", "samples=101 measured samples with 500 iterations per sample", "threshold=Order-of-magnitude advisory baseline while functional limits remain blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK URL mapping or document correlation may drift from the pinned method while internal round trips remain green."
+selectors         = [ "docs/conformance/fixtures/did-web/v1/vectors.json#did.web.path.pinned-example" ]
+command           = "cargo test -p identus-did-web --test conformance pinned_url_mapping_examples_match_the_selected_profile"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-did-web", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Compare exact bare, path and encoded-port URLs plus exact document ID binding against attributed pinned examples."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/fixtures/did-web/v1/vectors.json"
+evidence_revision = "561302c59f4259033e99e767ed5ebb1f8c634693"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/did-web/v1/vectors.json"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 559
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=Pinned w3c-ccg did:web draft", "oracle-revision=ea423c114e6f2537498ee6f94e8d794c64f60c18", "normalization=Compare exact derived URL and document ID rather than foreign DTO or transport errors", "deviations=Strict ASCII FQDN, canonical non-default port, conservative path and caller-owned network policy" ]
+
+[[declarations]]
+id          = "did.jwk.profile.quality.v1"
+capability  = "did.jwk.profile"
+slice       = "Bounded effect-free did:jwk creation, duplicate-safe parsing and local resolution"
+owner       = "SDK-Rust DID maintainers"
+owner_issue = 558
+risk        = "Ambiguous JSON, invalid public material, unbounded decode work or relationship drift can split portable identity state or expose content."
+targets     = [ "package:identus-did-jwk", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
+vector_ids  = [ "did.jwk.p256.pinned-example", "did.jwk.x25519.pinned-example" ]
+limitations = "Effect-free public-JWK creation, parsing and local resolution only; no private keys, key_ops policy, generation, signing, custody, network resolution, persistence, runtime, bindings, consumer migration or publication."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Supported public JWKs may fail deterministic creation, exact parse retention or registry projection invariants."
+selectors         = [ "crates/did-jwk/tests/conformance.rs#constructor_parser_property_covers_public_material", "crates/did-jwk/tests/conformance.rs#alternate_ordering_and_whitespace_preserve_the_exact_did", "crates/did-jwk/tests/registry_e2e.rs#opt_in_registry_round_trip_is_deterministic_and_effect_free" ]
+command           = "cargo test -p identus-did-jwk --all-features"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-did-jwk", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Sweep 64 deterministic Ed25519 and X25519 seed classes, retain one alternate JSON identifier exactly, and complete one opt-in registry document round trip."
+receipt_kind      = "source"
+receipt           = "source:crates/did-jwk/tests/conformance.rs"
+evidence_revision = "cca5a33cc861436ae6830dd3e42ba08d9424b074"
+recorded_at       = "2026-10-28"
+artifact          = "crates/did-jwk/tests/conformance.rs"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 558
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Every constructed key reparses identically, accepted alternate JSON preserves the exact DID, and opt-in registry projection retains the public JWK", "domain=Ed25519 and X25519 generated public material plus pinned P-256 and X25519 examples", "cases=64 deterministic seed classes, one alternate serialization and one complete effect-free E2E" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile UTF-8, base64url, duplicate JSON or curve material can panic, amplify work, bypass bounds or leak content."
+selectors         = [ "fuzz/fuzz_targets/did_jwk.rs#fuzz_target!", "scripts/fuzz-did-jwk.sh#-max_total_time=300" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-did-jwk.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did-jwk", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run bounded parse, exact retention and local resolution for 300 seconds with max_len=22000, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/did_jwk.rs"
+evidence_revision = "cca5a33cc861436ae6830dd3e42ba08d9424b074"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/did_jwk.rs"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 558
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded bytes route through the parser and accepted values through local resolution", "corpus=Pinned normative P-256 did:jwk value", "seed=libFuzzer-managed reproducible failures promoted to checked-in regressions", "bounds=max_len=22000;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Base64url, duplicate-safe JSON, curve validation or document projection can materially regress latency or move oversized rejection behind expensive work."
+selectors         = [ "crates/did-jwk/benches/directional.rs#did-jwk-benchmark", "docs/architecture/did-jwk-quality-baseline.md#Directional benchmark" ]
+command           = "cargo bench -p identus-did-jwk --bench directional"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did-jwk", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure create, parse, local resolve and early oversized rejection over 101 samples with 500 iterations per sample."
+receipt_kind      = "source"
+receipt           = "source:docs/architecture/did-jwk-quality-baseline.md"
+evidence_revision = "cca5a33cc861436ae6830dd3e42ba08d9424b074"
+recorded_at       = "2026-10-28"
+artifact          = "docs/architecture/did-jwk-quality-baseline.md"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 558
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Deterministic creation, exact parse, local resolution and early resource rejection", "fixture=Deterministic Ed25519 public JWK plus an oversized method carrier", "environment=Rust 1.98 etalon on Apple Silicon macOS", "statistic=Median wall time in nanoseconds per iteration", "samples=101 measured samples after 500 warm-up iterations", "threshold=Order-of-magnitude advisory baseline; functional resource limits remain blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "SDK-Rust JWK decoding or relationship projection may drift from the pinned method while internal round trips remain green."
+selectors         = [ "crates/did-jwk/tests/conformance.rs#pinned_normative_examples_match_the_selected_profile", "docs/conformance/cross-language-vector-catalog.toml#did.jwk.p256.pinned-example", "docs/conformance/cross-language-vector-catalog.toml#did.jwk.x25519.pinned-example" ]
+command           = "cargo test -p identus-did-jwk --test conformance pinned_normative_examples_match_the_selected_profile"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-did-jwk", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Compare exact pinned P-256 and X25519 DIDs, validated curves and semantic relationship counts against the attributed packet."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/fixtures/did-jwk/v1/vectors.json"
+evidence_revision = "cca5a33cc861436ae6830dd3e42ba08d9424b074"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/did-jwk/v1/vectors.json"
+owner             = "SDK-Rust DID maintainers"
+owner_issue       = 558
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=Pinned quartzjer did:jwk draft", "oracle-revision=44e186cf4cc215fc726afeecad1727cc9f9a66e8", "normalization=Compare exact DID text, public curve and semantic relationship counts rather than foreign DTO or error shapes", "deviations=Canonical unpadded carrier, strict public-key validation, key_ops rejection and explicit curve/use compatibility" ]
+
+[[declarations]]
+id          = "credentials.sd-jwt.rfc9901.quality.v1"
+capability  = "credentials.sd-jwt"
+slice       = "Bounded RFC 9901 issuance, disclosure, presentation, key binding and verification"
+owner       = "SDK-Rust credential maintainers"
+owner_issue = 568
+risk        = "Malformed or adversarial disclosures can expose hidden claims, amplify work, create ambiguous graphs, or represent unverified input as verified evidence."
+targets     = [ "package:identus-sd-jwt", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
+vector_ids  = [ "credentials.sd-jwt.malformed-compact" ]
+limitations = "RFC 9901 compact plus SHA-256 only; target evidence is compile-only, and no SD-JWT VC profile, HTTP, DID/trust/replay/storage policy, bindings, runtime, publication, certification, or downstream adoption is claimed."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Issuance, parsing, disclosure closure, order independence, selection, or staged transitions can lose claims or promote unverified state."
+selectors         = [ "openspec/specs/sd-jwt-rfc9901/spec.md#Requirement: issuance and disclosure selection preserve exact RFC semantics" ]
+command           = "cargo test -p identus-sd-jwt --test properties"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-sd-jwt", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Sweep deterministic nested object/array claims, disclosure closures, ordering classes, exact limits and every staged-state transition."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt/tests/properties.rs"
+evidence_revision = "1e22043f450f31be4a5387ed66444cb7214dbd8e"
+recorded_at       = "2026-10-28"
+artifact          = "crates/sd-jwt/tests/properties.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 568
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Accepted issuance reparses and selected disclosure closure reconstructs exactly the authorized claims without promoting earlier states", "domain=Bounded object and array claims, paths, decoys, ordering and exact resource boundaries", "cases=Positive, negative, exact-boundary, permutation, duplicate, collision, ambiguity and staged-state canaries" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile compact, disclosure, JSON graph, selection, or key-binding bytes can panic, amplify work, bypass limits, or expose correlating material."
+selectors         = [ "openspec/specs/sd-jwt-rfc9901/spec.md#Requirement: every untrusted path has finite public resource limits" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-sd-jwt.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-sd-jwt", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run compact, disclosure, graph, selection and key-binding harnesses for 300 seconds each with max_len=1048576, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/sd_jwt.rs"
+evidence_revision = "1e22043f450f31be4a5387ed66444cb7214dbd8e"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/sd_jwt.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 568
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded bytes route through compact, disclosure, graph, selection and key-binding stages", "corpus=Pinned RFC examples plus clean-room malformed and exact-boundary seeds", "seed=libFuzzer-managed crashes promoted to checked-in regression vectors", "bounds=max_len=1048576;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Nested claims, digest indexing, closure traversal, serialization, or oversized rejection can regress latency, allocation, and retained-output bounds."
+selectors         = [ "openspec/changes/archive/2026-10-28-implement-bounded-rfc9901-sd-jwt/design.md#Public default limits" ]
+command           = "cargo bench -p identus-sd-jwt --bench directional"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-sd-jwt", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure ordinary, exact-limit, adversarial graph, and early oversized-rejection cases with retained input/output and work counts."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt/benches/directional.rs"
+evidence_revision = "1e22043f450f31be4a5387ed66444cb7214dbd8e"
+recorded_at       = "2026-10-28"
+artifact          = "crates/sd-jwt/benches/directional.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 568
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Issue, parse, verify, process disclosures, select, key-bind and reject oversized input", "fixture=Ordinary, exact-boundary and adversarial nested object/array graphs", "environment=Rust 1.98.1 etalon on the recorded local host", "statistic=Median directional wall time plus retained bytes and charged work units", "samples=101 measured samples after 500 warm-up iterations", "threshold=Directional baseline with functional byte, node, depth, output and work limits remaining blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "The local engine can internally round-trip while diverging from RFC 9901 or independent disclosure and key-binding behavior."
+selectors         = [ "openspec/specs/sd-jwt-rfc9901/spec.md#Requirement: conformance and quality evidence are provenance-bound" ]
+command           = "cargo test -p identus-sd-jwt --test conformance differential"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-sd-jwt", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Compare applicable RFC examples and clean-room cases to at least two immutable independent engines, resolving every disagreement against RFC 9901."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt/tests/conformance.rs"
+evidence_revision = "1e22043f450f31be4a5387ed66444cb7214dbd8e"
+recorded_at       = "2026-10-28"
+artifact          = "docs/conformance/fixtures/sd-jwt-rfc9901/v1/vectors.json"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 568
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=RFC 9901 plus frozen Affinidi 0.1.8 and IOTA payload 0.5.1 outputs", "oracle-revision=RFC text fd4cb79184162fa7ef95f4f63abab8ee6d03c9a04c19b8f83758946464b284eb; candidate revisions recorded in ADR 0193", "normalization=Compare exact compact/disclosure semantics and stable result categories rather than donor DTO or error strings", "deviations=SDK bounds, staged states, static redaction and caller-owned trust/effects remain stricter local policy" ]
+
+[[declarations]]
+id          = "credentials.sd-jwt-vc.draft22.quality.v1"
+capability  = "credentials.sd-jwt"
+slice       = "Bounded canonical SD-JWT VC draft-22 profile over RFC 9901"
+owner       = "SDK-Rust credential maintainers"
+owner_issue = 569
+risk        = "Profile drift, malformed claims or external evidence can misidentify credential semantics, bypass disclosure rules, amplify work or represent structural evidence as trust."
+targets     = [ "package:identus-sd-jwt-vc", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android" ]
+vector_ids  = [ "credentials.sd-jwt-vc.legacy-protected-type", "credentials.sd-jwt-vc.missing-vct", "credentials.sd-jwt-vc.malformed-additional-types", "credentials.sd-jwt-vc.malformed-status-reference" ]
+limitations = "Exact draft-22 compact profile only; no HTTP, trust or issuer authorization, status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Type matching, non-selective placement, metadata inheritance, issuer/status correlation and staged transitions can lose invariants."
+selectors         = [ "openspec/specs/sd-jwt-vc-draft22/spec.md#Requirement: profile claims and disclosure placement are validated" ]
+command           = "cargo test -p identus-sd-jwt-vc --test properties"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-sd-jwt-vc", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Sweep types, additional types, protected claims, dates, metadata chains, claim paths, issuer and status evidence, ordering and exact boundaries."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt-vc/tests/properties.rs"
+evidence_revision = "b24862fb503ade957bea90d40edef62011ffb5b4"
+recorded_at       = "2026-10-28"
+artifact          = "crates/sd-jwt-vc/tests/properties.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 569
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Accepted profile values retain exact type and evidence lineage without promoting structural evidence into trust", "domain=Bounded profile claims, issuer evidence, type metadata, status and RFC-base transitions", "cases=Positive, negative, boundary, permutation, duplicate, cycle, mismatch and staged-state canaries" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile claims, metadata, issuer evidence or status values can panic, amplify work, bypass limits or expose correlating material."
+selectors         = [ "openspec/specs/sd-jwt-vc-draft22/spec.md#Requirement: every profile path has finite resource and privacy bounds" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-sd-jwt-vc", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run profile claims, metadata, issuer evidence, status and base/profile transition targets for 300 seconds each with max_len=1048576, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/sd_jwt_vc.rs"
+evidence_revision = "b24862fb503ade957bea90d40edef62011ffb5b4"
+recorded_at       = "2026-10-28"
+artifact          = "fuzz/fuzz_targets/sd_jwt_vc.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 569
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded profile claims, metadata, issuer and status evidence route through public entry points", "corpus=Pinned draft-22 examples plus clean-room malformed and exact-boundary seeds", "seed=libFuzzer-managed failures promoted to checked-in regression vectors", "bounds=max_len=1048576;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Metadata chains, claim paths, evidence correlation, serialization or oversized rejection can regress portable latency and allocation."
+selectors         = [ "openspec/changes/archive/2026-10-28-implement-sd-jwt-vc-draft22-profile/design.md#Public default limits" ]
+command           = "cargo bench -p identus-sd-jwt-vc --bench directional"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-sd-jwt-vc", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure ordinary, exact-boundary, early-rejection, maximum extension-chain and status-correlation cases with directional elapsed-time evidence."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt-vc/benches/directional.rs"
+evidence_revision = "b24862fb503ade957bea90d40edef62011ffb5b4"
+recorded_at       = "2026-10-28"
+artifact          = "crates/sd-jwt-vc/benches/directional.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 569
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Issue, parse, base verify, profile validate, metadata/status correlate and reject oversized input", "fixture=Ordinary and near-limit draft-22 profile packets", "environment=Rust 1.98.1 etalon on the recorded local host", "statistic=Aggregate directional wall time reported per route", "samples=101 ordinary/boundary samples after 101 warm-up iterations; 10000 metadata-chain and 100000 rejection/status iterations after 500 warm-up iterations", "threshold=Directional baseline with functional byte, count, depth, output and work limits remaining blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "The local profile can internally round-trip while diverging from draft-22 or independent canonical dc+sd-jwt behavior."
+selectors         = [ "openspec/specs/sd-jwt-vc-draft22/spec.md#Requirement: conformance evidence is source-bound and migration-aware" ]
+command           = "cargo test -p identus-sd-jwt-vc --test differential"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-sd-jwt-vc", "host:rust", "consumer:portable-sdk" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Execute every exposed normative packet result through the public Rust API, assert exact negative error stages, retain absent metadata ingestion as not-exposed, and preserve exactly two immutable independent observations per case without donor runtimes in normal CI."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt-vc/tests/differential.rs"
+evidence_revision = "dc10222d7786d5ccafd6f16c89070916454c2538"
+recorded_at       = "2026-10-28"
+artifact          = "crates/sd-jwt-vc/tests/fixtures/differential-v1/packet.json"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 569
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=Draft-22 normative source plus OpenWallet Foundation 0.20.1 and K2GL 2.1.0 behavioral oracles", "oracle-revision=Draft text da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124; OWF b983e03253481ab6d33e147cc7e30e4904d0813f; K2GL 7d938daf0a1e14974420651e7ce84146ed1875bb", "normalization=Closed accept/reject/not-exposed observations with exact selectors; draft-22 resolves every disagreement", "deviations=Both earlier-draft engines reject optional malformed display metadata; K2GL accepts a missing draft-20 mandatory path; Rust follows draft-22 and issue #572 remains the sole legacy adapter owner" ]
+[[declarations]]
+id          = "credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1"
+capability  = "credentials.sd-jwt"
+slice       = "Explicit input-only draft-03 vc+sd-jwt common-subset migration adapter"
+owner       = "SDK-Rust credential maintainers"
+owner_issue = 572
+risk        = "Automatic fallback, signed-header relabeling, draft confusion, legacy date/status behavior, unbounded input, or correlating diagnostics can misrepresent a legacy credential as canonical draft-22."
+targets     = [ "package:identus-sd-jwt-vc", "host:rust", "target:wasm32-unknown-unknown", "target:aarch64-apple-ios", "target:aarch64-linux-android", "consumer:sdk-ts" ]
+vector_ids  = [ "credentials.sd-jwt-vc.draft03-additional-types-rejected", "credentials.sd-jwt-vc.draft03-common-subset", "credentials.sd-jwt-vc.draft03-integrity-rejected", "credentials.sd-jwt-vc.draft03-status-rejected" ]
+limitations = "Input-only draft-03 common subset for SDK-TS 8.1.4 migration; no full draft-03, legacy output, automatic fallback, header rewriting, status networking/acceptance, Type Metadata, millisecond dates, trust/time/product policy, bindings, publication, certification, or downstream adoption."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Common claim validation, non-selective placement, exact identity, unsupported-draft rejection, and staged ownership can diverge from canonical safety invariants."
+selectors         = [ "openspec/changes/archive/2026-10-29-qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
+command           = "cargo test -p identus-sd-jwt-vc --test properties legacy && cargo test -p identus-sd-jwt-vc --test legacy_adapter"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-sd-jwt-vc", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Sweep exact legacy/canonical identity, common claims, date representations, non-selective placement, unsupported draft features, order, boundaries, redaction, and staged ownership."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt-vc/tests/properties.rs"
+evidence_revision = "e35e4fba448417feff0cefe283ff20def3385815"
+recorded_at       = "2026-10-29"
+artifact          = "crates/sd-jwt-vc/tests/properties.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 572
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=An accepted legacy value remains type-distinct from draft-22 and always requires canonical reissuance", "domain=Bounded draft-03 common claims, protected identity, disclosure placement, dates, limits and unsupported features", "cases=Positive, negative, boundary, permutation, mismatch and canonical-separation canaries" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Hostile legacy compact bytes or claims can panic, amplify work, bypass explicit selection, enter the canonical path, or expose correlating material."
+selectors         = [ "openspec/changes/archive/2026-10-29-qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-sd-jwt-vc.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-sd-jwt-vc", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Route explicit legacy envelope, compact and profile inputs through the existing SD-JWT VC fuzz family for 300 seconds with max_len=1048576, timeout=5 and rss_limit_mb=1024."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/sd_jwt_vc.rs"
+evidence_revision = "5ae0164b5703e9c41243042d92aa5545e9d9ac70"
+recorded_at       = "2026-10-29"
+artifact          = "fuzz/fuzz_targets/sd_jwt_vc.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 572
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded bytes exercise explicit legacy parsing and common-subset validation without automatic canonical fallback", "corpus=Clean-room draft-03 identity plus malformed and exact-boundary cases", "seed=libFuzzer-managed failures promoted to checked-in regression vectors", "bounds=max_len=1048576;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Legacy compatibility checks can add disproportionate latency or retained allocation to canonical profile paths or oversized rejection."
+selectors         = [ "openspec/changes/archive/2026-10-29-qualify-legacy-vc-sd-jwt-adapter/design.md#Reuse existing limits" ]
+command           = "cargo bench -p identus-sd-jwt-vc --bench directional legacy"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-sd-jwt-vc", "host:rust" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure accepted common-subset validation, wrong-identity early rejection, unsupported-draft early rejection, and canonical-path comparison without a new enforceable latency promise."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt-vc/benches/directional.rs"
+evidence_revision = "5ae0164b5703e9c41243042d92aa5545e9d9ac70"
+recorded_at       = "2026-10-29"
+artifact          = "crates/sd-jwt-vc/benches/directional.rs"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 572
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Parse and validate explicit legacy input plus identity and draft-mismatch rejection", "fixture=Ordinary, exact-boundary and unsupported-feature clean-room credentials", "environment=Rust 1.98.1 etalon on the recorded local host", "statistic=Directional wall time plus retained/work counters where exposed", "samples=101 measured samples after 101 warm-up iterations", "threshold=Directional baseline; functional byte, count, depth, output and work limits remain blocking" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "The adapter can appear internally consistent while accepting semantics that differ from draft-03, draft-22, SDK-TS 8.1.4, or its exact package engine."
+selectors         = [ "openspec/changes/archive/2026-10-29-qualify-legacy-vc-sd-jwt-adapter/specs/sd-jwt-vc-draft22/spec.md#Requirement: legacy draft-03 migration is explicit and non-canonical" ]
+command           = "cargo test -p identus-sd-jwt-vc --test legacy_differential"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-sd-jwt-vc", "host:rust", "consumer:sdk-ts" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Execute every checked-in legacy packet result through public Rust APIs and compare immutable SDK-TS 8.1.4 plus @sd-jwt/sd-jwt-vc 0.7.2 observations, resolving differences against exact drafts and SDK safety policy."
+receipt_kind      = "source"
+receipt           = "source:crates/sd-jwt-vc/tests/legacy_differential.rs"
+evidence_revision = "e35e4fba448417feff0cefe283ff20def3385815"
+recorded_at       = "2026-10-29"
+artifact          = "docs/conformance/fixtures/sd-jwt-vc-draft03-adapter/v1/vectors.json"
+owner             = "SDK-Rust credential maintainers"
+owner_issue       = 572
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=SDK-TS 8.1.4 and @sd-jwt/sd-jwt-vc 0.7.2 under draft-03, compared with canonical draft-22", "oracle-revision=SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e; package d3cc53b66be9ef40ede9f86a931b7a43f55dbd3a; draft-03 9599225eb8732c0ef3f9a6524589e637f9272ba742da185c43ecfd272b81bf5a; draft-22 da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124", "normalization=Bind every vector to exact consumer and package selectors plus accept/reject and stable Rust semantic categories rather than TypeScript DTO, task, DID or error shapes", "deviations=Millisecond dates, draft-era status effects and any non-common semantics remain explicit intentional safer rejections" ]
+
+[[declarations]]
+id          = "factory.error-golden.quality.v1"
+capability  = "factory.operations"
+slice       = "Immutable error-golden provenance across protected squash integration"
+owner       = "SDK-Rust factory maintainers"
+owner_issue = 578
+risk        = "Discarded feature ancestry or mutable working-tree evidence can let compatibility fixtures lose their reviewed planning provenance."
+targets     = [ "repository:sdk-rust", "host:python" ]
+vector_ids  = [  ]
+limitations = "Repository-local fixed golden bindings only; no public SDK behavior, GitHub administration, remote branch retention, release, or general OpenSpec receipt migration is claimed."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "An ancestry, receipt, blob, path, hash, archive-state, or working-tree mutation can be accepted as canonical planning evidence."
+selectors         = [ "scripts/tests/error-golden.py#run_protected_squash_cases", "scripts/check-error-golden.py#read_contract_head_bytes" ]
+command           = "python3 scripts/tests/error-golden.py"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "repository:sdk-rust", "host:python" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Exercise all five bindings plus ancestry-preserving, protected-squash, pruned-source, active-loss, uncommitted-copy, forged-receipt, forged-path, and forged-golden states offline."
+receipt_kind      = "source"
+receipt           = "source:scripts/tests/error-golden.py"
+evidence_revision = "70bde3212c906408abcc953aba7e53383ad45dfd"
+recorded_at       = "2026-10-29"
+artifact          = "scripts/tests/error-golden.py"
+owner             = "SDK-Rust factory maintainers"
+owner_issue       = 578
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Only exact planning receipts and golden bytes committed in valid ancestry or canonical protected-squash history are accepted", "domain=Five fixed bindings across active, archived, ancestry-preserving, squashed, pruned and adversarial repository states", "cases=Exact success paths plus receipt, identity, base, contract, path, symlink, blob, hash, provenance and working-tree mutations" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "not-applicable"
+risk              = "A byte fuzzer would exercise Git and filesystem setup rather than a variable untrusted parser surface and could misrepresent deterministic mutation evidence."
+selectors         = [  ]
+command           = ""
+lane              = "none"
+cadence           = "not-applicable"
+targets           = [  ]
+freshness         = "not-applicable"
+freshness_days    = 0
+budget            = ""
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust factory maintainers"
+owner_issue       = 578
+debt_status       = "none"
+debt_issue        = 0
+rationale         = "The validator consumes a closed five-binding repository manifest; deterministic repository-state mutations enumerate the meaningful evidence classes more precisely than arbitrary bytes."
+details           = [  ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "not-applicable"
+risk              = "A timing benchmark without a supported latency objective would primarily measure temporary Git process startup and host filesystem variance."
+selectors         = [  ]
+command           = ""
+lane              = "none"
+cadence           = "not-applicable"
+targets           = [  ]
+freshness         = "not-applicable"
+freshness_days    = 0
+budget            = ""
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust factory maintainers"
+owner_issue       = 578
+debt_status       = "none"
+debt_issue        = 0
+rationale         = "The offline validator has no consumer latency or throughput promise; its bounded five-binding execution remains part of the ordinary factory gate rather than a performance contract."
+details           = [  ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "not-applicable"
+risk              = "Inventing an external oracle for repository-specific protected-squash evidence would weaken the canonical SDK policy rather than provide independent semantics."
+selectors         = [  ]
+command           = ""
+lane              = "none"
+cadence           = "not-applicable"
+targets           = [  ]
+freshness         = "not-applicable"
+freshness_days    = 0
+budget            = ""
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust factory maintainers"
+owner_issue       = 578
+debt_status       = "none"
+debt_issue        = 0
+rationale         = "No independent implementation defines this repository's exact receipt, archive, branch, and protected-squash policy; deterministic mutation tests are the authoritative comparison surface."
+details           = [  ]

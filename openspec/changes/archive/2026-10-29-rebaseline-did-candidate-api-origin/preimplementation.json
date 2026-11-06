@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 582,
+  "change": "rebaseline-did-candidate-api-origin",
+  "branch": "codex/docs/issue-582",
+  "baseRef": "origin/develop",
+  "baseSha": "88efe31e3d413e6f51b0cb80f65155281f8feb3c",
+  "contractHeadSha": "2f5f2a2b93ce87cd3839a3a172b1974258d72988",
+  "createdAt": "2026-10-29T09:18:09.449Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -1,4 +1,4 @@
-use crate::http_field::{has_bare_no_cache, has_bare_no_store, is_application_json};
+use identus_openid4vc::http_field::{has_bare_no_cache, has_bare_no_store, is_application_json};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum TokenHttpHeaderError {

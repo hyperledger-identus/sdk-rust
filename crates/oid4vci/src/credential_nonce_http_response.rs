@@ -1,7 +1,8 @@
+use identus_openid4vc::http_field::{has_bare_no_store, is_application_json};
+
 use crate::{
     CredentialNonceHttpResponseLimits, CredentialNonceRequest, CredentialNonceResponseCore,
     CredentialOfferError,
-    http_field::{has_bare_no_store, is_application_json},
 };
 
 impl CredentialNonceRequest {

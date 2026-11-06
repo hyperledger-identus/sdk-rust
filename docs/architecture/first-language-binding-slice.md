@@ -75,7 +75,7 @@ as dependency evidence for research, not as a relaxation of first-party
 
 ## Security and limitation findings
 
-- Inputs retain the SDK's 2,048-byte DID and 4,096-byte DID URL ceilings.
+- Inputs retain the SDK's 131,072-byte DID and 139,264-byte DID URL ceilings.
 - The ABI contains only owned public strings; there are no borrowed pointers,
   secret values, handles, callbacks, futures, storage or network operations.
 - Errors are closed/redacted and both language tests prove caller text is not

@@ -1,9 +1,14 @@
-schema_version = 1
-program_issue  = 415
-status         = "active-empty"
+schema_version                    = 2
+registry_version                  = "2.0.0"
+program_issue                     = 415
+owner_issue                       = 422
+status                            = "active"
+impact_policy_activation_issue    = 422
+impact_policy_activation_date     = "2026-10-25"
+impact_policy_activation_revision = "31dd014ac7ab83654041ceb079bef6aff75ecd3c"
+grandfathered_changes             = [ "activate-first-crate-release-train" ]
 
-[vocabulary]
-change_classes = [
+allowed_change_classes = [
   "additive",
   "fix",
   "behavioral",
@@ -11,7 +16,7 @@ change_classes = [
   "breaking",
   "security",
 ]
-release_note_classes = [
+allowed_release_note_classes = [
   "added",
   "changed",
   "deprecated",
@@ -19,7 +24,7 @@ release_note_classes = [
   "fixed",
   "security",
 ]
-compatibility = [
+allowed_compatibility = [
   "compatible",
   "source-break",
   "abi-break",
@@ -28,13 +33,861 @@ compatibility = [
   "behavior-break",
   "runtime-requirement-break",
 ]
+allowed_visibility = [
+  "public-api",
+  "wire",
+  "error",
+  "persistence",
+  "abi",
+  "target-support",
+  "runtime-requirement",
+  "behavior",
+  "security",
+]
+allowed_lifecycle_states = [
+  "proposed",
+  "active",
+  "superseded",
+  "removed",
+]
+allowed_deprecation_phases = [
+  "not-applicable",
+  "proposed",
+  "announced",
+  "available-replacement",
+  "default-off",
+  "removed",
+]
+allowed_legacy_bug_policies = [
+  "not-applicable",
+  "fix-and-document",
+  "preserve-profile",
+  "simulate-temporarily",
+  "reject-as-unsafe",
+]
+allowed_mapping_dispositions = [
+  "required",
+  "not-applicable",
+]
 
-# Add one [[change]] record in the same PR as each consumer-visible migration.
-# Required fields:
-# id, capability, class, release_note_class, compatibility, affected_packages,
-# old_behavior, new_behavior, migration_action, replacement, first_version,
-# last_compatible_version, compatibility_window, deprecation_phase,
-# legacy_bug_policy, tests, issue, pull_request, rollback, and evidence.
-#
-# The ledger deliberately starts without change records because this bootstrap
-# changes governance only and no consumer-visible runtime/package behavior.
+[[changes]]
+id                                = "oid4vp.direct-post-response.transaction-and-format-ports.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "active"
+issue                             = 547
+pull_request                      = 553
+change_class                      = "breaking"
+release_note_class                = "changed"
+visibility                        = [ "behavior", "public-api", "security", "wire" ]
+affected_packages                 = [ "identus-oid4vp" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "source-break"
+old_behavior                      = "The unreleased OID4VP core rejects transaction_data and every non-empty DCQL credential metadata object."
+new_behavior                      = "The unreleased core retains bounded transaction linkage and validates format-specific metadata and binding through SDK-owned caller-injected capabilities."
+migration_action                  = "Supply exact format and transaction capabilities when adopting non-empty metadata or transaction_data; keep concrete proof engines in their owning crates."
+replacement                       = "SDK-owned OID4VP transaction and credential-format capability ports."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The API is experimental and unpublished; migration is required before the first compatible release."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "Rust-native protocol values remain canonical; language adapters must not dictate SDK DTO or error shapes."
+vector_ids                        = [ "oid4vp.transaction-format.generic-extension", "oid4vp.transaction-format.mdoc-shaped", "oid4vp.transaction-format.sd-jwt-shaped" ]
+quality_declaration_ids           = [ "oid4vp.direct-post-response.transaction-format.quality.v1" ]
+observability                     = "Record only stable type, format and outcome categories plus bounded counts or lengths; never record metadata, exact transaction strings, credential IDs, presentations or adapter diagnostics."
+fallback                          = "Consumers retain adapter-owned transaction and format handling until the owning credential-format capability is qualified."
+rollback                          = "Before publication remove the additive ports and retained state while preserving existing empty-metadata, no-transaction routing."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.direct-post-response.transaction-format.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.transaction-format.sd-jwt-shaped" ]
+evidence_artifacts                = [ "docs/adr/0186-keep-credential-format-proofs-behind-oid4vp-capability-ports.md", "docs/architecture/oid4vp-transaction-format-boundary.md", "docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json", "openspec/changes/archive/2026-10-28-bind-oid4vp-transaction-and-format-ports/design.md" ]
+limitations                       = "No SD-JWT VC, mdoc, W3C VC/Data Integrity, HAIP, proof generation or verification, HTTP, persistence, product trust/consent, certification, publication, or downstream adoption is included."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "siopv2.did-authentication.diagnostics.v1"
+capability                        = "siopv2.did-authentication"
+lifecycle_state                   = "active"
+issue                             = 543
+pull_request                      = 580
+change_class                      = "fix"
+release_note_class                = "fixed"
+visibility                        = [ "behavior", "error", "public-api", "security" ]
+affected_packages                 = [ "identus-siopv2" ]
+affected_consumers                = [ "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SIOPv2 lifecycle idempotency duration is underspecified, wallet-nonce mismatch shares the client-binding category, and non-size JOSE response failures can be reported as response-too-large."
+new_behavior                      = "Current-state lifecycle idempotency is explicit and stable redacted categories distinguish wallet-nonce correlation, response encoding, and response size without changing successful wire behavior."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = "No published behavior is removed; consumers may optionally handle the two more precise non-exhaustive diagnostic categories."
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "Rust-native diagnostics remain canonical; language adapters may map stable codes without adopting dependency errors or Rust enum shapes."
+vector_ids                        = [ "siopv2.did-authentication.draft13-ed25519" ]
+quality_declaration_ids           = [ "siopv2.did-authentication.quality.v1" ]
+observability                     = "Record only stable result categories and bounded counts or lengths; never record client identifiers, wallet nonces, requests, responses, DIDs, keys, state, event identities, or dependency diagnostics."
+fallback                          = "Consumers may continue treating all verification or response-construction failures generically until they adopt the refined pre-release categories."
+rollback                          = "Before publication remove the two diagnostic variants and restore the coarse mapping while retaining the bounded SIOPv2 protocol core."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#siopv2.did-authentication.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#siopv2.did-authentication.draft13-ed25519" ]
+evidence_artifacts                = [ "docs/adr/0197-keep-siopv2-lifecycle-idempotency-state-local.md", "docs/architecture/siopv2-protocol-core.md", "openspec/specs/siopv2-protocol-core/spec.md" ]
+limitations                       = "Diagnostics remain static and redacted; durable lifecycle receipts, event history, transport, persistence, retry, trust, custody, UI, profile expansion, downstream mutation and publication remain excluded."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "credentials.sd-jwt.rfc9901.v1"
+capability                        = "credentials.sd-jwt"
+lifecycle_state                   = "active"
+issue                             = 568
+pull_request                      = 571
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-sd-jwt" ]
+affected_consumers                = [ "oxid", "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes bounded generic credential, presentation, JOSE, crypto, entropy and time seams but no stable RFC 9901 selective-disclosure engine."
+new_behavior                      = "The additive identus-sd-jwt crate provides bounded staged RFC 9901 compact issuance, disclosure processing and selection, key binding and verification behind SDK-owned types and injected effects."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "Rust-native staged types and static errors deliberately do not preserve SDK-TS or oracle DTO and error shapes; later language adapters remain separate."
+vector_ids                        = [ "credentials.sd-jwt.malformed-compact" ]
+quality_declaration_ids           = [ "credentials.sd-jwt.rfc9901.quality.v1" ]
+observability                     = "Record only stable stage, algorithm, outcome and limit categories plus bounded counts or lengths; never record compact credentials, claims, disclosures, salts, digests, keys, signatures, audience, nonce or identifiers."
+fallback                          = "Consumers retain their current SD-JWT implementation until they explicitly adopt a later released crate or language adapter."
+rollback                          = "Before publication remove the additive crate and active ledger record while preserving RFC vectors, ADR 0193 and failure evidence."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#credentials.sd-jwt.rfc9901.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#credentials.sd-jwt.malformed-compact" ]
+evidence_artifacts                = [ "docs/adr/0193-build-a-focused-rfc9901-engine.md", "docs/conformance/fixtures/sd-jwt-rfc9901/v1/vectors.json", "openspec/changes/archive/2026-10-28-implement-bounded-rfc9901-sd-jwt/design.md" ]
+limitations                       = "RFC 9901 compact plus SHA-256 only; no SD-JWT VC profile, JWS JSON Serialization, HTTP, DID/trust/replay/storage policy, bindings, runtime, publication, certification or downstream adoption is included."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "did.web.profile.v1"
+capability                        = "did.web.profile"
+lifecycle_state                   = "active"
+issue                             = 559
+pull_request                      = 563
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-did-web" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes generic DID resolution and static DID methods but no portable did:web method core."
+new_behavior                      = "The additive identus-did-web crate parses a strict bounded profile, derives exact HTTPS requests, retrieves through a caller-injected port, and binds bounded DID documents to the exact requested identifier."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native method does not preserve language SDK, oracle, or HTTP-runtime DTO/error shapes; adapters remain consumer-owned."
+vector_ids                        = [ "did.web.path.pinned-example" ]
+quality_declaration_ids           = [ "did.web.profile.quality.v1" ]
+observability                     = "Record only stable operation and result categories plus bounded lengths; never record DIDs, URLs, headers, bodies, documents, DNS/TLS details, or transport diagnostics."
+fallback                          = "Consumers retain their existing did:web implementation until they explicitly adopt the crate and provide an approved fetch adapter."
+rollback                          = "Before publication remove the additive crate and evidence; generic SDK-Rust DID behavior remains unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.web.profile.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.web.path.pinned-example" ]
+evidence_artifacts                = [ "docs/adr/0190-bind-did-web-to-an-injected-fetch-port.md", "openspec/changes/archive/2026-10-28-add-portable-did-web-core/design.md" ]
+limitations                       = "No concrete HTTP, DNS, TLS, redirect, proxy, cache, retry, executor, timer, SSRF policy, IP/IDNA profile, registration, persistence, bindings, consumer mutation, publication, or trust claim is included."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "did.jwk.profile.v1"
+capability                        = "did.jwk.profile"
+lifecycle_state                   = "active"
+issue                             = 558
+pull_request                      = 562
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-did-jwk" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes generic DID and public JWK values but no independently selectable did:jwk method implementation."
+new_behavior                      = "The additive identus-did-jwk crate creates, parses and locally resolves a bounded canonical-base64url public-JWK profile with duplicate-safe JSON, validated Ed25519, X25519, P-256 and secp256k1 material, fixed #0 projection, explicit use policy and opt-in registry composition."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native method deliberately does not preserve SDK-TS, Swift, KMP, Spruce or Impierce DTO and error shapes; migration adapters remain separate consumer-owned work."
+vector_ids                        = [ "did.jwk.p256.pinned-example", "did.jwk.x25519.pinned-example" ]
+quality_declaration_ids           = [ "did.jwk.profile.quality.v1" ]
+observability                     = "Record only stable operation, curve, use and result categories plus bounded lengths; never record DIDs, decoded JSON, extension values, coordinates, key material or parser diagnostics."
+fallback                          = "Consumers retain their existing did:jwk implementation until they explicitly adopt the additive crate or a later language adapter."
+rollback                          = "Before publication remove the additive crate and evidence as one unreleased unit; generic SDK-Rust DID and crypto behavior remains unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.jwk.profile.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.jwk.p256.pinned-example" ]
+evidence_artifacts                = [ "docs/adr/0189-bind-did-jwk-to-a-bounded-public-profile.md", "docs/architecture/did-jwk-profile.md", "docs/architecture/did-jwk-quality-baseline.md", "docs/conformance/fixtures/did-jwk/v1/vectors.json" ]
+limitations                       = "No private keys, key_ops policy, generation, signing, proof/trust policy, custody, I/O, network resolution, persistence, runtime, bindings, consumer mutation, publication, JSON-LD processing or uniqueness claim is included."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "did.key.profile.v1"
+capability                        = "did.key.profile"
+lifecycle_state                   = "active"
+issue                             = 557
+pull_request                      = 561
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-crypto", "identus-did-key" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes generic DID values and validated public keys but no independently selectable did:key method implementation."
+new_behavior                      = "The additive identus-did-key crate creates, parses and locally resolves a bounded strict base58-btc profile for direct Ed25519, X25519, P-256 and secp256k1 public keys; identus-crypto exposes Ed25519 canonical-encoding and weak-point classification plus X25519 canonical-encoding and contributory classification so aliased or unusable identity keys are rejected."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native method deliberately does not preserve SDK-TS, Swift, KMP, Spruce, DIF or Impierce DTO and error shapes; migration adapters remain separate consumer-owned work."
+vector_ids                        = [ "did.key.base64url.rejected", "did.key.ed25519.w3c-example", "did.key.low-order-x25519.rejected", "did.key.oversized-identifier.rejected", "did.key.unsupported-codec.rejected", "did.key.x25519.rust-oracle-example" ]
+quality_declaration_ids           = [ "did.key.profile.quality.v1" ]
+observability                     = "Record only stable operation, curve and result categories plus bounded lengths; never record DIDs, fingerprints, public-key bytes, identifier content or parser diagnostics."
+fallback                          = "Consumers retain their existing did:key implementation until they explicitly adopt the additive crate or a later language adapter."
+rollback                          = "Before publication remove the additive package and its evidence as one unreleased unit; generic SDK-Rust DID and crypto behavior remains unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.key.profile.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.key.ed25519.w3c-example" ]
+evidence_artifacts                = [ "docs/adr/0188-bind-did-key-to-a-strict-public-key-profile.md", "docs/architecture/did-key-profile.md", "docs/architecture/did-key-quality-baseline.md", "docs/conformance/fixtures/did-key/v1/vectors.json" ]
+limitations                       = "No private keys, generation, derivation, signing, custody, I/O, network resolution, persistence, runtime, binding, global registry, consumer mutation, JSON-LD processing or publication is included. The strict profile rejects base64url, unsupported curves, non-canonical or weak Ed25519 keys, non-canonical or low-order X25519 keys and implicit Ed25519-to-X25519 conversion."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+# Issue #422 activated the registry without inventing a synthetic consumer
+# change. Subsequent issue-owned records are added only with connected vector,
+# quality and OpenSpec impact evidence.
+[[changes]]
+id                                = "oid4vp.direct-post-response.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "active"
+issue                             = 487
+pull_request                      = 533
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-oid4vp" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust validates an OID4VP Final direct-post Authorization Request and DCQL selection but leaves Authorization Response assembly to callers."
+new_behavior                      = "The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "This additive Rust-native transition deliberately does not preserve SDK-TS, Swift or KMP DTO and error shapes; language adapters remain separate work."
+vector_ids                        = [ "oid4vp.direct-post-response.final-string-state" ]
+quality_declaration_ids           = [ "oid4vp.direct-post-response.quality.v1" ]
+observability                     = "Record only stable result classes, presentation kinds, counts and byte lengths without URI, state, query identifiers or presentation payloads."
+fallback                          = "Consumers continue assembling responses in their existing adapter until they explicitly adopt the experimental SDK transition."
+rollback                          = "Remove the additive response transition and private retained metadata before publication; existing request validation remains available."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.direct-post-response.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.direct-post-response.final-string-state" ]
+evidence_artifacts                = [ "docs/adr/0179-construct-bounded-oid4vp-direct-post-responses.md", "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json" ]
+limitations                       = "Only plain OpenID4VP 1.0 Final direct_post success construction is included; no HTTP execution, presentation generation or verification, consent, trust, replay defense, signing, encryption, direct_post.jwt, SIOPv2, DC API, HAIP, persistence, consumer mutation or publication is claimed."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "active"
+issue                             = 546
+pull_request                      = 552
+change_class                      = "breaking"
+release_note_class                = "changed"
+visibility                        = [ "behavior", "public-api", "security", "wire" ]
+affected_packages                 = [ "identus-oid4vp" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "source-break"
+old_behavior                      = "Verifier-authorized OID4VP requests can construct only direct_post or direct_post.jwt output and cannot bind the response endpoint acknowledgement."
+new_behavior                      = "Verifier-authorized requests can additionally construct bounded inert fragment, query, or form_post material and sent direct-post material can consume one bounded optional post-submission redirect acknowledgement."
+migration_action                  = "Make AuthorizationResponseMode matches forward-compatible, select mode-specific inert output, and keep browser, HTTP, navigation, privacy, and session policy in the adapter."
+replacement                       = "Additive redirect response types and direct-post acknowledgement successor."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The API is experimental and unpublished; migration is required before the first compatible release."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "Rust-native response states remain canonical; language adapters map the explicit modes without preserving foreign DTO or error shapes."
+vector_ids                        = [ "oid4vp.direct-post-response.final-string-state" ]
+quality_declaration_ids           = [ "oid4vp.redirect-response.quality.v1" ]
+observability                     = "Record only stable mode/outcome categories and bounded counts or lengths; never record VP tokens, state, destinations, response bodies, response codes, or verifier diagnostics."
+fallback                          = "Consumers keep existing direct-post or adapter-owned redirect behavior until they adopt the additive unreleased contract."
+rollback                          = "Before publication remove the additive variants and acknowledgement successor while preserving existing direct-post behavior and verifier authorization."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.redirect-response.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.direct-post-response.final-string-state" ]
+evidence_artifacts                = [ "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md", "docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json" ]
+limitations                       = "No browser/deep-link navigation, HTML rendering, HTTP execution, URL leakage policy, response-code redemption, verifier storage, entropy proof, product consent/trust, Digital Credentials API, SIOPv2, publication, or downstream adoption."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "siopv2.did-authentication.draft13.v1"
+capability                        = "siopv2.did-authentication"
+lifecycle_state                   = "active"
+issue                             = 514
+pull_request                      = 542
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-oid4vp", "identus-openid4vc", "identus-siopv2" ]
+affected_consumers                = [ "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes bounded DID, JOSE and OID4VP capabilities but no reusable SIOPv2 protocol core; Oxid owns a product-specific implementation."
+new_behavior                      = "The additive experimental crate validates the pinned SIOPv2 draft-13 DID-subject direct_post profile, plans a self-issued ID Token through injected JOSE ports and exposes deterministic caller-driven lifecycle transitions while shared bounded request retrieval moves behind identus-openid4vc."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = "No published SDK API is replaced; existing OID4VP retrieval names remain available through compatibility re-exports."
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native protocol core intentionally does not preserve Oxid, SDK-TS, Swift, KMP or third-party DTO and error shapes; downstream adapters own migration contracts."
+vector_ids                        = [ "siopv2.did-authentication.draft13-ed25519" ]
+quality_declaration_ids           = [ "siopv2.did-authentication.quality.v1" ]
+observability                     = "Record only stable profile, transition, algorithm and result categories plus bounded counts or lengths; never record request objects, tokens, nonces, state, DIDs, redirect values, keys or dependency diagnostics."
+fallback                          = "Consumers retain their existing SIOPv2 implementation until a separately qualified adapter accepts the experimental SDK profile."
+rollback                          = "Remove the additive SIOPv2 crate and shared delegation before publication; existing OID4VP behavior and downstream implementations remain unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#siopv2.did-authentication.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#siopv2.did-authentication.draft13-ed25519" ]
+evidence_artifacts                = [ "docs/architecture/siopv2-protocol-core.md", "openspec/specs/siopv2-protocol-core/spec.md" ]
+limitations                       = "Draft 13 is not Final. The first profile excludes transport, storage, trust, custody, UI, DID resolution, JWK-thumbprint subjects, self-attested claims, discovery, federation, authorization code, encrypted tokens, OpenID4VP presentation and certification."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "oid4vp.direct-post-response.error.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "active"
+issue                             = 532
+pull_request                      = 534
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-oid4vp" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust constructs bounded plain direct-post success material but leaves the mutually exclusive Authorization Error Response to callers."
+new_behavior                      = "The additive transition consumes validated request lineage and explicit typed protocol-error values into a bounded plain direct-post error envelope."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "This additive Rust-native transition deliberately does not preserve SDK-TS, Swift or KMP DTO and error shapes; language adapters remain separate work."
+vector_ids                        = [ "oid4vp.direct-post-response.final-error-state", "oid4vp.direct-post-response.final-string-state" ]
+quality_declaration_ids           = [ "oid4vp.direct-post-response.quality.v1" ]
+observability                     = "Record only the stable protocol code, optional-field presence and byte lengths without target, state, description, URI or holder data."
+fallback                          = "Consumers continue constructing error forms in their existing adapter until they explicitly adopt the experimental SDK transition."
+rollback                          = "Remove the additive error-response types and constructor before publication; existing request validation and success construction remain available."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.direct-post-response.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.direct-post-response.final-error-state" ]
+evidence_artifacts                = [ "docs/adr/0180-construct-explicit-oid4vp-protocol-errors.md", "docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json" ]
+limitations                       = "Only plain OpenID4VP 1.0 Final direct_post protocol-error construction is included; no automatic SDK error mapping, HTTP, consent/privacy policy, protected response, DC API, consumer mutation or publication is claimed."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "did.peer.profiles.v1"
+capability                        = "did.peer.profiles"
+lifecycle_state                   = "active"
+issue                             = 523
+pull_request                      = 531
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-did", "identus-did-peer" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes generic DID values but no independently selectable peer DID method implementation."
+new_behavior                      = "The additive identus-did-peer crate creates, parses and locally resolves bounded numalgo-4 current-profile and explicit numalgo-2 compatibility DIDs from caller-owned public material."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native method crate deliberately does not preserve SDK-TS, Swift or KMP DTO and error shapes; language-specific migration adapters remain separate work."
+vector_ids                        = [ "did.peer.numalgo2.affinidi-compat", "did.peer.numalgo4.reference-minimal" ]
+quality_declaration_ids           = [ "did.peer.profiles.quality.v1" ]
+observability                     = "Record stable profile and result categories without logging DIDs, input documents, services, key material or encoded payloads."
+fallback                          = "Consumers retain their existing peer DID implementation until an explicit adapter or canary adopts the additive crate."
+rollback                          = "Remove the additive package dependency before publication; generic SDK-Rust DID behavior remains unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.peer.profiles.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.peer.numalgo4.reference-minimal" ]
+evidence_artifacts                = [ "docs/architecture/did-peer-quality-baseline.md", "docs/conformance/fixtures/did-peer/v1/vectors.json" ]
+limitations                       = "No custody, private keys, key generation, networking, persistence, DIDComm engine, agent runtime, language adapter, consumer mutation, publication or historical numalgo 0, 1 and 3 support is included. The 300-second Linux fuzz receipt remains issue-owned slow-lane evidence until a successful immutable run is attached."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "crypto.secp256k1.rustcrypto-security-stack.v1"
+capability                        = "crypto.secp256k1"
+lifecycle_state                   = "active"
+issue                             = 525
+pull_request                      = 530
+change_class                      = "security"
+release_note_class                = "security"
+visibility                        = [ "public-api", "security" ]
+affected_packages                 = [ "identus-crypto" ]
+affected_consumers                = [ "sdk-rust-adopters" ]
+source_version                    = "0.1.0-rc.1"
+target_version                    = "unreleased"
+compatibility                     = "source-break"
+old_behavior                      = "The four public secp256k1 and P-256 key-wrapper tuple fields expose k256 and p256 0.13 key types whose dependency closure reaches advisory-affected crypto-bigint 0.5.5."
+new_behavior                      = "The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities."
+migration_action                  = "Prefer identus-crypto from_slice, to_public_key and encoding methods; direct tuple-field consumers update their k256 or p256 dependency and imports to 0.14 when adopting the next candidate."
+replacement                       = "SDK-owned byte constructors and encoders, or the corresponding k256 and p256 0.14 types for consumers that intentionally use the tuple fields."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "0.1.0-rc.1"
+compatibility_window              = "The migration is declared on the release-candidate line before stable 0.1.0; the next candidate carries the advisory-clean type identities."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "This is a Rust-only dependency type-identity migration; no TypeScript, Swift or Kotlin DTO or error mapping changes."
+vector_ids                        = [ "crypto.secp256k1.jvm-compat" ]
+quality_declaration_ids           = [ "crypto.quality.v1" ]
+observability                     = "Record audit result, dependency versions and stable test outcomes without logging private key bytes, messages or signatures."
+fallback                          = "Delay consumer adoption while migrating to SDK byte boundaries; do not publish a new security-current candidate that restores the rejected 0.13 closure."
+rollback                          = "Move forward to another advisory-clean curve family or SDK-owned opaque boundary; never restore the advisory-affected dependency closure as a release state."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = "Not applicable; this is a security remediation and candidate source migration, not a deprecated compatibility facade."
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#crypto.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#crypto.secp256k1.jvm-compat" ]
+evidence_artifacts                = [ "docs/release/identus-crypto-0.1.0-rc.1.api.txt", "docs/release/identus-crypto-rustcrypto-0.14-migration.md" ]
+limitations                       = "Wire values and SDK-owned methods remain compatible, but direct construction or access through the four public tuple fields is source-incompatible until the consumer adopts RustCrypto 0.14 or the SDK byte boundary."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "did.prism.portable-method.v1"
+capability                        = "did.prism"
+lifecycle_state                   = "active"
+issue                             = 521
+pull_request                      = 528
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-prism-did" ]
+affected_consumers                = [ "neoprism", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust has generic DID values but no reusable PRISM method operation or state capability."
+new_behavior                      = "The additive identus-prism-did crate constructs and validates exact bounded PRISM operations, authenticates and reduces DID state, and projects generic DID documents under a separate native output budget without chain coupling."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "This additive Rust-native crate has no existing language-adapter DTO or error contract to preserve."
+vector_ids                        = [ "did.prism.preprod.signed-create", "did.prism.preprod.signed-create-second", "did.prism.wire.duplicate-envelope-field" ]
+quality_declaration_ids           = [ "did.prism.quality.v1" ]
+observability                     = "Record stable result classes, operation kind and hashes without logging signed bytes, identifiers, key material or service payloads."
+fallback                          = "Consumers remain on their existing PRISM implementation until this experimental crate and their own canary are accepted."
+rollback                          = "Remove the additive dependency or revert the consuming adapter; existing SDK-Rust crates retain their previous behavior."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.prism.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.prism.preprod.signed-create" ]
+evidence_artifacts                = [ "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json", "docs/conformance/fixtures/did-prism/v1/vectors.json" ]
+limitations                       = "The 32 MiB native projection budget does not widen generic hostile JSON ingress. Non-terminal retired identifiers are capped at 4096 per kind; exceeding that profile is a distinct resolution-failing resource outcome, while terminal deactivation discards obsolete tombstones. No Cardano indexing, VDR payload interpretation, persistence, HTTP, CLI, node composition, custody, product policy or completed downstream adoption is claimed."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "did.syntax.long-form-resource-policy.v1"
+capability                        = "did.syntax"
+lifecycle_state                   = "active"
+issue                             = 524
+pull_request                      = 527
+change_class                      = "behavioral"
+release_note_class                = "changed"
+visibility                        = [ "behavior", "public-api" ]
+affected_packages                 = [ "identus-did", "identus-uniffi-did", "identus-wasm-did" ]
+affected_consumers                = [ "sdk-rust-adopters" ]
+source_version                    = "0.1.0-rc.1"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "Generic DID values reject bare identifiers above 2048 bytes and DID URLs or absolute URIs above 4096 bytes; an oversized normalized cache key may fail closed."
+new_behavior                      = "Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably."
+migration_action                  = "Use the exported constants rather than copied literals, handle KeyBudgetBypass as an uncached successful resolution path, and keep external transport limits explicit."
+replacement                       = "The same identus-did DID, DID URL, URI, and resolver APIs with larger literal lexical ceilings and an additional redaction-safe cache status."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "0.1.0-rc.1"
+compatibility_window              = "The release-candidate line documents the new limits before a stable 0.1.0 contract is declared."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "required"
+mapping_ids                       = [ "did-url.value.typescript.legacy-v1", "did.error.invalid-did-url.typescript.legacy-v1", "did.error.invalid-did.typescript.legacy-v1", "did.value.typescript.legacy-v1" ]
+mapping_rationale                 = ""
+vector_ids                        = [ "did-url.syntax.max-bytes", "did-url.syntax.over-max-bytes", "did.syntax.max-bytes", "did.syntax.over-max-bytes" ]
+quality_declaration_ids           = [ "did.syntax.quality.v1" ]
+observability                     = "Record stable result and KeyBudgetBypass classes without recording the DID, options, or normalized cache key."
+fallback                          = "Bypass cache retention for valid oversized identities; do not truncate keys or fall back to a second parser."
+rollback                          = "Restore the prior lexical constants and cache outcome before publication while retaining issue and measurement evidence."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = "Not applicable; this is an expansion of a bounded public envelope rather than a deprecated facade."
+evidence_selectors                = [ "docs/architecture/language-adapter-mappings.toml#did.value.typescript.legacy-v1", "docs/conformance/cross-language-vector-catalog.toml#did.syntax.max-bytes" ]
+evidence_artifacts                = [ "docs/adr/0175-bound-generic-did-for-prism-long-form-state.md", "docs/architecture/sdk-input-resource-boundaries.toml" ]
+limitations                       = "The lexical envelope does not guarantee transportability through every host, cache retention, or acceptance by a method-specific semantic profile."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "did.prism.vdr-indexing.portable-core.v1"
+capability                        = "did.prism.vdr-indexing"
+lifecycle_state                   = "active"
+issue                             = 522
+pull_request                      = 529
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-prism-indexer", "identus-prism-vdr" ]
+affected_consumers                = [ "neoprism", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes portable PRISM DID operations but no reusable storage-entry domain or deterministic complete-transaction indexing core."
+new_behavior                      = "The additive crates parse and authorize bounded PRISM VDR operations, resolve finite ancestry, plan complete ordered transactions, and expose replay-safe atomic commit ports without chain or persistence effects."
+migration_action                  = ""
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "These additive Rust-native cores define no legacy language DTO or error facade; downstream adapters retain their own migration contracts."
+vector_ids                        = [ "did.prism.vdr-indexing.empty-nonce", "did.prism.vdr-indexing.transition-digest" ]
+quality_declaration_ids           = [ "did.prism.vdr-indexing.quality.v1" ]
+observability                     = "Record bounded operation positions, stable result categories and aggregate counts without payloads, DIDs, keys, signatures, transaction identities, cursors or backend diagnostics."
+fallback                          = "Consumers remain on their existing PRISM storage and indexing implementation until an explicit downstream canary accepts these additive crates."
+rollback                          = "Remove the additive crate dependencies before publication; existing SDK-Rust crates and downstream implementations retain their prior behavior."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#did.prism.vdr-indexing.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.prism.vdr-indexing.transition-digest" ]
+evidence_artifacts                = [ "docs/architecture/prism-vdr-indexer-quality-baseline.md", "docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json" ]
+limitations                       = "No Cardano source, SQL repository, HTTP or CLI surface, runtime, retry loop, deployment, device execution, FFI, crates.io publication, or completed NeoPRISM adoption is included. The 300-second Linux fuzz receipt remains issue-owned slow-lane evidence until a successful immutable run is attached."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "oid4vp.direct-post-response.encrypted.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "active"
+issue                             = 535
+pull_request                      = 540
+change_class                      = "breaking"
+release_note_class                = "changed"
+visibility                        = [ "behavior", "public-api", "security", "wire" ]
+affected_packages                 = [ "identus-jose", "identus-oid4vp" ]
+affected_consumers                = [ "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "source-break"
+old_behavior                      = "SDK-Rust constructs bounded plain OpenID4VP direct_post responses, AuthorizationResponseMode has one exhaustively matchable variant, direct_post.jwt is unsupported, and the plain constructor cannot receive a protected validated request."
+new_behavior                      = "The pre-release SDK adds a non-exhaustive DirectPostJwt mode, validates one bounded P-256 ECDH-ES verifier recipient and A128GCM policy, returns metadata-specific validation categories, makes the plain constructor reject protected mode, invokes an SDK-owned JWE port once, validates opaque compact output and emits a response-only form."
+migration_action                  = "Before adopting this unreleased API, make AuthorizationResponseMode matches forward-compatible and handle ResponseModeMismatch plus direct_post.jwt metadata validation errors."
+replacement                       = "Use a wildcard match for future response modes and select the plain or encrypted constructor from the validated mode."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The additive Rust-native contract intentionally does not preserve SDK-TS, Swift, KMP or third-party JOSE DTO and error shapes; language migration adapters remain separate work."
+vector_ids                        = [ "oid4vp.encrypted-direct-post-response.final-p256-a128gcm" ]
+quality_declaration_ids           = [ "oid4vp.direct-post-response.encrypted.quality.v1" ]
+observability                     = "Record only stable selection, algorithm and result categories plus bounded counts or lengths; never record verifier coordinates, plaintext, compact output, state, presentations or dependency diagnostics."
+fallback                          = "Consumers retain plain direct_post or their existing protected-response implementation until a separately qualified JWE engine adapter is available."
+rollback                          = "Remove the additive mode, metadata types, port transition and evidence before publication; existing plain direct_post behavior and storage remain unchanged."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.direct-post-response.encrypted.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.encrypted-direct-post-response.final-p256-a128gcm" ]
+evidence_artifacts                = [ "docs/adr/0181-use-an-sdk-owned-jwe-port-before-adopting-an-engine.md", "docs/architecture/oid4vp-encrypted-response-boundary.md", "docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json" ]
+limitations                       = "The enum, validation-category and constructor behavior changes are pre-release source/behavior breaks. No production JWE engine, HTTP delivery, transport retry, wallet authentication, consent, trust, presentation verification, automatic error fallback, language adapter, persisted migration or downstream adoption is included; the first profile is one compact P-256 ECDH-ES/A128GCM recipient only."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "oid4vp.direct-post-response.request-object-security.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "active"
+issue                             = 544
+pull_request                      = 550
+change_class                      = "breaking"
+release_note_class                = "changed"
+visibility                        = [ "behavior", "public-api", "security" ]
+affected_packages                 = [ "identus-oid4vp" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "source-break"
+old_behavior                      = "Signature and correlation evidence can enter typed DCQL and authorization routing without SDK-owned audience, freshness, or replay validation."
+new_behavior                      = "A consuming protocol-local transition validates the discovered audience, temporal policy, and one atomic caller-owned replay decision before typed routing."
+migration_action                  = "Construct a RequestObjectSecurityPolicy from trusted discovery evidence and call the security transition with a WallClock and atomic replay guard before DCQL or authorization routing."
+replacement                       = "RequestObjectSecurityEvidence and its typed routing successors."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native security state intentionally does not preserve foreign SDK DTO or error shapes; migration adapters remain consumer-owned."
+vector_ids                        = [ "oid4vp.direct-post-response.final-string-state" ]
+quality_declaration_ids           = [ "oid4vp.direct-post-response.request-object-security.quality.v1" ]
+observability                     = "Record only stable outcome classes, algorithm, temporal class, and bounded counts or lengths; never record payload, audience, client ID, nonce, JWT ID, key material, or replay backend diagnostics."
+fallback                          = "Consumers retain their existing implementation until they can supply trusted discovery evidence and an atomic replay guard; no unsafe SDK bypass is retained."
+rollback                          = "Before publication remove the security transition and its typed routing successors as one unreleased unit while preserving issue evidence; never restore direct routing from raw signature evidence or simulate acceptance."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.direct-post-response.request-object-security.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.direct-post-response.final-string-state" ]
+evidence_artifacts                = [ "docs/adr/0183-require-oid4vp-request-object-security-evidence-before-routing.md" ]
+limitations                       = "No verifier-key trust, discovery fetch, persistence, distributed replay consistency, system clock, network, consent, credential validation, proof generation, Digital Credentials API, SIOPv2, adapter, publication, or downstream adoption is included."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "oid4vp.direct-post-response.verifier-authorization-evidence.v1"
+capability                        = "oid4vp.direct-post-response"
+lifecycle_state                   = "active"
+issue                             = 545
+pull_request                      = 551
+change_class                      = "breaking"
+release_note_class                = "changed"
+visibility                        = [ "behavior", "public-api", "security" ]
+affected_packages                 = [ "identus-jose", "identus-oid4vp" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "source-break"
+old_behavior                      = "Audience, freshness and replay evidence can enter typed OID4VP routing without SDK-owned proof that the exact JWS verification key is authorized for the full client identifier."
+new_behavior                      = "A consuming transition classifies Final client identifier prefixes, validates bounded scheme metadata and requires a caller-owned trust port to accept the exact verified key and full correlated client identifier before typed routing."
+migration_action                  = "Implement the applicable Final verifier trust adapter and call the verifier-authorization transition after request security validation."
+replacement                       = "VerifierAuthorizationEvidence and its typed routing successors."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The Rust-native verifier evidence intentionally does not preserve foreign SDK DTO or error shapes; migration adapters remain consumer-owned."
+vector_ids                        = [ "oid4vp.direct-post-response.final-string-state" ]
+quality_declaration_ids           = [ "oid4vp.direct-post-response.verifier-authorization.quality.v1" ]
+observability                     = "Record only stable scheme and outcome categories plus bounded counts or lengths; never record client identifiers, metadata, verifier-info, trust chains, certificates, nested JWTs, keys or adapter diagnostics."
+fallback                          = "Consumers retain their existing verifier-authentication implementation until they can supply a conforming trust adapter; no unsafe SDK bypass is retained."
+rollback                          = "Before publication remove the verifier authorization transition and its typed routing successors as one unreleased unit; never restore routing from request-security evidence alone."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#oid4vp.direct-post-response.verifier-authorization.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#oid4vp.direct-post-response.final-string-state" ]
+evidence_artifacts                = [ "docs/adr/0184-bind-oid4vp-verifier-identity-through-policy-ports.md" ]
+limitations                       = "No bundled DID resolver, PKI/DNS validation, Federation engine, attestation trust store, transport, persistence, product consent/policy, unsigned redirect-URI flow, Digital Credentials API, language adapter, publication or downstream adoption."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
+id                                = "credentials.sd-jwt.vc-draft22.v1"
+capability                        = "credentials.sd-jwt"
+lifecycle_state                   = "active"
+issue                             = 569
+pull_request                      = 574
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "target-support", "wire" ]
+affected_packages                 = [ "identus-sd-jwt", "identus-sd-jwt-vc" ]
+affected_consumers                = [ "lace-id-portal", "oxid", "sdk-rust-adopters", "sdk-swift", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes a bounded RFC 9901 engine and generic protocol format ports but no SD-JWT VC profile semantics."
+new_behavior                      = "The additive identus-sd-jwt-vc crate provides an exact bounded draft-22 profile with canonical dc+sd-jwt issuance, profile claims, caller-supplied issuer/type/status evidence and offline protocol integration."
+migration_action                  = "Use the canonical dc+sd-jwt profile for new Rust integrations; keep legacy vc+sd-jwt migration isolated to issue #572."
+replacement                       = ""
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = ""
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "Rust-native staged profile values and static errors deliberately do not preserve SDK-TS DTO, task, DID, time-tolerance or error shapes; thin adapters remain separate."
+vector_ids                        = [ "credentials.sd-jwt-vc.legacy-protected-type" ]
+quality_declaration_ids           = [ "credentials.sd-jwt-vc.draft22.quality.v1" ]
+observability                     = "Record only stable profile stage, evidence mechanism, outcome and limit categories plus bounded counts; never record credential bytes, claims, identifiers, URLs, metadata, keys, status handles, audience or nonce."
+fallback                          = "Consumers retain their current SD-JWT VC implementation until they explicitly adopt a later released profile or language adapter."
+rollback                          = "Before publication remove the additive profile crate and proposed ledger record while preserving the RFC 9901 base, immutable vectors and decision history."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#credentials.sd-jwt-vc.draft22.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#credentials.sd-jwt-vc.legacy-protected-type" ]
+evidence_artifacts                = [ "docs/adr/0193-build-a-focused-rfc9901-engine.md", "openspec/changes/archive/2026-10-28-implement-sd-jwt-vc-draft22-profile/design.md" ]
+limitations                       = "Exact draft-22 compact profile only; no HTTP, trust/authorization/status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+[[changes]]
+id                                = "credentials.sd-jwt.vc-draft03-input-adapter.v1"
+capability                        = "credentials.sd-jwt"
+lifecycle_state                   = "active"
+issue                             = 572
+pull_request                      = 576
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "public-api", "security", "wire" ]
+affected_packages                 = [ "identus-sd-jwt-vc" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust rejects vc+sd-jwt through its canonical draft-22 parser and profile and provides no qualified migration path for the released SDK-TS draft-03 population."
+new_behavior                      = "An additive explicitly selected input-only adapter validates the source-bound draft-03 common subset after RFC 9901 verification, returns a distinct migration state requiring canonical reissuance, and leaves all canonical dc+sd-jwt paths unchanged."
+migration_action                  = "Route only known SDK-TS 8.1.4 draft-03 vc+sd-jwt inputs through the explicit adapter, treat rejection as unsupported legacy semantics, and obtain issuer reissuance before storing or representing the credential as canonical draft-22."
+replacement                       = "Canonical dc+sd-jwt issuance and Draft22SdJwtVc validation after issuer reissuance."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The adapter is transitional until the named released consumer and supported stored credentials have measured canonical migration and no supported deployment requires legacy input."
+deprecation_phase                 = "proposed"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The adapter consumes signed credential wire bytes rather than SDK-TS DTO, task, DID, or error shapes; a downstream language facade remains separately owned."
+vector_ids                        = [ "credentials.sd-jwt-vc.draft03-additional-types-rejected", "credentials.sd-jwt-vc.draft03-common-subset", "credentials.sd-jwt-vc.draft03-integrity-rejected", "credentials.sd-jwt-vc.draft03-status-rejected", "credentials.sd-jwt-vc.legacy-protected-type" ]
+quality_declaration_ids           = [ "credentials.sd-jwt-vc.draft22.quality.v1", "credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1" ]
+observability                     = "Record only the adapter capability ID, stable outcome or rejection category, common-subset stage, bounded counts, and canonical-reissuance requirement; never record credentials, claims, identifiers, dates, URLs, keys, disclosures, status handles, or comparison values."
+fallback                          = "No automatic fallback; canonical APIs keep rejecting vc+sd-jwt and consumers retain their current engine until they explicitly adopt the adapter."
+rollback                          = "Before publication remove the additive adapter, legacy vectors, and proposed record while preserving RFC 9901 and canonical draft-22 behavior."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = "Remove through a separate consumer-visible change after SDK-TS and every supported stored credential population have measured migration to dc+sd-jwt and the agreed compatibility window has elapsed."
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#credentials.sd-jwt-vc.draft22.quality.v1", "docs/architecture/quality-evidence-declarations.toml#credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#credentials.sd-jwt-vc.draft03-additional-types-rejected", "docs/conformance/cross-language-vector-catalog.toml#credentials.sd-jwt-vc.draft03-common-subset", "docs/conformance/cross-language-vector-catalog.toml#credentials.sd-jwt-vc.draft03-integrity-rejected", "docs/conformance/cross-language-vector-catalog.toml#credentials.sd-jwt-vc.draft03-status-rejected", "docs/conformance/cross-language-vector-catalog.toml#credentials.sd-jwt-vc.legacy-protected-type" ]
+evidence_artifacts                = [ "docs/adr/0194-isolate-draft03-vc-sd-jwt-migration.md", "docs/research/platform-core/sd-jwt-vc-draft03-migration.md", "openspec/changes/archive/2026-10-29-qualify-legacy-vc-sd-jwt-adapter/design.md" ]
+limitations                       = "Only the verified draft-03 common subset is accepted; no full draft-03, legacy output, automatic fallback, header rewriting, status behavior, Type Metadata, millisecond dates, trust/time/product policy, bindings, publication, certification, or downstream adoption."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""

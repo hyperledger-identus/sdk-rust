@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-29
+goal: Freeze the existing JWE port errors as an independently versioned, exhaustive, redaction-safe compatibility contract.

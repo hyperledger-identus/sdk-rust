@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-10-29
+goal: Rebaseline the unpublished DID candidate API origin to the already
+  delivered additive bounded JSON-wire surface without changing Rust behavior,
+  package identity, or publication state.

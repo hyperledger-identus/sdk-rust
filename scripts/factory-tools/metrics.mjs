@@ -17,6 +17,13 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  readDeferredAcceptanceAt,
+  validateHostedClosingIssuePages,
+  validateHostedIssueLinkage,
+  validateIssueLinkage,
+} from "../ci/contribution-policy.mjs";
+import { fetchExactPullRequestHead } from "./delivery.mjs";
 import { parseJsonWithoutDuplicates } from "./strict-json.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -396,7 +403,16 @@ export function resolveMetricPublicationTarget(record, requestedTarget = "auto")
   return { kind: "pull-request", number: record.pullRequest };
 }
 
-export function validateHostedMetricIdentity(record, { issue, pullRequest = null, currentHead = null }) {
+export function validateHostedMetricIdentity(record, {
+  issue,
+  pullRequest = null,
+  currentHead = null,
+  loadDeferredAcceptance = (sidecarPath) => readDeferredAcceptanceAt({
+    repository: root,
+    head: record.headSha,
+    sidecarPath,
+  }),
+}) {
   if (issue?.number !== record.issue || Object.hasOwn(issue ?? {}, "pull_request")) {
     fail("metric issue does not match an authoritative repository issue");
   }
@@ -404,11 +420,19 @@ export function validateHostedMetricIdentity(record, { issue, pullRequest = null
     if (pullRequest?.number !== record.pullRequest || pullRequest?.headRefOid !== record.headSha) {
       fail("metric pull request does not match its exact hosted head");
     }
-    const closesRecordedIssue = Array.isArray(pullRequest.closingIssuesReferences)
-      && pullRequest.closingIssuesReferences.some((reference) => (
-        reference?.number === record.issue && reference?.repository === record.repository
-      ));
-    if (!closesRecordedIssue) fail("metric pull request is not linked to its recorded issue");
+    const linkage = validateIssueLinkage(pullRequest?.body, record.issue, {
+      additionalClosingText: pullRequest?.title,
+      loadDeferredAcceptance,
+    });
+    const hostedLinkage = validateHostedIssueLinkage(
+      linkage,
+      pullRequest?.closingIssuesReferences,
+      record.issue,
+      record.repository,
+    );
+    if (!linkage.ok || !hostedLinkage.ok) {
+      fail("metric pull request is not linked to its recorded issue");
+    }
   } else if (currentHead !== record.headSha) {
     fail("metric without a pull request must match the current exact HEAD");
   }
@@ -463,6 +487,7 @@ export function publishMetric(record, {
   currentHead,
   github,
   persist = persistPrivate,
+  loadDeferredAcceptance,
 }) {
   if (!execute) fail("publication requires --execute");
   const validation = validateMetric(record);
@@ -471,7 +496,12 @@ export function publishMetric(record, {
   const target = resolveMetricPublicationTarget(record, requestedTarget);
   const hostedIssue = github.readIssue(record.issue);
   const hostedPullRequest = record.pullRequest === null ? null : github.readPullRequest(record.pullRequest);
-  validateHostedMetricIdentity(record, { issue: hostedIssue, pullRequest: hostedPullRequest, currentHead });
+  validateHostedMetricIdentity(record, {
+    issue: hostedIssue,
+    pullRequest: hostedPullRequest,
+    currentHead,
+    ...(loadDeferredAcceptance ? { loadDeferredAcceptance } : {}),
+  });
   const body = renderMetric(record);
   persist(record);
   const versionPolicy = metricVersionPolicy(record.schemaVersion);
@@ -517,21 +547,25 @@ function publish(record, issue, requestedTarget, execute) {
       "unable to verify authoritative metric issue",
     ),
     readPullRequest: (number) => {
-      const response = githubJson([
-        "api", "graphql",
+      const pages = githubJson([
+        "api", "graphql", "--paginate", "--slurp",
         "-f", `owner=${owner}`,
         "-f", `name=${name}`,
         "-F", `number=${number}`,
-        "-f", "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid closingIssuesReferences(first:100){nodes{number repository{nameWithOwner}}}}}}",
+        "-f", "query=query($owner:String!,$name:String!,$number:Int!,$endCursor:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid title body closingIssuesReferences(first:100,after:$endCursor){nodes{number repository{nameWithOwner}}pageInfo{hasNextPage endCursor}}}}}",
       ], "unable to verify authoritative metric pull request");
-      const pullRequest = response?.data?.repository?.pullRequest;
+      const pullRequest = pages?.[0]?.data?.repository?.pullRequest;
+      const hostedClosing = validateHostedClosingIssuePages(pages, {
+        expectedPullRequest: number,
+        expectedHead: pullRequest?.headRefOid,
+      });
+      if (!hostedClosing.ok) fail("unable to verify complete authoritative metric closing references");
       return {
         number: pullRequest?.number,
         headRefOid: pullRequest?.headRefOid,
-        closingIssuesReferences: pullRequest?.closingIssuesReferences?.nodes?.map((reference) => ({
-          number: reference?.number,
-          repository: reference?.repository?.nameWithOwner,
-        })),
+        title: pullRequest?.title,
+        body: pullRequest?.body,
+        closingIssuesReferences: hostedClosing.references,
       };
     },
     readLogin: () => githubText(["api", "user", "--jq", ".login"], "unable to resolve authenticated metric publisher"),
@@ -550,12 +584,21 @@ function publish(record, issue, requestedTarget, execute) {
       { stdio: ["ignore", "ignore", "ignore"] },
     ),
   };
+  let preparedDeferredHead = false;
+  const loadDeferredAcceptance = (sidecarPath) => {
+    if (!preparedDeferredHead) {
+      fetchExactPullRequestHead(root, record.pullRequest, record.headSha);
+      preparedDeferredHead = true;
+    }
+    return readDeferredAcceptanceAt({ repository: root, head: record.headSha, sidecarPath });
+  };
   return publishMetric(record, {
     issue,
     requestedTarget,
     execute,
     currentHead: git(["rev-parse", "HEAD"]),
     github,
+    ...(record.pullRequest === null ? {} : { loadDeferredAcceptance }),
   });
 }
 

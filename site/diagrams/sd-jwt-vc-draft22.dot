@@ -1,0 +1,25 @@
+digraph sd_jwt_vc_draft22 {
+  graph [bgcolor="transparent", rankdir="LR", pad="0.2", nodesep="0.45", ranksep="0.55"];
+  node [shape="box", style="rounded,filled", fillcolor="#f4f7fb", color="#31547a", fontname="Arial", fontsize="10"];
+  edge [color="#31547a", fontname="Arial", fontsize="9"];
+
+  opaque [label="OID4VCI opaque\ncredential"];
+  envelope [label="CredentialEnvelope\ndc+sd-jwt"];
+  parsed [label="UnverifiedSdJwt"];
+  issuer [label="IssuerVerifiedSdJwt"];
+  disclosure [label="DisclosureVerifiedSdJwt"];
+  profile [label="Draft22SdJwtVc", fillcolor="#e6f4ea", color="#26734d"];
+  presentation [label="OID4VP match +\ndisclosure selection"];
+  holder [label="holder-bound\npresentation evidence"];
+
+  evidence [shape="note", label="caller evidence\nissuer / metadata / status", fillcolor="#fff4d6", color="#9a6b00"];
+  policy [shape="box", label="product trust and\nacceptance policy", fillcolor="#fdeaea", color="#a33a3a"];
+
+  opaque -> envelope -> parsed;
+  parsed -> issuer [label="signature"];
+  issuer -> disclosure [label="graph"];
+  disclosure -> profile [label="profile rules"];
+  evidence -> profile [style="dashed", label="correlate only"];
+  profile -> presentation -> holder;
+  profile -> policy [style="dashed", label="evidence, never authority"];
+}

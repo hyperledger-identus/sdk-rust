@@ -76,6 +76,27 @@ fn ed25519_encode_array_and_vec() {
 }
 
 #[test]
+fn ed25519_classifies_non_canonical_and_weak_encodings() {
+    let mut non_canonical = [0xff; 32];
+    non_canonical[0] = 0xf0;
+    non_canonical[31] = 0x7f;
+    let non_canonical = Ed25519PublicKey::from_slice(&non_canonical).unwrap();
+
+    let mut identity = [0; 32];
+    identity[0] = 1;
+    let identity = Ed25519PublicKey::from_slice(&identity).unwrap();
+
+    let ordinary = Ed25519PrivateKey::from_slice(&SAMPLE_32)
+        .unwrap()
+        .to_public_key();
+
+    assert!(!non_canonical.has_canonical_encoding());
+    assert!(identity.is_weak());
+    assert!(ordinary.has_canonical_encoding());
+    assert!(!ordinary.is_weak());
+}
+
+#[test]
 fn ed25519_private_key_bytes_roundtrip() {
     let sk = Ed25519PrivateKey::from_slice(&SAMPLE_32).unwrap();
     let bytes = sk.to_bytes();
@@ -115,6 +136,47 @@ fn x25519_from_slice_rejects_wrong_length() {
     assert!(X25519PublicKey::from_slice(&[0u8; 31]).is_err());
     assert!(X25519PublicKey::from_slice(&[0u8; 33]).is_err());
     assert!(X25519PublicKey::from_slice(&[0xAB; 32]).is_ok());
+}
+
+#[test]
+fn x25519_classifies_non_contributory_public_keys() {
+    let all_zero = X25519PublicKey::from_slice(&[0; 32]).unwrap();
+    let mut order_one_bytes = [0; 32];
+    order_one_bytes[0] = 1;
+    let order_one = X25519PublicKey::from_slice(&order_one_bytes).unwrap();
+    let ordinary = identus_crypto::X25519PrivateKey::from_slice(&[42; 32])
+        .unwrap()
+        .to_public_key();
+
+    assert!(!all_zero.is_contributory());
+    assert!(!order_one.is_contributory());
+    assert!(ordinary.is_contributory());
+}
+
+#[test]
+fn x25519_classifies_non_canonical_coordinate_encodings() {
+    let ordinary = identus_crypto::X25519PrivateKey::from_slice(&[42; 32])
+        .unwrap()
+        .to_public_key();
+    let mut high_bit_alias = ordinary.encode_array();
+    high_bit_alias[31] |= 0x80;
+    let modulus = [
+        0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0x7f,
+    ];
+
+    assert!(ordinary.has_canonical_encoding());
+    assert!(
+        !X25519PublicKey::from_slice(&high_bit_alias)
+            .unwrap()
+            .has_canonical_encoding()
+    );
+    assert!(
+        !X25519PublicKey::from_slice(&modulus)
+            .unwrap()
+            .has_canonical_encoding()
+    );
 }
 
 #[test]

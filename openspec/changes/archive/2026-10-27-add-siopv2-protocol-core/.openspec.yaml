@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-27
+goal: Add a bounded SIOPv2 draft-13 DID-subject protocol core with shared OpenID request retrieval, signed request validation, self-issued ID Token construction, deterministic lifecycle semantics, and no wallet or transport coupling.

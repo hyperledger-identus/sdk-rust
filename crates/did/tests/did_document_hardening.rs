@@ -3,8 +3,8 @@ use std::collections::BTreeMap;
 use identus_did::{
     ContextEntry, ContextObject, Did, DidDocument, DocumentError, Error, MAX_DID_DOCUMENT_BYTES,
     MAX_DID_DOCUMENT_WIRE_DEPTH, MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES, MAX_DID_DOCUMENT_WIRE_NODES,
-    MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS, MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, OneOrMany,
-    Service, ServiceEndpoint, ServiceEndpointValue, Uri, VerificationMethod,
+    MAX_DID_DOCUMENT_WIRE_OBJECT_MEMBERS, MAX_EXTENSION_DEPTH, MAX_EXTENSION_NODES, MAX_URI_BYTES,
+    OneOrMany, Service, ServiceEndpoint, ServiceEndpointValue, Uri, VerificationMethod,
     VerificationRelationship,
 };
 use serde_json::{Value, json};
@@ -83,7 +83,7 @@ fn uri_recognizer_agrees_with_neoprism_oracle_across_component_classes() {
 
 #[test]
 fn uri_oracle_differences_are_explicitly_classified() {
-    let oversized = format!("x:{}", "a".repeat(4_095));
+    let oversized = format!("x:{}", "a".repeat(MAX_URI_BYTES - 1));
     assert!(oracle_accepts(&oversized));
     assert!(!sdk_accepts(&oversized));
 

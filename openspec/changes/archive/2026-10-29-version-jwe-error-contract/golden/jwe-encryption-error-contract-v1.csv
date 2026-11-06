@@ -1,0 +1,12 @@
+# source_repository=hyperledger-identus/sdk-rust
+# source_revision=c66d506690d3cd6f119f9ae6430b285f98115d10
+# generated_at=2026-10-29
+error_type,variant,code_constant,constant_visibility,code,kind,capability,local_display,public_message,identus_display,source
+JweEncryptionError,InvalidLimits,none,none,jose.invalid_jwe_limits,InvalidInput,jose,JWE limits are invalid,JWE limits are invalid,jose.invalid_jwe_limits: JWE limits are invalid,none
+JweEncryptionError,InvalidRecipientKey,none,none,jose.invalid_jwe_recipient_key,InvalidInput,jose,JWE recipient key is invalid,JWE recipient key is invalid,jose.invalid_jwe_recipient_key: JWE recipient key is invalid,none
+JweEncryptionError,InvalidKeyId,none,none,jose.invalid_jwe_key_id,InvalidInput,jose,JWE key identifier is invalid,JWE key identifier is invalid,jose.invalid_jwe_key_id: JWE key identifier is invalid,none
+JweEncryptionError,PlaintextTooLarge,none,none,jose.jwe_plaintext_too_large,InvalidInput,jose,JWE plaintext is outside its resource policy,JWE plaintext is outside its resource policy,jose.jwe_plaintext_too_large: JWE plaintext is outside its resource policy,none
+JweEncryptionError,CompactTooLarge,none,none,jose.compact_jwe_too_large,InvalidInput,jose,JWE compact output is too large,JWE compact output is too large,jose.compact_jwe_too_large: JWE compact output is too large,none
+JweEncryptionError,InvalidCompactStructure,none,none,jose.invalid_compact_jwe_structure,InvalidInput,jose,JWE compact structure is invalid,JWE compact structure is invalid,jose.invalid_compact_jwe_structure: JWE compact structure is invalid,none
+JweEncryptionError,EncryptionRejected,none,none,jose.jwe_encryption_rejected,Crypto,jose,JWE encryption was rejected,JWE encryption was rejected,jose.jwe_encryption_rejected: JWE encryption was rejected,none
+JweEncryptionError,EncrypterUnavailable,none,none,jose.jwe_encrypter_unavailable,Crypto,jose,JWE encrypter is unavailable,JWE encrypter is unavailable,jose.jwe_encrypter_unavailable: JWE encrypter is unavailable,none

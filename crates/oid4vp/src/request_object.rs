@@ -1,5 +1,6 @@
 use std::fmt;
 
+use identus_crypto::PublicKeyJwk;
 use identus_jose::{
     JwsAlgorithm, JwsVerificationKey, ProtectedHeader, SignatureSuiteRegistry, UnverifiedCompactJws,
 };
@@ -94,6 +95,7 @@ impl UnverifiedRequestObject {
             payload,
             client_id,
             wallet_nonce: claims.wallet_nonce,
+            verification_key: key.public_key().clone(),
         })
     }
 }
@@ -121,12 +123,22 @@ impl fmt::Debug for UnverifiedRequestObject {
 ///
 /// This is not yet verifier-trust, audience, freshness, OAuth, DCQL, consent,
 /// or product-authorization evidence.
+/// The security transition is required before typed routing:
+///
+/// ```compile_fail
+/// use identus_oid4vp::{DcqlLimits, VerifiedRequestObject};
+///
+/// fn bypass_security(request: VerifiedRequestObject) {
+///     let _ = request.into_dcql_query(DcqlLimits::default());
+/// }
+/// ```
 pub struct VerifiedRequestObject {
     protected_header: ProtectedHeader,
     algorithm: JwsAlgorithm,
     payload: Zeroizing<Vec<u8>>,
     client_id: Zeroizing<String>,
     wallet_nonce: Option<Zeroizing<String>>,
+    verification_key: PublicKeyJwk,
 }
 
 pub(crate) struct VerifiedRequestObjectParts {
@@ -180,6 +192,11 @@ impl VerifiedRequestObject {
     /// Exact verified payload byte length.
     pub fn payload_len(&self) -> usize {
         self.payload.len()
+    }
+
+    /// Borrow the exact public key that verified this Request Object.
+    pub const fn verification_key(&self) -> &PublicKeyJwk {
+        &self.verification_key
     }
 }
 

@@ -59,10 +59,20 @@ reused where their scope is still valid.
 ### Requirement: Repository boundaries remain directional
 
 The SDK SHALL own chain-neutral SSI types, ports, protocol engines,
-cryptographic utilities and conformance evidence. It SHALL NOT own Midnight or
-Compact runtime behavior, PRISM/Cardano ledger integration, wallet/product
-policy, trust decisions, consent, custody, UI, deployment or concrete product
-storage.
+cryptographic utilities, portable DID-method semantics, and conformance
+evidence. It SHALL NOT own Midnight or Compact runtime behavior, concrete
+PRISM/Cardano ledger integration, wallet/product policy, trust decisions,
+consent, custody, UI, deployment or concrete product storage.
+
+Method-specific behavior MAY be SDK-owned when it forms a cohesive,
+independently selectable capability that is deterministic, effect-isolated,
+bounded, target-qualified, and useful outside one node composition. This does
+not make the generic SDK layer depend on that method or move concrete chain,
+storage, service, or runtime effects into the portable crate.
+
+The canonical SSI backlog SHALL identify a focused specification owner for
+IDR-040 rather than program issue #20. Implementation SHALL proceed through
+focused child issues in their recorded dependency order.
 
 #### Scenario: Generic behavior is found in a consumer
 
@@ -72,10 +82,33 @@ storage.
 
 #### Scenario: Source behavior is chain- or product-specific
 
-- **WHEN** behavior depends on Midnight, Compact, PRISM operations, Cardano,
-  product policy, custody, UI or deployment
-- **THEN** it is classified `remain-downstream` and excluded from the generic
-  SDK dependency graph
+- **WHEN** behavior depends on Midnight, Compact, a Cardano client, concrete
+  PRISM/Cardano ledger operations, product policy, custody, UI, deployment or
+  concrete persistence
+- **THEN** it is classified `remain-downstream` and excluded from the portable
+  SDK dependency graph; a separate accepted ADR may define an independently
+  reusable adapter but cannot move the concrete effect into a portable core
+
+#### Scenario: portable method behavior is found in a chain node
+
+- **WHEN** PRISM method, VDR, or deterministic indexing behavior can satisfy
+  the hard reuse gates without a Cardano client, database, service, or node
+  runtime
+- **THEN** it may be adapted into a method-specific SDK crate while concrete
+  effects remain downstream
+
+#### Scenario: method planning becomes implementation-ready
+
+- **WHEN** ADR 0174, source pins, profiles, crate boundaries, and child issues
+  are accepted
+- **THEN** IDR-040 is `specified`, while its production capabilities remain
+  undelivered until their individual evidence and adoption receipts pass
+
+#### Scenario: a donor implementation is available
+
+- **WHEN** SDK-TS, NeoPRISM, or a Rust peer library contains candidate behavior
+- **THEN** the exact revision is used as compatibility evidence and does not
+  become normative architecture or an automatic dependency
 
 ### Requirement: Source evidence is immutable and classified
 
@@ -511,4 +544,82 @@ required row.
 - **THEN** publication, official certification, current app-team approval,
   live Oxid/Portal interoperability and downstream dependency adoption remain
   separate work
+
+### Requirement: OpenID4VP completion is evidence based
+
+IDR-024 SHALL become delivered only from a reviewed, machine-checked Final
+matrix whose pinned required capability set contains no non-implemented row.
+Official OpenID certification remains a separate release and product gate.
+
+#### Scenario: a required capability is missing
+
+- **WHEN** the matrix finds absent Request Object security, client scheme,
+  response-mode, transaction-data, or format-metadata behavior
+- **THEN** one focused issue owns each independent gap
+- **AND** IDR-024 remains in progress
+
+### Requirement: delivered rows do not remain stale
+
+The roadmap SHALL reconcile an implementation owner after its reviewed change
+is merged and its issue is closed while retaining explicit protocol maturity
+limitations.
+
+#### Scenario: the SIOPv2 draft core is delivered
+
+- **WHEN** issue #514 is merged and closed with canonical specification and
+  executable evidence
+- **THEN** IDR-031 is marked delivered
+- **AND** its draft-13 and excluded-profile limitations remain explicit
+
+### Requirement: Mixed DID-method portfolio delivery is explicit
+
+The IDR-040 backlog row SHALL distinguish delivered peer/PRISM method profiles
+from DID methods that still require their own focused specification and SHALL
+NOT mark the complete portfolio delivered while those methods remain absent.
+
+#### Scenario: PRISM and peer slices are delivered
+
+- **WHEN** issues #521, #522, and #523 have immutable merged evidence but `did:key`, `did:jwk`, or `did:web` remain unplanned
+- **THEN** IDR-040 is reported as `in_progress` under an open focused successor owner with the delivered and remaining profiles named explicitly
+
+### Requirement: Remaining portable DID methods have independent profiles and owners
+
+The SDK SHALL plan `did:key`, `did:jwk`, and `did:web` as independent,
+selectable method crates with pinned normative revisions, explicit first
+profiles, bounded inputs, SDK-owned DTOs and errors, and focused issue owners.
+Independent implementations MAY provide differential evidence but SHALL NOT
+become production dependencies unless a later decision proves an equivalent
+profile, acceptable dependency cone, target support, and lower lifecycle cost.
+
+`did:key` and `did:jwk` SHALL remain effect-free. `did:web` SHALL separate pure
+method transformation and document binding from retrieval through a minimal
+injected bounded-fetch port. Concrete HTTP, executor, DNS, TLS, redirect,
+proxy, cache, retry, SSRF, and product-trust policy SHALL remain outside the
+portable method core.
+
+#### Scenario: static method implementation begins
+
+- **WHEN** `did:key` or `did:jwk` enters implementation
+- **THEN** it uses the existing generic DID and public cryptographic boundaries
+  without adding network, storage, secret-provider, runtime, or global-registry
+  effects
+
+#### Scenario: web method retrieves a document
+
+- **WHEN** a `did:web` resolver needs remote document bytes
+- **THEN** it invokes a bounded caller-supplied fetch port and does not select a
+  concrete HTTP client or network-security policy
+
+#### Scenario: a third-party method implementation is available
+
+- **WHEN** a Rust crate implements some or all of a selected DID method
+- **THEN** it remains an oracle unless its exact profile, bounds, dependency
+  cone, public boundary, and supported-target evidence pass a focused adoption
+  decision
+
+#### Scenario: planning hands off to delivery
+
+- **WHEN** planning issue #555 integrates
+- **THEN** `IDR-040` references #557 and advances in order to #558 and #559 as
+  each independently evidenced method slice is delivered
 

@@ -44,11 +44,16 @@ required_files=(
   docs/architecture/a1-compatibility-contracts.md
   docs/architecture/language-adapter-mappings.md
   docs/architecture/language-adapter-mappings.toml
+  docs/architecture/identus-platform-change-ledger.md
+  docs/architecture/identus-platform-change-ledger.toml
   docs/architecture/quality-evidence-declarations.toml
   docs/architecture/quality-evidence-plan.md
   docs/conformance/cross-language-vector-catalog.md
   docs/conformance/cross-language-vector-catalog.toml
   docs/conformance/fixtures/did/v1/vectors.json
+  docs/conformance/fixtures/did-peer/v1/vectors.json
+  docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json
+  docs/conformance/fixtures/sd-jwt-vc-draft03-adapter/v1/vectors.json
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs
   docs/architecture/portable-agent-runtime.md
@@ -74,14 +79,19 @@ required_files=(
   docs/architecture/source-distribution.md
   docs/conformance/oid4vci-final-wallet-core.csv
   docs/conformance/oid4vci-final-wallet-core.md
+  docs/conformance/oid4vp-final-wallet-core.csv
+  docs/conformance/oid4vp-final-wallet-core.md
   docs/release/crypto-candidate.toml
   docs/release/did-candidate.lock
   docs/release/did-candidate.toml
+  docs/release/did-candidate-readiness.toml
+  docs/release/did-api-origin-rebaseline.toml
   docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
   docs/release/identus-did-0.1.0-rc.1.api.txt
   docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt
+  site/src/did-candidate-readiness.md
   crates/derive/README.md
   crates/core/README.md
   crates/crypto/README.md
@@ -93,6 +103,7 @@ required_files=(
   docs/governance/agentic-sdlc.md
   docs/governance/repository-settings.md
   docs/governance/crates-io-environment-receipt-2026-09-22.md
+  docs/governance/uniffi-generator-risk-acceptance.md
   docs/adr/0003-delegate-develop-integration.md
   docs/adr/0081-use-temporary-rust-198-fast-slow-ci.md
   docs/adr/0087-enforce-first-party-unsafe-forbid.md
@@ -115,6 +126,7 @@ required_files=(
   docs/adr/0171-own-a-portable-effect-driven-agent-runtime.md
   docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
   docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
+  docs/adr/0174-separate-peer-and-prism-did-method-ownership.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix
@@ -169,22 +181,30 @@ required_files=(
   scripts/check-platform-ts-capabilities.py
   scripts/check-a1-compatibility-plan.py
   scripts/check-language-adapter-mappings.py
+  scripts/check-platform-change-ledger.py
   scripts/check-cross-language-vectors.py
+  scripts/check-did-prism-proto.py
   scripts/check-quality-evidence-declarations.py
   scripts/fuzz-did.sh
+  scripts/fuzz-did-prism.sh
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py
   scripts/report-crypto-coverage.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-oid4vci-conformance.py
+  scripts/check-oid4vp-conformance.py
   scripts/check-ssi-upstream-backlog-live.py
   scripts/check-uniffi-did-android.sh
+  scripts/check-uniffi-generator-supply-chain.py
+  scripts/check-jwe-engine-qualification.py
+  scripts/qualify-jwe-engine.py
   scripts/check-weekly-slow-live.py
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py
   scripts/check-release-train.py
   scripts/check-release-candidates.py
+  scripts/check-did-final-readiness.py
   scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
   scripts/prepare-did-candidate.py
@@ -205,11 +225,16 @@ required_files=(
   scripts/tests/support-policy.py
   scripts/tests/ssi-upstream-backlog-live.py
   scripts/tests/oid4vci-conformance.py
+  scripts/tests/oid4vp-conformance.py
   scripts/tests/weekly-slow-live.py
+  scripts/tests/uniffi-generator-supply-chain.py
+  scripts/tests/jwe-engine-qualification.py
   scripts/tests/apollo-parity.py
   scripts/tests/platform-ts-capabilities.py
   scripts/tests/a1-compatibility-plan.py
   scripts/tests/language-adapter-mappings.py
+  scripts/tests/platform-change-ledger.py
+  scripts/tests/fixtures/platform-change-ledger/ledger.toml
   scripts/tests/cross-language-vectors.py
   scripts/tests/quality-evidence-declarations.py
   scripts/tests/crypto-benchmark.py
@@ -235,7 +260,7 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
-for executable_path in bootstrap.sh scripts/factory scripts/benchmark-code-health-classifier.py scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-input-resource-boundaries.py scripts/check-constraints.py scripts/check-error-golden.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/code-health-audit.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-rustsec-audit.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-platform-ts-capabilities.py scripts/check-a1-compatibility-plan.py scripts/check-language-adapter-mappings.py scripts/check-cross-language-vectors.py scripts/check-quality-evidence-declarations.py scripts/check-ssi-upstream-backlog.py scripts/check-oid4vci-conformance.py scripts/check-ssi-upstream-backlog-live.py scripts/check-uniffi-did-android.sh scripts/check-weekly-slow-live.py scripts/check-source-distribution.py scripts/check-crypto-candidate.py scripts/check-release-train.py scripts/check-release-candidates.py scripts/prepare-crypto-candidate.py scripts/prepare-did-candidate.py scripts/publish-release-train.py scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/delivery.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-session-harvest.mjs scripts/factory-tools/strict-json.mjs scripts/factory-tools/supervisor.mjs scripts/factory-tools/pi-package-cache.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/input-resource-boundaries.py scripts/tests/constraints.py scripts/tests/error-golden.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/code-health-audit.py scripts/tests/source-distribution.py scripts/tests/crypto-candidate.py scripts/tests/release-train.py scripts/tests/release-candidates.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/rustsec-audit.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py scripts/tests/platform-ts-capabilities.py scripts/tests/a1-compatibility-plan.py scripts/tests/language-adapter-mappings.py scripts/tests/cross-language-vectors.py scripts/tests/quality-evidence-declarations.py scripts/tests/ssi-upstream-backlog.py scripts/tests/oid4vci-conformance.py scripts/tests/ssi-upstream-backlog-live.py scripts/tests/weekly-slow-live.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
+for executable_path in bootstrap.sh scripts/factory scripts/benchmark-code-health-classifier.py scripts/benchmark-support-policy.py scripts/benchmark-crypto.sh scripts/coverage-crypto.sh scripts/check-factory.sh scripts/check-bootstrap-inventory.py scripts/check-input-resource-boundaries.py scripts/check-constraints.py scripts/check-error-golden.py scripts/check-crypto-benchmark.py scripts/report-crypto-coverage.py scripts/code-health-audit.py scripts/check-openspec-archive.py scripts/check-pr-policy.sh scripts/check-research-readiness.py scripts/check-rustsec-audit.py scripts/check-support-policy.py scripts/check-apollo-parity.py scripts/check-platform-ts-capabilities.py scripts/check-a1-compatibility-plan.py scripts/check-language-adapter-mappings.py scripts/check-platform-change-ledger.py scripts/check-cross-language-vectors.py scripts/check-quality-evidence-declarations.py scripts/check-ssi-upstream-backlog.py scripts/check-oid4vci-conformance.py scripts/check-oid4vp-conformance.py scripts/check-ssi-upstream-backlog-live.py scripts/check-uniffi-did-android.sh scripts/check-uniffi-generator-supply-chain.py scripts/check-jwe-engine-qualification.py scripts/qualify-jwe-engine.py scripts/check-weekly-slow-live.py scripts/check-source-distribution.py scripts/check-crypto-candidate.py scripts/check-release-train.py scripts/check-release-candidates.py scripts/prepare-crypto-candidate.py scripts/prepare-did-candidate.py scripts/publish-release-train.py scripts/fuzz-oid4vp.sh scripts/ci/contribution-policy.mjs scripts/ci/target-plan.mjs scripts/factory-tools/audit-pi.mjs scripts/factory-tools/delivery.mjs scripts/factory-tools/metrics.mjs scripts/factory-tools/pi-session-harvest.mjs scripts/factory-tools/strict-json.mjs scripts/factory-tools/supervisor.mjs scripts/factory-tools/pi-package-cache.mjs scripts/factory-tools/pi-policy.mjs scripts/factory-tools/preflight.mjs scripts/git-hooks/configure.mjs scripts/git-hooks/local-policy.mjs scripts/worktree-lifecycle.mjs scripts/tests/bootstrap-inventory.py scripts/tests/input-resource-boundaries.py scripts/tests/constraints.py scripts/tests/error-golden.py scripts/tests/crypto-benchmark.py scripts/tests/crypto-coverage.py scripts/tests/code-health-audit.py scripts/tests/source-distribution.py scripts/tests/crypto-candidate.py scripts/tests/release-train.py scripts/tests/release-candidates.py scripts/tests/jwe-engine-qualification.py scripts/tests/factory-contract.sh scripts/tests/factory-operations.mjs scripts/tests/openspec-archive.py scripts/tests/pr-policy.sh scripts/tests/research-readiness.py scripts/tests/rustsec-audit.py scripts/tests/support-policy.py scripts/tests/apollo-parity.py scripts/tests/platform-ts-capabilities.py scripts/tests/a1-compatibility-plan.py scripts/tests/language-adapter-mappings.py scripts/tests/platform-change-ledger.py scripts/tests/cross-language-vectors.py scripts/tests/quality-evidence-declarations.py scripts/tests/ssi-upstream-backlog.py scripts/tests/oid4vci-conformance.py scripts/tests/oid4vp-conformance.py scripts/tests/ssi-upstream-backlog-live.py scripts/tests/weekly-slow-live.py scripts/tests/uniffi-generator-supply-chain.py .githooks/commit-msg .githooks/pre-commit .githooks/pre-push; do
   if [[ -f "$factory_root/$executable_path" && ! -x "$factory_root/$executable_path" ]]; then
     report_failure "required executable bit is missing: $executable_path"
   fi
@@ -277,6 +302,12 @@ if [[ -x "$factory_root/scripts/check-oid4vci-conformance.py" && -f "$factory_ro
   fi
 fi
 
+if [[ -x "$factory_root/scripts/check-oid4vp-conformance.py" && -f "$factory_root/docs/conformance/oid4vp-final-wallet-core.csv" ]]; then
+  if ! "$factory_root/scripts/check-oid4vp-conformance.py" "$factory_root"; then
+    report_failure "OID4VP Final conformance-matrix validation failed"
+  fi
+fi
+
 if [[ -x "$factory_root/scripts/check-support-policy.py" && -f "$factory_root/docs/architecture/sdk-support-policy.toml" ]]; then
   if ! "$factory_root/scripts/check-support-policy.py" "$factory_root"; then
     report_failure "SDK support-policy validation failed"
@@ -307,9 +338,21 @@ if [[ -x "$factory_root/scripts/check-language-adapter-mappings.py" && -f "$fact
   fi
 fi
 
+if [[ -x "$factory_root/scripts/check-platform-change-ledger.py" && -f "$factory_root/docs/architecture/identus-platform-change-ledger.toml" ]]; then
+  if ! "$factory_root/scripts/check-platform-change-ledger.py" "$factory_root"; then
+    report_failure "platform change-ledger validation failed"
+  fi
+fi
+
 if [[ -x "$factory_root/scripts/check-cross-language-vectors.py" && -f "$factory_root/docs/conformance/cross-language-vector-catalog.toml" ]]; then
   if ! "$factory_root/scripts/check-cross-language-vectors.py" "$factory_root"; then
     report_failure "cross-language vector-catalog validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-did-prism-proto.py" && -d "$factory_root/crates/prism-did/proto" ]]; then
+  if ! "$factory_root/scripts/check-did-prism-proto.py" "$factory_root"; then
+    report_failure "pinned PRISM protobuf validation failed"
   fi
 fi
 
@@ -331,6 +374,12 @@ if [[ -x "$factory_root/scripts/check-crypto-candidate.py" && -f "$factory_root/
   fi
 fi
 
+if [[ -x "$factory_root/scripts/check-jwe-engine-qualification.py" ]]; then
+  if ! "$factory_root/scripts/check-jwe-engine-qualification.py" "$factory_root"; then
+    report_failure "isolated JWE engine-qualification validation failed"
+  fi
+fi
+
 if [[ -x "$factory_root/scripts/check-release-train.py" ]]; then
   if ! "$factory_root/scripts/check-release-train.py" "$factory_root"; then
     report_failure "protected release-train validation failed"
@@ -340,6 +389,12 @@ fi
 if [[ -x "$factory_root/scripts/check-release-candidates.py" ]]; then
   if ! "$factory_root/scripts/check-release-candidates.py" "$factory_root"; then
     report_failure "independent release-candidate validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-did-final-readiness.py" ]]; then
+  if ! "$factory_root/scripts/check-did-final-readiness.py" "$factory_root"; then
+    report_failure "DID final-readiness packet validation failed"
   fi
 fi
 

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 291,
+  "change": "support-deferred-pr-issue-linkage",
+  "branch": "codex/fix/issue-291",
+  "baseRef": "origin/develop",
+  "baseSha": "c429ac494a6eaeb2e22c0b38a5b1d70c0eb6ff62",
+  "contractHeadSha": "4e7ef3f76e59ed4e5cc5a5f8befb65c42b09456e",
+  "createdAt": "2026-10-29T21:37:40.643Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

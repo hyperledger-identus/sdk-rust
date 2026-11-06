@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 493
+disposition    = "behavior-neutral"
+scope          = "tooling"
+rationale      = "This planning change updates capability ownership, source decisions, dependency order, implementation issues, and repository conformance enforcement. The planned identus-prism-* family remains fail-closed and the prohibited Apollo donor identity is enforced for registry as well as Git dependencies. Issues #521 and #522 must replace the temporary PRISM deny atomically with exact workspace-identity, dependency-direction, and transitive effect-cone enforcement when the real crates enter the workspace. No public Rust API, wire format, error contract, persisted representation, ABI, supported target, runtime requirement, release, or downstream consumer behavior changes."
+ledger_ids     = [  ]

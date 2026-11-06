@@ -1,0 +1,8 @@
+[package]
+name    = "probe-bh-sd-jwt"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+bh-sd-jwt = { version = "=0.7.1", default-features = false }

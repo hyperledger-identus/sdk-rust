@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "network": "preprod",
+  "comparisonSlot": 10723321,
+  "capturedAt": "2026-09-10T15:34:19.409916Z",
+  "source": {
+    "issue": "https://github.com/hyperledger-identus/neoprism/issues/325#issuecomment-5623213529",
+    "pullRequestEvidence": "https://github.com/hyperledger-identus/neoprism/pull/327#issuecomment-5623211273",
+    "harnessRevision": "190b140adddb7d328cd1df7bd724b67533968a5a",
+    "baselineImage": "hyperledgeridentus/identus-neoprism:0.14.2",
+    "baselineImageDigest": "sha256:8145d7b3249d1bdeed3615ee036ffefa7ce8b827f4e1257702fb3c8384016494",
+    "candidateRevision": "757531e2d7e26ab5a0c950b619c5f5cdfb0a0735",
+    "originalManifestSha256": "04a43c3ff8afde4218011e58bd02b246e4d9ab6194e356467dd2319aba5015f9",
+    "license": "Apache-2.0 and public Cardano Preprod ledger facts"
+  },
+  "operations": [
+    {
+      "operationId": "5873d42d38408e10f5e9dc624c0fc18fbf4b5a7871046501eb7f7e4997f11360",
+      "transactionHash": "be0a24e532bc9c7f0963bf83e555be999d7b837a631e6c1c70221dc01498d6d0",
+      "signedOperationHex": "0a076d61737465723012483046022100b8e57b812375ea9e3c3ae79459c8695a149419bf68c2e9e18a185dddce4b08af022100aa5fa6dc7dee7c0d0b91ce05c204527e84bba9ef87e278708512d0c91ac2403c1a410a3f0a3d123b0a076d61737465723010014a2e0a09736563703235366b31122102e45998e18117113835b972b43784fb6b6470b722cb2dc171c5fba00265bc80ee",
+      "signedOperationBytes": 150,
+      "slot": 10718870,
+      "blockNumber": 179985,
+      "transactionPosition": 0,
+      "operationPosition": 0,
+      "operationKind": "createDid",
+      "didSuffix": "44fb82ad3544a8c8acb763c01a6fc7d92d81c38104096319345a4618d1a4275c"
+    },
+    {
+      "operationId": "d914c472224f4a3e34bccf3166496a3e5e1f7936bd88251f7ae987083c73f593",
+      "transactionHash": "c9d483b645a61a0439fe181d842d15c0ed4d2dadffe3aa708e06d4f85403c174",
+      "signedOperationHex": "0a076d61737465723012473045022036b87a5180bf8ccd3e0c7590c5e6649cb00d5b9937b730ccb0d679d63911c78a022100f68c1a3698f328a1599025195cbc926c7f3f87bb723d0249e8182c93049cbb681a410a3f0a3d123b0a076d61737465723010014a2e0a09736563703235366b31122103376eae12841185739e97c1d4bf190aa97fe8227c40f31d4c49afb722ebde484c",
+      "signedOperationBytes": 149,
+      "slot": 10718532,
+      "blockNumber": 179967,
+      "transactionPosition": 0,
+      "operationPosition": 0,
+      "operationKind": "createDid",
+      "didSuffix": "f352a6272ab5180470045a53f763ce6d74e243adc10bac3e23db619e862c8c44"
+    }
+  ]
+}

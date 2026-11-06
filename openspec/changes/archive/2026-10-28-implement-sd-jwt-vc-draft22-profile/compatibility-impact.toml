@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 569
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The additive identus-sd-jwt-vc crate exposes a bounded canonical draft-22 profile over the RFC 9901 base."
+ledger_ids     = [ "credentials.sd-jwt.vc-draft22.v1" ]

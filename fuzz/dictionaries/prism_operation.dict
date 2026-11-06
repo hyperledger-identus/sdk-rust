@@ -1,0 +1,7 @@
+create="\x0a"
+update="\x12"
+protocol="\x2a"
+deactivate="\x32"
+signed_with="\x0a"
+signature="\x12"
+operation="\x1a"

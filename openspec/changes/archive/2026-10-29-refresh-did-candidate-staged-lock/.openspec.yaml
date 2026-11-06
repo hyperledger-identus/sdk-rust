@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-10-29
+goal: Refresh the frozen DID candidate dependency lock through a closed,
+  reviewable patch-level drift without changing package APIs or publication.

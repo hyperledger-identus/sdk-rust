@@ -1,9 +1,10 @@
 use std::fmt;
 
+use identus_openid4vc::http_field::is_application_json;
+
 use crate::{
     CredentialOfferError, DeferredCredentialHttpResponseLimits, DeferredCredentialRequest,
     DeferredCredentialResponseCore, ImmediateCredentialResponseCore,
-    http_field::is_application_json,
 };
 
 /// A successful unencrypted Final response to a Deferred Credential Request.

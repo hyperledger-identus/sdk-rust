@@ -18,13 +18,16 @@ trap 'rm -rf "$fixture_root"' EXIT
 
 "$repository_root/scripts/tests/ssi-upstream-backlog.py"
 "$repository_root/scripts/tests/oid4vci-conformance.py"
+"$repository_root/scripts/tests/oid4vp-conformance.py"
 "$repository_root/scripts/tests/ssi-upstream-backlog-live.py"
 "$repository_root/scripts/tests/weekly-slow-live.py"
+"$repository_root/scripts/tests/uniffi-generator-supply-chain.py"
 "$repository_root/scripts/tests/support-policy.py"
 "$repository_root/scripts/tests/apollo-parity.py"
 "$repository_root/scripts/tests/platform-ts-capabilities.py"
 "$repository_root/scripts/tests/a1-compatibility-plan.py"
 "$repository_root/scripts/tests/language-adapter-mappings.py"
+"$repository_root/scripts/tests/platform-change-ledger.py"
 "$repository_root/scripts/tests/cross-language-vectors.py"
 "$repository_root/scripts/tests/quality-evidence-declarations.py"
 "$repository_root/scripts/tests/crypto-benchmark.py"
@@ -33,6 +36,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/crypto-candidate.py"
 "$repository_root/scripts/tests/release-train.py"
 "$repository_root/scripts/tests/release-candidates.py"
+"$repository_root/scripts/tests/did-final-readiness.py"
 "$repository_root/scripts/tests/error-golden.py"
 "$repository_root/scripts/tests/code-health-audit.py"
 "$repository_root/scripts/tests/bootstrap-inventory.py"
@@ -41,6 +45,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/openspec-archive.py"
 "$repository_root/scripts/tests/research-readiness.py"
 "$repository_root/scripts/tests/rustsec-audit.py"
+"$repository_root/scripts/tests/jwe-engine-qualification.py"
 
 required_files=(
   AGENTS.md
@@ -76,13 +81,47 @@ required_files=(
   docs/architecture/a1-compatibility-contracts.md
   docs/architecture/language-adapter-mappings.md
   docs/architecture/language-adapter-mappings.toml
+  docs/architecture/identus-platform-change-ledger.md
+  docs/architecture/identus-platform-change-ledger.toml
   docs/architecture/quality-evidence-declarations.toml
   docs/architecture/quality-evidence-plan.md
+  docs/architecture/oid4vp-encrypted-response-boundary.md
+  docs/architecture/oid4vp-transaction-format-boundary.md
+  docs/architecture/siopv2-protocol-core.md
+  docs/architecture/did-peer-quality-baseline.md
+  docs/architecture/prism-vdr-indexer-quality-baseline.md
   docs/conformance/cross-language-vector-catalog.md
   docs/conformance/cross-language-vector-catalog.toml
   docs/conformance/fixtures/did/v1/vectors.json
+  docs/conformance/fixtures/did-peer/v1/vectors.json
+  docs/conformance/fixtures/did-prism/preprod-2026-09-10.json
+  docs/conformance/fixtures/did-prism/v1/vectors.json
+  crates/crypto/tests/fixtures/crypto/v1/vectors.json
+  docs/conformance/fixtures/oid4vp-direct-post/v1/vectors.json
+  docs/conformance/fixtures/oid4vp-redirect-response/v1/vectors.json
+  docs/conformance/fixtures/oid4vp-encrypted-direct-post/v1/vectors.json
+  docs/conformance/fixtures/oid4vp-transaction-format/v1/vectors.json
+  docs/conformance/fixtures/siopv2/v1/vectors.json
+  openspec/changes/archive/2026-10-28-bind-oid4vp-transaction-and-format-ports/design.md
+  crates/crypto/examples/crypto_baseline.rs
+  crates/crypto/tests/curves.rs
+  crates/crypto/tests/secp256k1_compat.rs
+  fuzz/fuzz_targets/crypto_support.rs
+  fuzz/fuzz_targets/encrypted_direct_post_response.rs
+  fuzz/fuzz_targets/oid4vp_support.rs
+  fuzz/fuzz_targets/request_object_security.rs
+  fuzz/corpus/request_object_security/static
+  docs/conformance/fixtures/did-prism-vdr-indexing/v1/vectors.json
   fuzz/fuzz_targets/did.rs
   fuzz/fuzz_targets/did_url.rs
+  fuzz/fuzz_targets/peer_did.rs
+  fuzz/fuzz_targets/prism_did.rs
+  fuzz/fuzz_targets/prism_operation.rs
+  fuzz/fuzz_targets/prism_vdr.rs
+  fuzz/fuzz_targets/prism_indexer_batch.rs
+  crates/jose/tests/jwe_port.rs
+  crates/oid4vp/benches/encrypted_direct_post_response.rs
+  crates/oid4vp/tests/encrypted_direct_post_response.rs
   docs/architecture/portable-agent-runtime.md
   docs/roadmap/a1-shared-compatibility-foundation.md
   docs/roadmap/a1-shared-compatibility-foundation.toml
@@ -106,14 +145,20 @@ required_files=(
   docs/architecture/source-distribution.md
   docs/conformance/oid4vci-final-wallet-core.csv
   docs/conformance/oid4vci-final-wallet-core.md
+  docs/conformance/oid4vp-final-wallet-core.csv
+  docs/conformance/oid4vp-final-wallet-core.md
   docs/release/crypto-candidate.toml
   docs/release/did-candidate.lock
   docs/release/did-candidate.toml
+  docs/release/did-candidate-readiness.toml
+  docs/release/did-api-origin-rebaseline.toml
   docs/release/release-trains.toml
   docs/release/0.1.0-rc.1.md
+  docs/release/identus-crypto-rustcrypto-0.14-migration.md
   docs/release/identus-crypto-0.1.0-rc.1.api.txt
   docs/release/identus-did-0.1.0-rc.1.api.txt
   docs/release/identus-did-resolver-http-0.1.0-rc.1.api.txt
+  site/src/did-candidate-readiness.md
   crates/derive/README.md
   crates/core/README.md
   crates/crypto/README.md
@@ -122,6 +167,7 @@ required_files=(
   crates/credentials/tests/fixtures/credentials-error-contract-v1.csv
   crates/presentations/tests/fixtures/presentations-error-contract-v1.csv
   crates/jose/tests/fixtures/jose-error-contract-v1.csv
+  crates/jose/tests/fixtures/jwe-encryption-error-contract-v1.csv
   crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv
   crates/oid4vp/tests/fixtures/oid4vp-error-contract-v1.csv
   docs/architecture/ssi-upstream-source-matrix.md
@@ -130,6 +176,7 @@ required_files=(
   docs/governance/constraints-and-limitations.md
   docs/governance/repository-settings-receipt-2026-09-14.md
   docs/governance/repository-settings.md
+  docs/governance/uniffi-generator-risk-acceptance.md
   docs/governance/crates-io-environment-receipt-2026-09-22.md
   docs/governance/sdk-constraints.toml
   docs/adr/0001-bootstrap-branch-selection.md
@@ -166,6 +213,10 @@ required_files=(
   docs/adr/0171-own-a-portable-effect-driven-agent-runtime.md
   docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
   docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
+  docs/adr/0174-separate-peer-and-prism-did-method-ownership.md
+  docs/adr/0175-bound-generic-did-for-prism-long-form-state.md
+  docs/adr/0176-allow-only-in-tree-portable-prism-method-package.md
+  docs/adr/0180-construct-explicit-oid4vp-protocol-errors.md
   docs/adr/0160-separate-rustsec-advisory-and-yank-evidence.md
   docs/research/rust-library-reuse/report-source.md
   nix/checks/gates.toml
@@ -180,6 +231,8 @@ required_files=(
   openspec/specs/sdk-support-policy/spec.md
   openspec/specs/crypto/spec.md
   openspec/specs/did-core/spec.md
+  openspec/specs/siopv2-protocol-core/spec.md
+  openspec/specs/unpublished-crypto-candidate/spec.md
   scripts/benchmark-code-health-classifier.py
   scripts/benchmark-support-policy.py
   scripts/factory
@@ -228,22 +281,33 @@ required_files=(
   scripts/check-platform-ts-capabilities.py
   scripts/check-a1-compatibility-plan.py
   scripts/check-language-adapter-mappings.py
+  scripts/check-platform-change-ledger.py
   scripts/check-cross-language-vectors.py
+  scripts/check-did-prism-proto.py
   scripts/check-quality-evidence-declarations.py
   scripts/fuzz-did.sh
+  scripts/fuzz-did-prism.sh
+  scripts/fuzz-crypto.sh
+  scripts/fuzz-oid4vp.sh
+  scripts/fuzz-siopv2.sh
   scripts/benchmark-crypto.sh
   scripts/coverage-crypto.sh
   scripts/check-crypto-benchmark.py
   scripts/report-crypto-coverage.py
   scripts/check-ssi-upstream-backlog.py
   scripts/check-oid4vci-conformance.py
+  scripts/check-oid4vp-conformance.py
   scripts/check-ssi-upstream-backlog-live.py
   scripts/check-uniffi-did-android.sh
+  scripts/check-uniffi-generator-supply-chain.py
   scripts/check-weekly-slow-live.py
   scripts/check-source-distribution.py
   scripts/check-crypto-candidate.py
   scripts/check-release-train.py
   scripts/check-release-candidates.py
+  scripts/check-did-final-readiness.py
+  scripts/check-jwe-engine-qualification.py
+  scripts/qualify-jwe-engine.py
   scripts/code-health-audit.py
   scripts/prepare-crypto-candidate.py
   scripts/prepare-did-candidate.py
@@ -262,14 +326,19 @@ required_files=(
   scripts/tests/repository-issue-verification.sh
   scripts/tests/research-readiness.py
   scripts/tests/rustsec-audit.py
+  scripts/tests/jwe-engine-qualification.py
   scripts/tests/support-policy.py
   scripts/tests/ssi-upstream-backlog-live.py
   scripts/tests/oid4vci-conformance.py
+  scripts/tests/oid4vp-conformance.py
   scripts/tests/weekly-slow-live.py
+  scripts/tests/uniffi-generator-supply-chain.py
   scripts/tests/apollo-parity.py
   scripts/tests/platform-ts-capabilities.py
   scripts/tests/a1-compatibility-plan.py
   scripts/tests/language-adapter-mappings.py
+  scripts/tests/platform-change-ledger.py
+  scripts/tests/fixtures/platform-change-ledger/ledger.toml
   scripts/tests/cross-language-vectors.py
   scripts/tests/quality-evidence-declarations.py
   scripts/tests/crypto-benchmark.py
@@ -278,6 +347,7 @@ required_files=(
   scripts/tests/crypto-candidate.py
   scripts/tests/release-train.py
   scripts/tests/release-candidates.py
+  scripts/tests/did-final-readiness.py
   scripts/tests/code-health-audit.py
   .github/CODEOWNERS
   .github/ISSUE_TEMPLATE/component-change.yml
@@ -287,6 +357,13 @@ required_files=(
   .github/workflows/nix-checks.yml
   .github/workflows/publish-crates.yml
   .github/workflows/pull-request-policy.yml
+  crates/prism-did/proto/prism.proto
+  crates/prism-did/proto/prism-ssi.proto
+  crates/prism-did/proto/prism-storage.proto
+  crates/prism-did/proto/prism-version.proto
+  crates/prism-did/src/proto.rs
+  scripts/fuzz-did-peer.sh
+  scripts/fuzz-prism-vdr-indexer.sh
 )
 
 for relative_path in "${required_files[@]}"; do
@@ -298,25 +375,120 @@ for relative_path in "${required_files[@]}"; do
   esac
 done
 
-# The resource inventory intentionally points at implementation evidence beyond
-# the minimal synthetic factory fixture. Copy that exact bounded evidence set so
-# the fixture proves path validation rather than weakening it.
+# Preserve every active change and archived consumer-visible impact declaration
+# so the minimal Git-less fixture retains ledger ownership after delivery
+# without duplicating unrelated archived planning artifacts.
+mkdir -p "$fixture_root/openspec/changes"
+for active_change in "$repository_root"/openspec/changes/*; do
+  if [[ -d "$active_change" && "$(basename "$active_change")" != "archive" ]]; then
+    cp -R "$active_change" "$fixture_root/openspec/changes/"
+  fi
+done
+impact_has_ledger_ids() {
+  python3 - "$1" <<'PY'
+import sys
+import tomllib
+
+with open(sys.argv[1], "rb") as impact_file:
+    ledger_ids = tomllib.load(impact_file).get("ledger_ids")
+raise SystemExit(0 if isinstance(ledger_ids, list) and bool(ledger_ids) else 1)
+PY
+}
+
+multiline_impact="$fixture_root/multiline-impact.toml"
+cat >"$multiline_impact" <<'EOF'
+ledger_ids = [
+  "did.syntax.multiline-fixture.v1",
+]
+EOF
+if ! impact_has_ledger_ids "$multiline_impact"; then
+  printf 'factory-contract test: multiline ledger IDs were not detected\n' >&2
+  exit 1
+fi
+rm "$multiline_impact"
+
+if [[ -d "$repository_root/openspec/changes/archive" ]]; then
+  mkdir -p "$fixture_root/openspec/changes/archive"
+  for archived_change in "$repository_root"/openspec/changes/archive/*; do
+    archived_impact="$archived_change/compatibility-impact.toml"
+    if [[ -d "$archived_change" ]] &&
+      [[ -f "$archived_impact" ]] &&
+      impact_has_ledger_ids "$archived_impact"; then
+      archived_target="$fixture_root/openspec/changes/archive/$(basename "$archived_change")"
+      mkdir -p "$archived_target"
+      for impact_file in preimplementation.json compatibility-impact.toml; do
+        if [[ -f "$archived_change/$impact_file" ]]; then
+          cp "$archived_change/$impact_file" "$archived_target/$impact_file"
+        fi
+      done
+    fi
+  done
+fi
+
+# Canonical inventories intentionally point at implementation evidence beyond
+# the minimal synthetic factory fixture. Derive and copy their bounded evidence
+# set so a new capability cannot require a hand-maintained fixture exception.
+evidence_manifest="$fixture_root/.declared-evidence-paths"
+python3 - "$repository_root" >"$evidence_manifest" <<'PY'
+import sys
+import tomllib
+from pathlib import Path
+
+root = Path(sys.argv[1])
+evidence = set()
+required_files = set()
+required_paths = set()
+
+with (root / "docs/architecture/sdk-input-resource-boundaries.toml").open("rb") as source:
+    document = tomllib.load(source)
+required_paths.update(item for row in document["boundaries"] for item in row["evidence"] if item)
+
+with (root / "docs/architecture/identus-platform-change-ledger.toml").open("rb") as source:
+    document = tomllib.load(source)
+required_files.update(item for row in document["changes"] for item in row["evidence_artifacts"])
+
+with (root / "docs/conformance/cross-language-vector-catalog.toml").open("rb") as source:
+    document = tomllib.load(source)
+required_files.update(packet["path"] for packet in document["packets"])
+
+with (root / "docs/architecture/quality-evidence-declarations.toml").open("rb") as source:
+    document = tomllib.load(source)
+for declaration in document["declarations"]:
+    for obligation in declaration["obligations"]:
+        required_files.update(selector.split("#", 1)[0] for selector in obligation["selectors"])
+        artifact = obligation["artifact"]
+        if artifact and (root / artifact).is_file():
+            evidence.add(artifact)
+        receipt = obligation["receipt"]
+        if receipt.startswith("source:"):
+            required_files.add(receipt.removeprefix("source:").split("#", 1)[0])
+
+missing = False
+for item in sorted(required_paths):
+    path = root / item
+    if not path.exists():
+        print(f"factory-contract test: declared evidence path is missing: {item}", file=sys.stderr)
+        missing = True
+    elif path.is_file():
+        evidence.add(item)
+for item in sorted(required_files):
+    if not (root / item).is_file():
+        print(f"factory-contract test: declared evidence is not a regular file: {item}", file=sys.stderr)
+        missing = True
+    else:
+        evidence.add(item)
+for item in sorted(evidence):
+    print(item)
+raise SystemExit(1 if missing else 0)
+PY
+
 while IFS= read -r evidence_path; do
   if [[ ! -f "$fixture_root/$evidence_path" ]]; then
     mkdir -p "$fixture_root/$(dirname "$evidence_path")"
     cp "$repository_root/$evidence_path" "$fixture_root/$evidence_path"
   fi
-done < <(
-  python3 - "$repository_root/docs/architecture/sdk-input-resource-boundaries.toml" <<'PY'
-import sys
-import tomllib
-
-with open(sys.argv[1], "rb") as source:
-    document = tomllib.load(source)
-for evidence in sorted({item for row in document["boundaries"] for item in row["evidence"]}):
-    print(evidence)
-PY
-)
+done <"$evidence_manifest"
+rm "$evidence_manifest"
 
 copy_error_planning_golden() {
   local change_name=$1
@@ -325,23 +497,38 @@ copy_error_planning_golden() {
   local source="$repository_root/openspec/changes/$change_name/golden/$file_name"
   local count=0
 
-  if [[ ! -f "$source" ]]; then
-    source=''
-    while IFS= read -r candidate; do
-      source=$candidate
-      count=$((count + 1))
-    done < <(find "$repository_root/openspec/changes/archive" -type f \
-      -path "*-$change_name/golden/$file_name" | sort)
-    if [[ $count -ne 1 ]]; then
-      printf 'factory-contract test: expected one archived %s planning golden; found %s\n' \
-        "$change_name" "$count" >&2
-      exit 1
-    fi
+  # Every active change is copied above, including its golden. Adding an
+  # artificial archive as well would make the immutable checker observe two
+  # authorities. Only materialize a bounded archive when the change is no
+  # longer active.
+  if [[ -f "$source" ]]; then
+    return 0
+  fi
+
+  source=''
+  while IFS= read -r candidate; do
+    source=$candidate
+    count=$((count + 1))
+  done < <(find "$repository_root/openspec/changes/archive" -type f \
+    -path "*-$change_name/golden/$file_name" | sort)
+  if [[ $count -ne 1 ]]; then
+    printf 'factory-contract test: expected one archived %s planning golden; found %s\n' \
+      "$change_name" "$count" >&2
+    exit 1
   fi
 
   local target="$fixture_root/openspec/changes/archive/$archive_date-$change_name/golden/$file_name"
   mkdir -p "$(dirname "$target")"
   cp "$source" "$target"
+
+  local archived_source
+  archived_source="$(dirname "$(dirname "$source")")"
+  for contract_file in preimplementation.json compatibility-impact.toml; do
+    if [[ -f "$archived_source/$contract_file" ]]; then
+      cp "$archived_source/$contract_file" \
+        "$fixture_root/openspec/changes/archive/$archive_date-$change_name/$contract_file"
+    fi
+  done
 }
 
 copy_error_planning_golden \
@@ -350,6 +537,8 @@ copy_error_planning_golden \
   decompose-presentation-error-contracts presentations-error-contract-v1.csv 2026-09-16
 copy_error_planning_golden \
   decompose-jose-error-contracts jose-error-contract-v1.csv 2026-09-17
+copy_error_planning_golden \
+  version-jwe-error-contract jwe-encryption-error-contract-v1.csv 2026-10-29
 copy_error_planning_golden \
   decompose-oid4vci-error-contracts oid4vci-error-contract-v1.csv 2026-09-18
 
@@ -367,15 +556,20 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-pr-policy.sh" \
   "$fixture_root/scripts/check-research-readiness.py" \
   "$fixture_root/scripts/check-rustsec-audit.py" \
+  "$fixture_root/scripts/check-jwe-engine-qualification.py" \
+  "$fixture_root/scripts/qualify-jwe-engine.py" \
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-apollo-parity.py" \
   "$fixture_root/scripts/check-platform-ts-capabilities.py" \
   "$fixture_root/scripts/check-a1-compatibility-plan.py" \
   "$fixture_root/scripts/check-language-adapter-mappings.py" \
+  "$fixture_root/scripts/check-platform-change-ledger.py" \
   "$fixture_root/scripts/check-cross-language-vectors.py" \
+  "$fixture_root/scripts/check-did-prism-proto.py" \
   "$fixture_root/scripts/check-quality-evidence-declarations.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog.py" \
   "$fixture_root/scripts/check-oid4vci-conformance.py" \
+  "$fixture_root/scripts/check-oid4vp-conformance.py" \
   "$fixture_root/scripts/check-ssi-upstream-backlog-live.py" \
   "$fixture_root/scripts/check-weekly-slow-live.py" \
   "$fixture_root/scripts/check-source-distribution.py" \
@@ -402,14 +596,17 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/pr-policy.sh" \
   "$fixture_root/scripts/tests/research-readiness.py" \
   "$fixture_root/scripts/tests/rustsec-audit.py" \
+  "$fixture_root/scripts/tests/jwe-engine-qualification.py" \
   "$fixture_root/scripts/tests/support-policy.py" \
   "$fixture_root/scripts/tests/ssi-upstream-backlog-live.py" \
   "$fixture_root/scripts/tests/oid4vci-conformance.py" \
+  "$fixture_root/scripts/tests/oid4vp-conformance.py" \
   "$fixture_root/scripts/tests/weekly-slow-live.py"
 chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
 chmod +x "$fixture_root/scripts/tests/platform-ts-capabilities.py"
 chmod +x "$fixture_root/scripts/tests/a1-compatibility-plan.py"
 chmod +x "$fixture_root/scripts/tests/language-adapter-mappings.py"
+chmod +x "$fixture_root/scripts/tests/platform-change-ledger.py"
 chmod +x "$fixture_root/scripts/tests/cross-language-vectors.py"
 chmod +x "$fixture_root/scripts/tests/quality-evidence-declarations.py"
 chmod +x "$fixture_root/scripts/ci/"*.mjs "$fixture_root/scripts/factory-tools/"*.mjs \
@@ -447,7 +644,7 @@ while IFS= read -r spec_file; do
   mkdir -p "$fixture_root/$(dirname "$relative_spec")"
   cp "$spec_file" "$fixture_root/$relative_spec"
 done < <(find "$repository_root/openspec/specs" -mindepth 2 -maxdepth 2 \
-  -type f -path '*/oid4vci-*/spec.md' | sort)
+  -type f -name spec.md | sort)
 
 "$repository_root/scripts/tests/pr-policy.sh"
 "$repository_root/scripts/tests/repository-issue-verification.sh"
@@ -531,6 +728,14 @@ None.
 ## Evidence commands
 
 The factory contract test is the evidence.
+EOF
+cat >"$change_root/compatibility-impact.toml" <<'EOF'
+schema_version = 1
+issue          = 1
+disposition    = "behavior-neutral"
+scope          = "test-only"
+rationale      = "This synthetic factory fixture exercises archive preservation without changing a supported SDK consumer contract."
+ledger_ids     = []
 EOF
 : >"$fixture_root/.pi/chains/afk.yaml"
 

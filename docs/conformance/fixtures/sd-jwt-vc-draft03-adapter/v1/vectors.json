@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "packetId": "credentials.sd-jwt-vc.draft03-adapter.v1",
+  "capability": "credentials.sd-jwt",
+  "cases": [
+    {
+      "id": "credentials.sd-jwt-vc.draft03-common-subset",
+      "operation": "sd-jwt-vc.validate-profile",
+      "input": {
+        "literal": "{\"iss\":\"https://issuer.example\",\"vct\":\"urn:example:pid\",\"nbf\":10,\"exp\":20,\"sub\":\"did:example:holder\"}"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "operationKind": "legacy-common-subset"
+        }
+      }
+    },
+    {
+      "id": "credentials.sd-jwt-vc.draft03-status-rejected",
+      "operation": "sd-jwt-vc.validate-profile",
+      "input": {
+        "literal": "{\"iss\":\"https://issuer.example\",\"vct\":\"urn:example:pid\",\"status\":{\"status_list\":{\"idx\":1,\"uri\":\"https://status.example/list\"}}}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "sd_jwt_vc.legacy_draft_feature",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "credentials.sd-jwt-vc.draft03-additional-types-rejected",
+      "operation": "sd-jwt-vc.validate-profile",
+      "input": {
+        "literal": "{\"iss\":\"https://issuer.example\",\"vct\":\"urn:example:pid\",\"aka_vcts\":[\"urn:example:identity\"]}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "sd_jwt_vc.legacy_draft_feature",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "credentials.sd-jwt-vc.draft03-integrity-rejected",
+      "operation": "sd-jwt-vc.validate-profile",
+      "input": {
+        "literal": "{\"iss\":\"https://issuer.example\",\"vct\":\"urn:example:pid\",\"vct#integrity\":\"sha256-YWJj\"}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "sd_jwt_vc.legacy_draft_feature",
+        "redacted": true,
+        "fields": {}
+      }
+    }
+  ]
+}

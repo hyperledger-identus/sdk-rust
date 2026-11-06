@@ -34,7 +34,7 @@ pub use cache::{
     MAX_DID_RESOLUTION_POSITIVE_TTL_MILLIS,
 };
 pub use dereference::GenericDidUrlDereferencer;
-pub use did::{Did, DidUrl, MAX_DID_BYTES, MAX_DID_URL_BYTES};
+pub use did::{Did, DidUrl, MAX_DID_BYTES, MAX_DID_URL_BYTES, MAX_DID_URL_SUFFIX_BYTES};
 pub use document::{
     ContextEntry, ContextObject, DidDocument, DidDocumentBuilder, MAX_DID_DOCUMENT_BYTES,
     MAX_DID_DOCUMENT_WIRE_DEPTH, MAX_DID_DOCUMENT_WIRE_LIVE_KEY_BYTES, MAX_DID_DOCUMENT_WIRE_NODES,
@@ -79,6 +79,7 @@ pub use resolution::{
 };
 pub use uri::{MAX_URI_BYTES, Uri};
 pub use version::Version;
+pub use wire_json::{JsonWireError, JsonWireLimits, validate_unique_object_names};
 
 /// Metadata for the `identus-did` crate.
 pub const COMPONENT: Component = Component {

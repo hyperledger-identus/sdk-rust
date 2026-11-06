@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 555
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "This change decomposes research, profiles, backlog ownership, and implementation sequencing without changing production APIs, behavior, dependencies, targets, wire formats, persisted representations, releases, or downstream consumers."
+ledger_ids     = [  ]

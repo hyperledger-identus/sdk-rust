@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "ssi-upstream-program"
+requirement      = "Repository boundaries remain directional"
+canonical_sha256 = "442ce7b3f90a78b287cf862b88ed9ca6694957d2b1b8d222e74df5205834e65f"
+reason           = "Accepted ADR 0174 distinguishes portable effect-isolated DID-method semantics from concrete PRISM/Cardano ledger effects while preserving the directional repository boundary."

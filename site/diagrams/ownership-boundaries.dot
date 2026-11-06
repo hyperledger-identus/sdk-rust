@@ -11,13 +11,13 @@ digraph ownership_boundaries {
   edge [color="#506784", fontname="Helvetica", fontsize="10", arrowsize="0.75"];
 
   sdk [
-    label="SDK-Rust\ngeneric types · crypto · ports · validation · evidence",
+    label="SDK-Rust\ngeneric types · crypto · portable method semantics\neffect-isolated cores · ports · validation · evidence",
     color="#1f5d91",
     fillcolor="#edf5fc",
     fontcolor="#17233b"
   ];
   chain [
-    label="Chain / identity repositories\nDID methods · ledgers · Compact · proving · indexers",
+    label="Chain / identity repositories\nledger adapters · Compact · proving · persistence · node runtime",
     color="#6d4da1",
     fillcolor="#f3effa",
     fontcolor="#2f2148"

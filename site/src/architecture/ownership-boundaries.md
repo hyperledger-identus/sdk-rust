@@ -7,12 +7,18 @@
 - generic primitives and domain values;
 - reusable cryptographic operations and bounded representations;
 - protocol-neutral ports and validation contracts;
+- independently selectable, bounded DID-method semantics that depend inward
+  on generic layers; and
+- deterministic, effect-isolated VDR/indexing cores whose scheduling and
+  storage remain caller-owned;
 - conformance and compatibility evidence attached to those surfaces.
 
 ## Chain and identity repositories own
 
-- DID method semantics and operation construction;
-- ledger clients, indexing, submission, synchronization, and finality;
+- concrete ledger clients, transaction-boundary extraction, submission,
+  synchronization, and finality;
+- durable repositories, source polling, retries, node runtimes, and hosted
+  services;
 - Compact contracts, proving systems, and chain-native cryptosuites;
 - chain deployment and operational policy.
 

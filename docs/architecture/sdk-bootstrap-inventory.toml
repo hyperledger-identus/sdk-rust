@@ -98,6 +98,69 @@ owner_issue    = "#5"
 summary        = "Bounded generic DID values, documents with narrow canonical public-key carriers, resolution, dereferencing, registration and caching without key or chain semantics."
 
 [[packages]]
+name           = "identus-did-key"
+path           = "crates/did-key"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#557"
+summary        = "Bounded effect-free did:key v0.9 creation, parsing, and local resolution over four direct public-key multicodecs."
+
+[[packages]]
+name           = "identus-did-web"
+path           = "crates/did-web"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#559"
+summary        = "Bounded did:web parsing, deterministic HTTPS request derivation, injected retrieval, and exact DID document binding without a concrete HTTP runtime."
+
+[[packages]]
+name           = "identus-did-jwk"
+path           = "crates/did-jwk"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#558"
+summary        = "Bounded effect-free did:jwk creation, duplicate-safe parsing, and local resolution over four public JWK curves."
+
+[[packages]]
+name           = "identus-did-peer"
+path           = "crates/did-peer"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#523"
+summary        = "Bounded effect-free peer DID numalgo-4 current and numalgo-2 compatibility profiles over canonical generic DID values."
+
+[[packages]]
+name           = "identus-prism-did"
+path           = "crates/prism-did"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#521"
+summary        = "Portable chain-neutral PRISM DID method syntax, exact signed operations, authenticated state reduction and deterministic generic DID document projection."
+
+[[packages]]
+name           = "identus-prism-vdr"
+path           = "crates/prism-vdr"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#522"
+summary        = "Bounded PRISM storage payloads, VDR-key authorization, terminal entry state and effect-neutral local-first ancestry traversal."
+
+[[packages]]
+name           = "identus-prism-indexer"
+path           = "crates/prism-indexer"
+layer          = "domain-primitives"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#522"
+summary        = "Complete bounded PRISM transaction batches and canonical replay transition digests."
+
+[[packages]]
 name           = "identus-trust"
 path           = "crates/trust"
 layer          = "domain-primitives"
@@ -134,6 +197,24 @@ owner_issue    = "#99"
 summary        = "Bounded JWS Compact, signature capabilities, and staged OpenID4VCI Final proof-JWT holder construction and issuer verification."
 
 [[packages]]
+name           = "identus-sd-jwt"
+path           = "crates/sd-jwt"
+layer          = "credential-semantics"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#568"
+summary        = "Unpublished bounded RFC 9901 compact engine with staged issuance, disclosure and key binding."
+
+[[packages]]
+name           = "identus-sd-jwt-vc"
+path           = "crates/sd-jwt-vc"
+layer          = "credential-semantics"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#572"
+summary        = "Unpublished bounded canonical SD-JWT VC draft-22 profile plus an explicit input-only draft-03 common-subset migration adapter over the RFC 9901 engine."
+
+[[packages]]
 name           = "identus-messaging"
 path           = "crates/messaging"
 layer          = "protocol-semantics"
@@ -146,10 +227,10 @@ summary        = "Quarantined seed marker; DIDComm remains a conditional compone
 name           = "identus-openid4vc"
 path           = "crates/openid4vc"
 layer          = "protocol-semantics"
-classification = "placeholder"
-public_api     = "none"
-owner_issue    = "#7"
-summary        = "Quarantined seed marker; accepted OpenID protocols will use focused crates."
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#514"
+summary        = "Bounded runtime-neutral OpenID request-object GET/POST retrieval request and response-binding primitives shared without protocol claims, transport execution, trust, or retry policy."
 
 [[packages]]
 name           = "identus-oid4vci"
@@ -167,7 +248,16 @@ layer          = "protocol-semantics"
 classification = "implemented"
 public_api     = "experimental"
 owner_issue    = "#487"
-summary        = "Bounded OpenID4VP 1.0 by-reference invocation, runtime-neutral GET/POST retrieval, signed compact JAR verification, bounded DCQL selection through a private engine, and composed vp_token/direct_post request routing; no HTTP runtime, client-prefix trust, JWE, consent or response construction."
+summary        = "Bounded OpenID4VP 1.0 by-reference invocation, runtime-neutral GET/POST retrieval, signed compact JAR verification, bounded DCQL selection through a private engine, composed vp_token/direct_post routing, and deterministic bounded plain direct-post success construction; no HTTP runtime, client-prefix trust, JWE, consent or presentation generation."
+
+[[packages]]
+name           = "identus-siopv2"
+path           = "crates/siopv2"
+layer          = "protocol-semantics"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#514"
+summary        = "Bounded experimental SIOPv2 draft-13 signed-request verification, DID-subject ID Token planning through injected JOSE signers, exact direct-post response data, and pure caller-driven lifecycle transitions."
 
 [[packages]]
 name           = "identus-wallet"

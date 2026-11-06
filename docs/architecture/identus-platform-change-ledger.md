@@ -1,0 +1,418 @@
+# Identus platform change ledger
+
+This document is generated from
+`docs/architecture/identus-platform-change-ledger.toml`. Do not edit it by
+hand.
+
+Registry version: `2.0.0`<br>
+Status: `active`
+
+## Release notes
+
+### `credentials.sd-jwt.rfc9901.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt crate provides bounded staged RFC 9901 compact issuance, disclosure processing and selection, key binding and verification behind SDK-owned types and injected effects.
+
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. An additive explicitly selected input-only adapter validates the source-bound draft-03 common subset after RFC 9901 verification, returns a distinct migration state requiring canonical reissuance, and leaves all canonical dc+sd-jwt paths unchanged.
+
+### `credentials.sd-jwt.vc-draft22.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt-vc crate provides an exact bounded draft-22 profile with canonical dc+sd-jwt issuance, profile claims, caller-supplied issuer/type/status evidence and offline protocol integration.
+
+### `crypto.secp256k1.rustcrypto-security-stack.v1`
+
+State: `active`. Class: `security` / `security`. Target: `unreleased`. The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities.
+
+### `did.jwk.profile.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-jwk crate creates, parses and locally resolves a bounded canonical-base64url public-JWK profile with duplicate-safe JSON, validated Ed25519, X25519, P-256 and secp256k1 material, fixed #0 projection, explicit use policy and opt-in registry composition.
+
+### `did.key.profile.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-key crate creates, parses and locally resolves a bounded strict base58-btc profile for direct Ed25519, X25519, P-256 and secp256k1 public keys; identus-crypto exposes Ed25519 canonical-encoding and weak-point classification plus X25519 canonical-encoding and contributory classification so aliased or unusable identity keys are rejected.
+
+### `did.peer.profiles.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-peer crate creates, parses and locally resolves bounded numalgo-4 current-profile and explicit numalgo-2 compatibility DIDs from caller-owned public material.
+
+### `did.prism.portable-method.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-prism-did crate constructs and validates exact bounded PRISM operations, authenticates and reduces DID state, and projects generic DID documents under a separate native output budget without chain coupling.
+
+### `did.prism.vdr-indexing.portable-core.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive crates parse and authorize bounded PRISM VDR operations, resolve finite ancestry, plan complete ordered transactions, and expose replay-safe atomic commit ports without chain or persistence effects.
+
+### `did.syntax.long-form-resource-policy.v1`
+
+State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably.
+
+### `did.web.profile.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-web crate parses a strict bounded profile, derives exact HTTPS requests, retrieves through a caller-injected port, and binds bounded DID documents to the exact requested identifier.
+
+### `oid4vp.direct-post-response.encrypted.v1`
+
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. The pre-release SDK adds a non-exhaustive DirectPostJwt mode, validates one bounded P-256 ECDH-ES verifier recipient and A128GCM policy, returns metadata-specific validation categories, makes the plain constructor reject protected mode, invokes an SDK-owned JWE port once, validates opaque compact output and emits a response-only form.
+
+### `oid4vp.direct-post-response.error.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and explicit typed protocol-error values into a bounded plain direct-post error envelope.
+
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. Verifier-authorized requests can additionally construct bounded inert fragment, query, or form_post material and sent direct-post material can consume one bounded optional post-submission redirect acknowledgement.
+
+### `oid4vp.direct-post-response.request-object-security.v1`
+
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consuming protocol-local transition validates the discovered audience, temporal policy, and one atomic caller-owned replay decision before typed routing.
+
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. The unreleased core retains bounded transaction linkage and validates format-specific metadata and binding through SDK-owned caller-injected capabilities.
+
+### `oid4vp.direct-post-response.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive transition consumes validated request lineage and bounded caller presentations into a deterministic plain direct-post success envelope.
+
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. A consuming transition classifies Final client identifier prefixes, validates bounded scheme metadata and requires a caller-owned trust port to accept the exact verified key and full correlated client identifier before typed routing.
+
+### `siopv2.did-authentication.diagnostics.v1`
+
+State: `active`. Class: `fix` / `fixed`. Target: `unreleased`. Current-state lifecycle idempotency is explicit and stable redacted categories distinguish wallet-nonce correlation, response encoding, and response size without changing successful wire behavior.
+
+### `siopv2.did-authentication.draft13.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive experimental crate validates the pinned SIOPv2 draft-13 DID-subject direct_post profile, plans a self-issued ID Token through injected JOSE ports and exposes deterministic caller-driven lifecycle transitions while shared bounded request retrieval moves behind identus-openid4vc.
+
+## Migration actions
+
+### `credentials.sd-jwt.rfc9901.v1`
+
+`unreleased` → `unreleased` for oxid, sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
+
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Route only known SDK-TS 8.1.4 draft-03 vc+sd-jwt inputs through the explicit adapter, treat rejection as unsupported legacy semantics, and obtain issuer reissuance before storing or representing the credential as canonical draft-22.
+
+### `credentials.sd-jwt.vc-draft22.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters, sdk-swift, sdk-ts. Use the canonical dc+sd-jwt profile for new Rust integrations; keep legacy vc+sd-jwt migration isolated to issue #572.
+
+### `crypto.secp256k1.rustcrypto-security-stack.v1`
+
+`0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Prefer identus-crypto from_slice, to_public_key and encoding methods; direct tuple-field consumers update their k256 or p256 dependency and imports to 0.14 when adopting the next candidate.
+
+### `did.jwk.profile.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
+
+### `did.key.profile.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
+
+### `did.peer.profiles.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
+
+### `did.prism.portable-method.v1`
+
+`unreleased` → `unreleased` for neoprism, sdk-swift, sdk-ts. No migration action required.
+
+### `did.prism.vdr-indexing.portable-core.v1`
+
+`unreleased` → `unreleased` for neoprism, sdk-rust-adopters. No migration action required.
+
+### `did.syntax.long-form-resource-policy.v1`
+
+`0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Use the exported constants rather than copied literals, handle KeyBudgetBypass as an uncached successful resolution path, and keep external transport limits explicit.
+
+### `did.web.profile.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
+
+### `oid4vp.direct-post-response.encrypted.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters. Before adopting this unreleased API, make AuthorizationResponseMode matches forward-compatible and handle ResponseModeMismatch plus direct_post.jwt metadata validation errors.
+
+### `oid4vp.direct-post-response.error.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. No migration action required.
+
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. Make AuthorizationResponseMode matches forward-compatible, select mode-specific inert output, and keep browser, HTTP, navigation, privacy, and session policy in the adapter.
+
+### `oid4vp.direct-post-response.request-object-security.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. Construct a RequestObjectSecurityPolicy from trusted discovery evidence and call the security transition with a WallClock and atomic replay guard before DCQL or authorization routing.
+
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. Supply exact format and transaction capabilities when adopting non-empty metadata or transaction_data; keep concrete proof engines in their owning crates.
+
+### `oid4vp.direct-post-response.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. No migration action required.
+
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+`unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters. Implement the applicable Final verifier trust adapter and call the verifier-authorization transition after request security validation.
+
+### `siopv2.did-authentication.diagnostics.v1`
+
+`unreleased` → `unreleased` for oxid, sdk-rust-adopters. No migration action required.
+
+### `siopv2.did-authentication.draft13.v1`
+
+`unreleased` → `unreleased` for oxid, sdk-rust-adopters. No migration action required.
+
+## Compatibility windows
+
+### `credentials.sd-jwt.rfc9901.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The adapter is transitional until the named released consumer and supported stored credentials have measured canonical migration and no supported deployment requires legacy input.
+
+### `credentials.sd-jwt.vc-draft22.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `crypto.secp256k1.rustcrypto-security-stack.v1`
+
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The migration is declared on the release-candidate line before stable 0.1.0; the next candidate carries the advisory-clean type identities.
+
+### `did.jwk.profile.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `did.key.profile.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `did.peer.profiles.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `did.prism.portable-method.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `did.prism.vdr-indexing.portable-core.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `did.syntax.long-form-resource-policy.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The release-candidate line documents the new limits before a stable 0.1.0 contract is declared.
+
+### `did.web.profile.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `oid4vp.direct-post-response.encrypted.v1`
+
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started.
+
+### `oid4vp.direct-post-response.error.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The API is experimental and unpublished; migration is required before the first compatible release.
+
+### `oid4vp.direct-post-response.request-object-security.v1`
+
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started.
+
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The API is experimental and unpublished; migration is required before the first compatible release.
+
+### `oid4vp.direct-post-response.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started.
+
+### `siopv2.did-authentication.diagnostics.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+### `siopv2.did-authentication.draft13.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
+
+## Rollback and removal
+
+### `credentials.sd-jwt.rfc9901.v1`
+
+Fallback: Consumers retain their current SD-JWT implementation until they explicitly adopt a later released crate or language adapter. Rollback: Before publication remove the additive crate and active ledger record while preserving RFC vectors, ADR 0193 and failure evidence. Removal gate: Not applicable.
+
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+Fallback: No automatic fallback; canonical APIs keep rejecting vc+sd-jwt and consumers retain their current engine until they explicitly adopt the adapter. Rollback: Before publication remove the additive adapter, legacy vectors, and proposed record while preserving RFC 9901 and canonical draft-22 behavior. Removal gate: Remove through a separate consumer-visible change after SDK-TS and every supported stored credential population have measured migration to dc+sd-jwt and the agreed compatibility window has elapsed.
+
+### `credentials.sd-jwt.vc-draft22.v1`
+
+Fallback: Consumers retain their current SD-JWT VC implementation until they explicitly adopt a later released profile or language adapter. Rollback: Before publication remove the additive profile crate and proposed ledger record while preserving the RFC 9901 base, immutable vectors and decision history. Removal gate: Not applicable.
+
+### `crypto.secp256k1.rustcrypto-security-stack.v1`
+
+Fallback: Delay consumer adoption while migrating to SDK byte boundaries; do not publish a new security-current candidate that restores the rejected 0.13 closure. Rollback: Move forward to another advisory-clean curve family or SDK-owned opaque boundary; never restore the advisory-affected dependency closure as a release state. Removal gate: Not applicable; this is a security remediation and candidate source migration, not a deprecated compatibility facade.
+
+### `did.jwk.profile.v1`
+
+Fallback: Consumers retain their existing did:jwk implementation until they explicitly adopt the additive crate or a later language adapter. Rollback: Before publication remove the additive crate and evidence as one unreleased unit; generic SDK-Rust DID and crypto behavior remains unchanged. Removal gate: Not applicable.
+
+### `did.key.profile.v1`
+
+Fallback: Consumers retain their existing did:key implementation until they explicitly adopt the additive crate or a later language adapter. Rollback: Before publication remove the additive package and its evidence as one unreleased unit; generic SDK-Rust DID and crypto behavior remains unchanged. Removal gate: Not applicable.
+
+### `did.peer.profiles.v1`
+
+Fallback: Consumers retain their existing peer DID implementation until an explicit adapter or canary adopts the additive crate. Rollback: Remove the additive package dependency before publication; generic SDK-Rust DID behavior remains unchanged. Removal gate: Not applicable.
+
+### `did.prism.portable-method.v1`
+
+Fallback: Consumers remain on their existing PRISM implementation until this experimental crate and their own canary are accepted. Rollback: Remove the additive dependency or revert the consuming adapter; existing SDK-Rust crates retain their previous behavior. Removal gate: Not applicable.
+
+### `did.prism.vdr-indexing.portable-core.v1`
+
+Fallback: Consumers remain on their existing PRISM storage and indexing implementation until an explicit downstream canary accepts these additive crates. Rollback: Remove the additive crate dependencies before publication; existing SDK-Rust crates and downstream implementations retain their prior behavior. Removal gate: Not applicable.
+
+### `did.syntax.long-form-resource-policy.v1`
+
+Fallback: Bypass cache retention for valid oversized identities; do not truncate keys or fall back to a second parser. Rollback: Restore the prior lexical constants and cache outcome before publication while retaining issue and measurement evidence. Removal gate: Not applicable; this is an expansion of a bounded public envelope rather than a deprecated facade.
+
+### `did.web.profile.v1`
+
+Fallback: Consumers retain their existing did:web implementation until they explicitly adopt the crate and provide an approved fetch adapter. Rollback: Before publication remove the additive crate and evidence; generic SDK-Rust DID behavior remains unchanged. Removal gate: Not applicable.
+
+### `oid4vp.direct-post-response.encrypted.v1`
+
+Fallback: Consumers retain plain direct_post or their existing protected-response implementation until a separately qualified JWE engine adapter is available. Rollback: Remove the additive mode, metadata types, port transition and evidence before publication; existing plain direct_post behavior and storage remain unchanged. Removal gate: Not applicable.
+
+### `oid4vp.direct-post-response.error.v1`
+
+Fallback: Consumers continue constructing error forms in their existing adapter until they explicitly adopt the experimental SDK transition. Rollback: Remove the additive error-response types and constructor before publication; existing request validation and success construction remain available. Removal gate: Not applicable.
+
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+Fallback: Consumers keep existing direct-post or adapter-owned redirect behavior until they adopt the additive unreleased contract. Rollback: Before publication remove the additive variants and acknowledgement successor while preserving existing direct-post behavior and verifier authorization. Removal gate: Not applicable.
+
+### `oid4vp.direct-post-response.request-object-security.v1`
+
+Fallback: Consumers retain their existing implementation until they can supply trusted discovery evidence and an atomic replay guard; no unsafe SDK bypass is retained. Rollback: Before publication remove the security transition and its typed routing successors as one unreleased unit while preserving issue evidence; never restore direct routing from raw signature evidence or simulate acceptance. Removal gate: Not applicable.
+
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+Fallback: Consumers retain adapter-owned transaction and format handling until the owning credential-format capability is qualified. Rollback: Before publication remove the additive ports and retained state while preserving existing empty-metadata, no-transaction routing. Removal gate: Not applicable.
+
+### `oid4vp.direct-post-response.v1`
+
+Fallback: Consumers continue assembling responses in their existing adapter until they explicitly adopt the experimental SDK transition. Rollback: Remove the additive response transition and private retained metadata before publication; existing request validation remains available. Removal gate: Not applicable.
+
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+Fallback: Consumers retain their existing verifier-authentication implementation until they can supply a conforming trust adapter; no unsafe SDK bypass is retained. Rollback: Before publication remove the verifier authorization transition and its typed routing successors as one unreleased unit; never restore routing from request-security evidence alone. Removal gate: Not applicable.
+
+### `siopv2.did-authentication.diagnostics.v1`
+
+Fallback: Consumers may continue treating all verification or response-construction failures generically until they adopt the refined pre-release categories. Rollback: Before publication remove the two diagnostic variants and restore the coarse mapping while retaining the bounded SIOPv2 protocol core. Removal gate: Not applicable.
+
+### `siopv2.did-authentication.draft13.v1`
+
+Fallback: Consumers retain their existing SIOPv2 implementation until a separately qualified adapter accepts the experimental SDK profile. Rollback: Remove the additive SIOPv2 crate and shared delegation before publication; existing OID4VP behavior and downstream implementations remain unchanged. Removal gate: Not applicable.
+
+## Limitations
+
+### `credentials.sd-jwt.rfc9901.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. RFC 9901 compact plus SHA-256 only; no SD-JWT VC profile, JWS JSON Serialization, HTTP, DID/trust/replay/storage policy, bindings, runtime, publication, certification or downstream adoption is included.
+
+### `credentials.sd-jwt.vc-draft03-input-adapter.v1`
+
+Visibility: behavior, public-api, security, wire. Only the verified draft-03 common subset is accepted; no full draft-03, legacy output, automatic fallback, header rewriting, status behavior, Type Metadata, millisecond dates, trust/time/product policy, bindings, publication, certification, or downstream adoption.
+
+### `credentials.sd-jwt.vc-draft22.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. Exact draft-22 compact profile only; no HTTP, trust/authorization/status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption.
+
+### `crypto.secp256k1.rustcrypto-security-stack.v1`
+
+Visibility: public-api, security. Wire values and SDK-owned methods remain compatible, but direct construction or access through the four public tuple fields is source-incompatible until the consumer adopts RustCrypto 0.14 or the SDK byte boundary.
+
+### `did.jwk.profile.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. No private keys, key_ops policy, generation, signing, proof/trust policy, custody, I/O, network resolution, persistence, runtime, bindings, consumer mutation, publication, JSON-LD processing or uniqueness claim is included.
+
+### `did.key.profile.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. No private keys, generation, derivation, signing, custody, I/O, network resolution, persistence, runtime, binding, global registry, consumer mutation, JSON-LD processing or publication is included. The strict profile rejects base64url, unsupported curves, non-canonical or weak Ed25519 keys, non-canonical or low-order X25519 keys and implicit Ed25519-to-X25519 conversion.
+
+### `did.peer.profiles.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. No custody, private keys, key generation, networking, persistence, DIDComm engine, agent runtime, language adapter, consumer mutation, publication or historical numalgo 0, 1 and 3 support is included. The 300-second Linux fuzz receipt remains issue-owned slow-lane evidence until a successful immutable run is attached.
+
+### `did.prism.portable-method.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. The 32 MiB native projection budget does not widen generic hostile JSON ingress. Non-terminal retired identifiers are capped at 4096 per kind; exceeding that profile is a distinct resolution-failing resource outcome, while terminal deactivation discards obsolete tombstones. No Cardano indexing, VDR payload interpretation, persistence, HTTP, CLI, node composition, custody, product policy or completed downstream adoption is claimed.
+
+### `did.prism.vdr-indexing.portable-core.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. No Cardano source, SQL repository, HTTP or CLI surface, runtime, retry loop, deployment, device execution, FFI, crates.io publication, or completed NeoPRISM adoption is included. The 300-second Linux fuzz receipt remains issue-owned slow-lane evidence until a successful immutable run is attached.
+
+### `did.syntax.long-form-resource-policy.v1`
+
+Visibility: behavior, public-api. The lexical envelope does not guarantee transportability through every host, cache retention, or acceptance by a method-specific semantic profile.
+
+### `did.web.profile.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. No concrete HTTP, DNS, TLS, redirect, proxy, cache, retry, executor, timer, SSRF policy, IP/IDNA profile, registration, persistence, bindings, consumer mutation, publication, or trust claim is included.
+
+### `oid4vp.direct-post-response.encrypted.v1`
+
+Visibility: behavior, public-api, security, wire. The enum, validation-category and constructor behavior changes are pre-release source/behavior breaks. No production JWE engine, HTTP delivery, transport retry, wallet authentication, consent, trust, presentation verification, automatic error fallback, language adapter, persisted migration or downstream adoption is included; the first profile is one compact P-256 ECDH-ES/A128GCM recipient only.
+
+### `oid4vp.direct-post-response.error.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. Only plain OpenID4VP 1.0 Final direct_post protocol-error construction is included; no automatic SDK error mapping, HTTP, consent/privacy policy, protected response, DC API, consumer mutation or publication is claimed.
+
+### `oid4vp.direct-post-response.redirect-modes-and-acknowledgement.v1`
+
+Visibility: behavior, public-api, security, wire. No browser/deep-link navigation, HTML rendering, HTTP execution, URL leakage policy, response-code redemption, verifier storage, entropy proof, product consent/trust, Digital Credentials API, SIOPv2, publication, or downstream adoption.
+
+### `oid4vp.direct-post-response.request-object-security.v1`
+
+Visibility: behavior, public-api, security. No verifier-key trust, discovery fetch, persistence, distributed replay consistency, system clock, network, consent, credential validation, proof generation, Digital Credentials API, SIOPv2, adapter, publication, or downstream adoption is included.
+
+### `oid4vp.direct-post-response.transaction-and-format-ports.v1`
+
+Visibility: behavior, public-api, security, wire. No SD-JWT VC, mdoc, W3C VC/Data Integrity, HAIP, proof generation or verification, HTTP, persistence, product trust/consent, certification, publication, or downstream adoption is included.
+
+### `oid4vp.direct-post-response.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. Only plain OpenID4VP 1.0 Final direct_post success construction is included; no HTTP execution, presentation generation or verification, consent, trust, replay defense, signing, encryption, direct_post.jwt, SIOPv2, DC API, HAIP, persistence, consumer mutation or publication is claimed.
+
+### `oid4vp.direct-post-response.verifier-authorization-evidence.v1`
+
+Visibility: behavior, public-api, security. No bundled DID resolver, PKI/DNS validation, Federation engine, attestation trust store, transport, persistence, product consent/policy, unsigned redirect-URI flow, Digital Credentials API, language adapter, publication or downstream adoption.
+
+### `siopv2.did-authentication.diagnostics.v1`
+
+Visibility: behavior, error, public-api, security. Diagnostics remain static and redacted; durable lifecycle receipts, event history, transport, persistence, retry, trust, custody, UI, profile expansion, downstream mutation and publication remain excluded.
+
+### `siopv2.did-authentication.draft13.v1`
+
+Visibility: behavior, public-api, security, target-support, wire. Draft 13 is not Final. The first profile excludes transport, storage, trust, custody, UI, DID resolution, JWK-thumbprint subjects, self-attested claims, discovery, federation, authorization code, encrypted tokens, OpenID4VP presentation and certification.

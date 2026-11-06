@@ -56,6 +56,13 @@ owned and implemented entirely downstream: this repository accepts only
 generic evidence and does not import consumer names, primitives, or policy.
 NeoPRISM provides a broader source-pinned cryptography integration reference.
 
+The portable PRISM method/VDR/indexer crates have a separate
+[adoption walkthrough](architecture/prism-portable-stack.md). Its in-memory
+scenario proves composition and effect seams; it is not a Cardano or production
+storage adapter. NeoPRISM's current open SDK adoption keeps PRISM/Cardano
+implementation downstream, so later replacement of that code requires a new
+immutable pin and its own old/new parity receipt.
+
 The crypto train's registry receipt and the DID train's exact source revision
 are different evidence channels. Source evaluation provides no crates.io
 checksum, stable SemVer support promise, LTS period, certification, or

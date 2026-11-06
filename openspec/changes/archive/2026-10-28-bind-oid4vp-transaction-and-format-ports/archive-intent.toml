@@ -1,0 +1,11 @@
+[[modified_requirement]]
+capability       = "oid4vp-authorization-request-routing"
+requirement      = "Authorization semantics are one consuming composed transition"
+canonical_sha256 = "af14595d79aaa16bcebf8bfa9e0cd66a186b71b8c80a0643a031fa45c1c5432d"
+reason           = "Issue #547 deliberately extends the composed request state with bounded transaction-data and format-capability evidence while preserving the verifier-authorized routing lineage."
+
+[[modified_requirement]]
+capability       = "oid4vp-dcql-query"
+requirement      = "The Identus facade closes candidate tolerance gaps"
+canonical_sha256 = "96a09537e578ba6e89aadc330e3b9a8fce0da2e2c2be8d788348f03462cad00f"
+reason           = "Issue #547 replaces the temporary empty-metadata restriction with exact bounded caller-injected format capability validation before private engine execution."

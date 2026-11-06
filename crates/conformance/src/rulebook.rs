@@ -91,6 +91,34 @@ pub(crate) const LAYER_RULES: &[LayerRule] = &[
                 proc_macro: false,
             },
             Member {
+                name: "identus-did-key",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-did-jwk",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-did-web",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-did-peer",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-prism-did",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-prism-vdr",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-prism-indexer",
+                proc_macro: false,
+            },
+            Member {
                 name: "identus-trust",
                 proc_macro: false,
             },
@@ -110,6 +138,14 @@ pub(crate) const LAYER_RULES: &[LayerRule] = &[
             },
             Member {
                 name: "identus-jose",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-sd-jwt",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-sd-jwt-vc",
                 proc_macro: false,
             },
         ],
@@ -136,6 +172,10 @@ pub(crate) const LAYER_RULES: &[LayerRule] = &[
             },
             Member {
                 name: "identus-oid4vp",
+                proc_macro: false,
+            },
+            Member {
+                name: "identus-siopv2",
                 proc_macro: false,
             },
         ],

@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 522
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The implementation adds two public chain-neutral crates, stable bounded errors, exact replay semantics, portable target evidence and an explicit downstream-adoption boundary."
+ledger_ids     = [ "did.prism.vdr-indexing.portable-core.v1" ]

@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 545
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "Typed OID4VP routing will require exact verifier/key authorization evidence after audience, freshness and replay validation, intentionally closing the remaining pre-release trust bypass."
+ledger_ids     = [ "oid4vp.direct-post-response.verifier-authorization-evidence.v1" ]

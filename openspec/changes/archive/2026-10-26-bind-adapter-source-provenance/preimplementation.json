@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 512,
+  "change": "bind-adapter-source-provenance",
+  "branch": "codex/docs/issue-512",
+  "baseRef": "origin/develop",
+  "baseSha": "5da04223c1c4e029cb368870877e56d699d40388",
+  "contractHeadSha": "52bcee55594987592a78d585906f682ba014879d",
+  "createdAt": "2026-10-25T23:31:13.191Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

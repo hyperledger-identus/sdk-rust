@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-29
+goal: Make the isolated identus-crypto candidate test suite self-contained without duplicating conformance-vector authority.

@@ -20,11 +20,12 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { test } from "node:test";
-import { isGitHubSynchronizationMerge, localVerificationFailureDetail, parseConventionalSubject, policy, readContributionPolicyAt, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateCommitRange, validateHostedCommits, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
+import { declaredIssueLinkageMode, isGitHubSynchronizationMerge, localVerificationFailureDetail, parseAuthoritativeMarkdown, parseConventionalSubject, policy, readContributionPolicyAt, readDeferredAcceptanceAt, resolveSignatureEnvelopes, validateBranchName, validateCommitEvidence, validateCommitRange, validateDeferredAcceptance, validateHostedClosingIssuePages, validateHostedCommits, validateHostedIssueLinkage, validateIssueLinkage, validatePullRequest, validateSignatureProvenance } from "../ci/contribution-policy.mjs";
 import { parseContributionPolicy, validateContributionPolicyMonotonicity, validateContributionPolicyShape } from "../ci/contribution-policy-schema.mjs";
 import { buildPlan, classifyPaths, parseNumstat, validateLanePolicy } from "../ci/target-plan.mjs";
 import {
   exactIsoDate,
+  fetchExactPullRequestHead,
   maximumPullRequestBodyBytes,
   mergePullRequest,
   parseDeliveryArguments,
@@ -67,7 +68,7 @@ import {
   parseExactNpmSource,
   preparePiPackageCache,
 } from "../factory-tools/pi-package-cache.mjs";
-import { validatePlanningPaths } from "../factory-tools/preflight.mjs";
+import { validateAddedPlanningRegistry, validatePlanningPaths } from "../factory-tools/preflight.mjs";
 import { resolvePrePushBase } from "../git-hooks/local-policy.mjs";
 import {
   isWithinManagedRoot,
@@ -221,13 +222,284 @@ test("contribution metadata binds conventional type, scope and issue branch", ()
   assert.equal(validatePullRequest({
     title: "feat(factory): add bounded runtime",
     branch: "codex/feat/issue-243",
-    body: "Closes #243",
+    body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
   }).ok, true);
   assert.equal(validatePullRequest({
     title: "fix(factory): wrong type",
     branch: "codex/feat/issue-243",
-    body: "Closes #243",
+    body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
   }).ok, false);
+});
+
+test("issue linkage rejects prose decoys and accepts exact deferred evidence", () => {
+  const sidecarPath = "openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json";
+  const evidence = {
+    schemaVersion: 1,
+    issue: 243,
+    disposition: "deferred",
+    rationale: "A natural scheduled receipt can exist only after merge.",
+    acceptance: ["weekly-slow-receipt", "independent-approval"],
+  };
+  const deferredBody = [
+    "- Issue: #243",
+    "- Issue linkage: deferred",
+    `- Post-merge acceptance: ${sidecarPath}`,
+    "References #243",
+  ].join("\n");
+  assert.equal(validatePullRequest({
+    title: "feat(factory): add bounded runtime",
+    branch: "codex/feat/issue-243",
+    body: deferredBody,
+  }, {
+    loadDeferredAcceptance(observedPath) {
+      assert.equal(observedPath, sidecarPath);
+      return evidence;
+    },
+  }).ok, true);
+  assert.equal(validateDeferredAcceptance({ ...evidence, issue: 244 }, 243).ok, false);
+  assert.equal(validateDeferredAcceptance({ ...evidence, acceptance: ["same", "same"] }, 243).ok, false);
+  assert.equal(validateIssueLinkage([
+    "```markdown",
+    "- Issue: #243",
+    "- Issue linkage: closes",
+    "Closes #243",
+    "```",
+  ].join("\n"), 243).ok, false);
+  const inlineFenceBody = [
+    "```rust``` is inline text, not a CommonMark fence",
+    "- Issue: #243",
+    "- Issue linkage: closes",
+    "Closes #243",
+  ].join("\n");
+  assert.equal(validateIssueLinkage(inlineFenceBody, 243).ok, true);
+  assert.equal(declaredIssueLinkageMode(inlineFenceBody), "closes");
+  assert.equal(declaredIssueLinkageMode([
+    "```markdown",
+    "- Issue linkage: deferred",
+    "```",
+  ].join("\n")), null);
+  assert.equal(validateIssueLinkage([
+    "<!--",
+    "- Issue: #243",
+    "- Issue linkage: closes",
+    "Closes #243",
+    "-->",
+  ].join("\n"), 243).ok, false);
+  assert.equal(validateIssueLinkage(deferredBody, 243).ok, false);
+  assert.equal(validateIssueLinkage(`${deferredBody}\nCloses #243`, 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, false);
+  assert.equal(validateIssueLinkage(`${deferredBody}\nFixes hyperledger-identus/sdk-rust#243`, 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, false);
+  assert.equal(validateIssueLinkage([
+    "- Issue: #243",
+    "- Issue linkage: deferred",
+    `- Post-merge acceptance: ${sidecarPath}`,
+    "    Fixes #243",
+    "References #243",
+  ].join("\n"), 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, false);
+  assert.equal(validateIssueLinkage(`${deferredBody}\n\n    Fixes #243`, 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, true);
+  assert.equal(validateIssueLinkage(`${deferredBody}\nFixes other-org/other-repo#243`, 243, {
+    loadDeferredAcceptance: () => evidence,
+  }).ok, true);
+  assert.equal(validateIssueLinkage(deferredBody, 243, {
+    additionalClosingText: "feat(factory): this fixes #243",
+    loadDeferredAcceptance: () => evidence,
+  }).ok, false);
+  for (const closingKeyword of ["close", "closes", "closed", "fix", "fixes", "fixed", "resolve", "resolves", "resolved"]) {
+    assert.equal(validateIssueLinkage([
+      "- Issue: #243",
+      "- Issue linkage: closes",
+      `${closingKeyword}: #243`,
+    ].join("\n"), 243).ok, true, `${closingKeyword} must remain a supported closing keyword`);
+    assert.equal(validateIssueLinkage(`${deferredBody}\nThis ${closingKeyword}: #243 after merge.`, 243, {
+      loadDeferredAcceptance: () => evidence,
+    }).ok, false, `${closingKeyword} must not bypass deferred linkage`);
+  }
+});
+
+test("authoritative Markdown rejects code decoys and unterminated constructs", () => {
+  const live = [
+    "- Issue: #243",
+    "- Issue linkage: closes",
+    "Closes #243",
+  ];
+  assert.equal(validateIssueLinkage([
+    "```markdown",
+    "<!--",
+    "- Issue: #999",
+    "```",
+    ...live,
+  ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage(live.map((line) => `    ${line}`).join("\n"), 243).ok, false);
+  assert.equal(validateIssueLinkage(live.map((line) => `\t${line}`).join("\n"), 243).ok, false);
+  assert.equal(validateIssueLinkage(live.map((line) => `  \t${line}`).join("\n"), 243).ok, false);
+  assert.equal(validateIssueLinkage([
+    "    <!--",
+    ...live,
+  ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage([
+    "<!-- concealed",
+    "    -->",
+    ...live,
+  ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage([
+    "Use `<!--` to describe an HTML comment opener.",
+    ...live,
+  ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage([
+    "<!-- concealed -->- Issue: #999",
+    ...live,
+  ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage([
+    "<!-- concealed -->```markdown",
+    ...live,
+  ].join("\n"), 243).ok, true);
+  assert.equal(validateIssueLinkage([...live, "```markdown", "decoy"].join("\n"), 243).ok, false);
+  assert.equal(validateIssueLinkage([...live, "<!-- concealed"].join("\n"), 243).ok, false);
+  assert.equal(validateIssueLinkage([
+    "````markdown",
+    "~~~",
+    "```",
+    ...live,
+  ].join("\n"), 243).ok, false);
+  assert.deepEqual(parseAuthoritativeMarkdown("```markdown\n<!--\n```\nvisible").lines, ["visible"]);
+});
+
+test("hosted closing-issue pages bind exact PR head and linkage mode", () => {
+  const head = "b".repeat(40);
+  const page = (nodes, hasNextPage = false, endCursor = null, overrides = {}) => ({
+    data: {
+      repository: {
+        pullRequest: {
+          number: 244,
+          headRefOid: head,
+          closingIssuesReferences: {
+            nodes,
+            pageInfo: { hasNextPage, endCursor },
+          },
+          ...overrides,
+        },
+      },
+    },
+  });
+  const matching = { number: 243, repository: { nameWithOwner: "hyperledger-identus/sdk-rust" } };
+  const other = { number: 242, repository: { nameWithOwner: "hyperledger-identus/sdk-rust" } };
+  const closes = { ok: true, mode: "closes" };
+  const deferred = { ok: true, mode: "deferred" };
+  const valid = validateHostedClosingIssuePages([page([matching])], {
+    expectedPullRequest: 244,
+    expectedHead: head,
+  });
+  assert.equal(valid.ok, true);
+  assert.equal(validateHostedIssueLinkage(closes, valid.references, 243).ok, true);
+  assert.equal(validateHostedIssueLinkage(deferred, valid.references, 243).ok, false);
+  assert.equal(validateHostedIssueLinkage(closes, [], 243).ok, false);
+  assert.equal(validateHostedIssueLinkage(deferred, [], 243).ok, true);
+
+  const paged = validateHostedClosingIssuePages([
+    page([other], true, "cursor-1"),
+    page([matching]),
+  ], { expectedPullRequest: 244, expectedHead: head });
+  assert.equal(paged.ok, true);
+  assert.equal(validateHostedIssueLinkage(closes, paged.references, 243).ok, false);
+  assert.equal(validateHostedIssueLinkage(closes, [
+    ...valid.references,
+    ...valid.references,
+  ], 243).ok, false);
+  assert.equal(validateHostedIssueLinkage(closes, [
+    ...valid.references,
+    { number: 242, repository: "hyperledger-identus/sdk-rust" },
+  ], 243).ok, false);
+  assert.equal(validateHostedIssueLinkage(closes, [{ number: 243, repository: "other/sdk-rust" }], 243).ok, false);
+  assert.equal(validateHostedClosingIssuePages([page([], false, null, { headRefOid: "c".repeat(40) })], {
+    expectedPullRequest: 244,
+    expectedHead: head,
+  }).ok, false);
+  assert.equal(validateHostedClosingIssuePages([page([], true, "same"), page([], true, "same"), page([])], {
+    expectedPullRequest: 244,
+    expectedHead: head,
+  }).ok, false);
+  assert.equal(validateHostedClosingIssuePages([page([], false, null), page([])], {
+    expectedPullRequest: 244,
+    expectedHead: head,
+  }).ok, false);
+  assert.equal(validateHostedClosingIssuePages([page([{ number: 0, repository: { nameWithOwner: "bad" } }])], {
+    expectedPullRequest: 244,
+    expectedHead: head,
+  }).ok, false);
+  assert.equal(validateHostedClosingIssuePages(Array.from({ length: 9 }, (_, index) => (
+    page([], index < 8, `cursor-${index}`)
+  )), { expectedPullRequest: 244, expectedHead: head }).ok, false);
+});
+
+test("deferred acceptance reader binds one bounded regular exact-head blob", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-deferred-linkage-"));
+  try {
+    execFileSync("git", ["init", "-q"], { cwd: created });
+    execFileSync("git", ["config", "user.name", "Factory Test"], { cwd: created });
+    execFileSync("git", ["config", "user.email", "factory@example.invalid"], { cwd: created });
+    const sidecarPath = "openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json";
+    const absolute = path.join(created, sidecarPath);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    writeFileSync(absolute, `${JSON.stringify({
+      schemaVersion: 1,
+      issue: 243,
+      disposition: "deferred",
+      rationale: "Wait for natural evidence.",
+      acceptance: ["natural-schedule"],
+    })}\n`);
+    execFileSync("git", ["add", "."], { cwd: created });
+    execFileSync("git", ["commit", "-q", "-m", "fixture"], { cwd: created });
+    const head = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    assert.equal(readDeferredAcceptanceAt({ repository: created, head, sidecarPath }).issue, 243);
+    assert.throws(
+      () => readDeferredAcceptanceAt({ repository: created, head, sidecarPath: "../escape.json" }),
+      /path is invalid/u,
+    );
+    writeFileSync(absolute, `${JSON.stringify({ schemaVersion: 1, issue: 243 }).repeat(4096)}\n`);
+    execFileSync("git", ["add", "."], { cwd: created });
+    execFileSync("git", ["commit", "-q", "-m", "oversized"], { cwd: created });
+    const oversizedHead = execFileSync("git", ["rev-parse", "HEAD"], { cwd: created, encoding: "utf8" }).trim();
+    assert.throws(
+      () => readDeferredAcceptanceAt({ repository: created, head: oversizedHead, sidecarPath }),
+      /exceeds 16384 bytes/u,
+    );
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
+});
+
+test("guarded delivery fetches and verifies the immutable pull request head", () => {
+  const created = mkdtempSync(path.join(os.tmpdir(), "sdk-rust-pr-head-"));
+  const remote = path.join(created, "remote.git");
+  const source = path.join(created, "source");
+  const consumer = path.join(created, "consumer");
+  try {
+    execFileSync("git", ["init", "--bare", "-q", remote]);
+    execFileSync("git", ["init", "-q", source]);
+    execFileSync("git", ["config", "user.name", "Factory Test"], { cwd: source });
+    execFileSync("git", ["config", "user.email", "factory@example.invalid"], { cwd: source });
+    execFileSync("git", ["config", "commit.gpgsign", "false"], { cwd: source });
+    writeFileSync(path.join(source, "fixture"), "exact head\n");
+    execFileSync("git", ["add", "fixture"], { cwd: source });
+    execFileSync("git", ["commit", "-q", "-m", "fixture"], { cwd: source });
+    const head = execFileSync("git", ["rev-parse", "HEAD"], { cwd: source, encoding: "utf8" }).trim();
+    execFileSync("git", ["remote", "add", "origin", remote], { cwd: source });
+    execFileSync("git", ["push", "-q", "origin", "HEAD:refs/pull/243/head"], { cwd: source });
+
+    execFileSync("git", ["init", "-q", consumer]);
+    execFileSync("git", ["remote", "add", "origin", remote], { cwd: consumer });
+    assert.equal(fetchExactPullRequestHead(consumer, 243, head), head);
+    assert.throws(() => fetchExactPullRequestHead(consumer, 243, "a".repeat(40)), /expected head/u);
+  } finally {
+    rmSync(created, { recursive: true, force: true });
+  }
 });
 
 test("file-backed pull request preflight applies both hosted policy layers", () => {
@@ -235,10 +507,15 @@ test("file-backed pull request preflight applies both hosted policy layers", () 
   try {
     const bodyFile = path.join(created, "body.md");
     const metadata = [
+      "- Issue: #320",
+      "- Issue linkage: closes",
       "Closes #320",
       "- Local review: passed by a focused review",
       "- Constraint impact: routine",
       "- Limitations: none",
+      "- Compatibility disposition: behavior-neutral",
+      "- Change-ledger IDs: none",
+      "- OpenSpec `compatibility-impact.toml`: present",
     ].join("\n");
     const filler = "x".repeat(60_000);
     const body = `${metadata}\n${filler}`;
@@ -299,10 +576,15 @@ test("local pull request preflight does not write hosted workflow outputs", () =
     const bodyFile = path.join(created, "body.md");
     const outputFile = path.join(created, "github-output.txt");
     writeFileSync(bodyFile, [
+      "- Issue: #320",
+      "- Issue linkage: closes",
       "Closes #320",
       "- Local review: completed",
       "- Constraint impact: routine",
       "- Limitations: none",
+      "- Compatibility disposition: behavior-neutral",
+      "- Change-ledger IDs: none",
+      "- OpenSpec `compatibility-impact.toml`: present",
     ].join("\n"));
     writeFileSync(outputFile, "unchanged\n");
     const previous = process.env.GITHUB_OUTPUT;
@@ -338,10 +620,15 @@ test("pull request preflight rejects either hosted policy layer without exposing
   try {
     const validBodyFile = path.join(created, "valid.md");
     writeFileSync(validBodyFile, [
+      "- Issue: #320",
+      "- Issue linkage: closes",
       "Closes #320",
       "- Local review: completed",
       "- Constraint impact: routine",
       "- Limitations: none",
+      "- Compatibility disposition: behavior-neutral",
+      "- Change-ledger IDs: none",
+      "- OpenSpec `compatibility-impact.toml`: present",
     ].join("\n"));
     const options = {
       title: "fix(factory): preflight pull request metadata",
@@ -435,18 +722,31 @@ test("guarded merge is dry by default and retains exact verified evidence on exe
     writeFileSync(bodyFile, `${body}\n`);
     const expectedHead = "b".repeat(40);
     const mergeCommit = "c".repeat(40);
+    const prMetadata = {
+      title: "fix(factory): close delivery loop",
+      body: "- Issue: #320\n- Issue linkage: closes\nCloses #320",
+      headRefName: "codex/fix/issue-320",
+      closingIssuesReferences: [{
+        number: 320,
+        repository: "hyperledger-identus/sdk-rust",
+      }],
+    };
     let merged = false;
+    const readOptions = [];
     let retained;
     const github = {
-      readPullRequest() {
+      readPullRequest(_number, options = {}) {
+        readOptions.push(options);
         return merged
           ? {
+            ...prMetadata,
             state: "MERGED", isDraft: false, baseRefName: "develop",
             headRefOid: expectedHead, mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN",
             reviewDecision: "", mergedAt: "2026-09-17T09:00:00.000Z",
             mergeCommit: { oid: mergeCommit },
           }
           : {
+            ...prMetadata,
             state: "OPEN", isDraft: false, baseRefName: "develop",
             headRefOid: expectedHead, mergeable: "MERGEABLE", mergeStateStatus: "CLEAN",
             reviewDecision: "", mergedAt: null, mergeCommit: null,
@@ -492,6 +792,7 @@ test("guarded merge is dry by default and retains exact verified evidence on exe
     assert.equal(retained.mergeCommitSha, mergeCommit);
     assert.equal(retained.requiredChecksPassed, true);
     assert.equal(retained.verifiedSignature, true);
+    assert.deepEqual(readOptions, [{}, {}, { includeClosingReferences: false }]);
   } finally {
     rmSync(created, { recursive: true, force: true });
   }
@@ -510,6 +811,12 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
       /literal escaped newline/u,
     );
     assert.throws(
+      () => validateMergeBody(validBody, {
+        name: "Factory Test", email: "factory@example.invalid",
+      }, { deferredIssue: 320 }),
+      /must not close deferred issue/u,
+    );
+    assert.throws(
       () => validateMergeBody("Closes #320.\nWrong trailer", {
         name: "Factory Test", email: "factory@example.invalid",
       }),
@@ -517,6 +824,13 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
     );
     const expectedHead = "b".repeat(40);
     const baseState = {
+      title: "fix(factory): close delivery loop",
+      body: "- Issue: #320\n- Issue linkage: closes\nCloses #320",
+      headRefName: "codex/fix/issue-320",
+      closingIssuesReferences: [{
+        number: 320,
+        repository: "hyperledger-identus/sdk-rust",
+      }],
       state: "OPEN", isDraft: false, baseRefName: "develop", headRefOid: expectedHead,
       mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", reviewDecision: "",
     };
@@ -529,10 +843,64 @@ test("guarded merge rejects unsafe messages, stale state, red checks, and invali
       },
     });
     const options = { pullRequest: 320, expectedHead, bodyFile, execute: false };
+    const deferredState = {
+      ...baseState,
+      closingIssuesReferences: [],
+      body: [
+        "- Issue: #320",
+        "- Issue linkage: deferred",
+        "- Post-merge acceptance: openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json",
+        "References #320",
+      ].join("\n"),
+    };
+    assert.throws(() => mergePullRequest(options, {
+      ...dependencies(deferredState),
+      loadDeferredAcceptance: () => ({
+        schemaVersion: 1,
+        issue: 320,
+        disposition: "deferred",
+        rationale: "Wait for the natural scheduled receipt.",
+        acceptance: ["natural-schedule"],
+      }),
+    }), /must not close deferred issue/u);
+    const deferredBodyFile = path.join(created, "deferred-merge.md");
+    writeFileSync(deferredBodyFile, "References #320.\n\nSigned-off-by: Factory Test <factory@example.invalid>\n");
+    assert.throws(() => mergePullRequest({ ...options, bodyFile: deferredBodyFile }, {
+      ...dependencies({
+        ...deferredState,
+        closingIssuesReferences: [{
+          number: 320,
+          repository: "hyperledger-identus/sdk-rust",
+        }],
+      }),
+      loadDeferredAcceptance: () => ({
+        schemaVersion: 1,
+        issue: 320,
+        disposition: "deferred",
+        rationale: "Wait for the natural scheduled receipt.",
+        acceptance: ["natural-schedule"],
+      }),
+    }), /must not contain deferred issue/u);
+    assert.throws(() => mergePullRequest(options, dependencies({
+      ...baseState,
+      closingIssuesReferences: [],
+    })), /must contain only issue/u);
+    assert.throws(() => mergePullRequest(options, dependencies({
+      ...baseState,
+      closingIssuesReferences: [
+        ...baseState.closingIssuesReferences,
+        { number: 12, repository: "hyperledger-identus/sdk-rust" },
+      ],
+    })), /must contain only issue/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, headRefOid: sha })), /expected head/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, isDraft: true })), /not ready/u);
     assert.throws(() => mergePullRequest(options, dependencies({ ...baseState, mergeStateStatus: "BLOCKED" })), /not clean/u);
     assert.throws(() => mergePullRequest(options, dependencies(baseState, false)), /required pull request checks/u);
+    assert.throws(() => mergePullRequest(options, dependencies({
+      ...baseState,
+      state: "MERGED",
+      body: `${baseState.body}\n\`\`\`markdown`,
+    })), /metadata no longer satisfies/u);
 
     let reads = 0;
     assert.throws(() => mergePullRequest({ ...options, execute: true }, {
@@ -584,6 +952,9 @@ test("guarded merge recovers an exact already-merged receipt without merging aga
       github: {
         readPullRequest() {
           return {
+            title: "fix(factory): close delivery loop",
+            body: "```markdown\n- Issue linkage: deferred\n```\n- Issue: #320\nCloses #320",
+            headRefName: "codex/fix/issue-320",
             state: "MERGED", isDraft: false, baseRefName: "develop",
             headRefOid: expectedHead, mergedAt: "2026-09-17T09:48:40Z",
             mergeCommit: { oid: mergeCommit },
@@ -687,6 +1058,9 @@ test("hosted commit evidence accepts declared envelopes and fails closed otherwi
     verification: { verified: true, reason: "valid", signature: "-----BEGIN PGP SIGNATURE-----\nfixture" },
   };
   assert.equal(validateHostedCommits([record], sha).ok, true);
+  assert.equal(validateHostedCommits([{ ...record, message: `${record.message}\n\nFixes #243` }], sha, {
+    deferredIssue: 243,
+  }).ok, false);
   const ssh = { ...record, verification: { ...record.verification, signature: "-----BEGIN SSH SIGNATURE-----\nfixture" } };
   assert.equal(validateHostedCommits([ssh], sha).ok, true);
   const undeclared = { ...record, verification: { ...record.verification, signature: "-----BEGIN X509 SIGNATURE-----\nfixture" } };
@@ -831,6 +1205,10 @@ test("hosted workflow runs exact base policy over untrusted head objects", () =>
     /committerActor: \(\.committer\.login \/\/ ""\)/u,
     /parentShas: \[\.parents\[\]\.sha\]/u,
     /treeSha: \.commit\.tree\.sha/u,
+    /gh api graphql --paginate --slurp/u,
+    /closingIssuesReferences\(first:100,after:\$endCursor\)/u,
+    /pageInfo\{hasNextPage endCursor\}/u,
+    /CLOSING_ISSUES_FILE="\$RUNNER_TEMP\/pull-closing-issues\.json"/u,
   ]) assert.match(workflow, pattern);
   assert.match(workflow, /permissions:\n  contents: read\n  issues: read\n  pull-requests: read/u);
   assert.doesNotMatch(workflow, /^\s+pull_request:\s*$/mu);
@@ -839,6 +1217,14 @@ test("hosted workflow runs exact base policy over untrusted head objects", () =>
   assert.doesNotMatch(workflow, /persist-credentials: true/u);
   assert.doesNotMatch(workflow, /^\s+secrets:/mu);
   assert.doesNotMatch(workflow, /^\s+id-token:\s+write\s*$/mu);
+  const delivery = readFileSync(new URL("../factory-tools/delivery.mjs", import.meta.url), "utf8");
+  assert.match(delivery, /"api", "graphql", "--paginate", "--slurp"/u);
+  assert.match(delivery, /validateHostedClosingIssuePages\(pages/u);
+  assert.doesNotMatch(delivery, /--json",\s*\n\s*"[^"]*closingIssuesReferences/u);
+  const metrics = readFileSync(new URL("../factory-tools/metrics.mjs", import.meta.url), "utf8");
+  assert.match(metrics, /"api", "graphql", "--paginate", "--slurp"/u);
+  assert.match(metrics, /closingIssuesReferences\(first:100,after:\$endCursor\)/u);
+  assert.match(metrics, /validateHostedClosingIssuePages\(pages/u);
 });
 
 const cloneContributionPolicy = () => JSON.parse(JSON.stringify(policy));
@@ -1849,10 +2235,117 @@ test("metric publication routes PR-first and validates hosted historical identit
     pullRequest: {
       number: 244,
       headRefOid: sha,
+      body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
       closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
     },
     currentHead: "b".repeat(40),
   }));
+  assert.doesNotThrow(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
+      closingIssuesReferences: [{ number: 243, repository: "Hyperledger-Identus/SDK-Rust" }],
+    },
+  }));
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
+      closingIssuesReferences: [
+        { number: 243, repository: "hyperledger-identus/sdk-rust" },
+        { number: 999, repository: "hyperledger-identus/sdk-rust" },
+      ],
+    },
+  }), /not linked to its recorded issue/u);
+  assert.doesNotThrow(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      body: [
+        "- Issue: #243",
+        "- Issue linkage: deferred",
+        "- Post-merge acceptance: openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json",
+        "References #243",
+      ].join("\n"),
+      closingIssuesReferences: [],
+    },
+    loadDeferredAcceptance: () => ({
+      schemaVersion: 1,
+      issue: 243,
+      disposition: "deferred",
+      rationale: "Wait for the natural scheduled receipt.",
+      acceptance: ["natural-schedule"],
+    }),
+  }));
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      title: "fix(factory): fixes #243",
+      body: [
+        "- Issue: #243",
+        "- Issue linkage: deferred",
+        "- Post-merge acceptance: openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json",
+        "References #243",
+      ].join("\n"),
+      closingIssuesReferences: [],
+    },
+    loadDeferredAcceptance: () => ({
+      schemaVersion: 1,
+      issue: 243,
+      disposition: "deferred",
+      rationale: "Wait for the natural scheduled receipt.",
+      acceptance: ["natural-schedule"],
+    }),
+  }), /not linked to its recorded issue/u);
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      body: [
+        "- Issue: #243",
+        "- Issue linkage: deferred",
+        "- Post-merge acceptance: openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json",
+        "References #243",
+      ].join("\n"),
+      closingIssuesReferences: [],
+    },
+    loadDeferredAcceptance: () => ({
+      schemaVersion: 1,
+      issue: 244,
+      disposition: "deferred",
+      rationale: "Wrong issue.",
+      acceptance: ["natural-schedule"],
+    }),
+  }), /not linked to its recorded issue/u);
+  assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
+    issue: { number: 243 },
+    pullRequest: {
+      number: 244,
+      headRefOid: sha,
+      body: [
+        "- Issue: #243",
+        "- Issue linkage: deferred",
+        "- Post-merge acceptance: openspec/changes/archive/2026-10-29-test-change/post-merge-acceptance.json",
+        "References #243",
+      ].join("\n"),
+      closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
+    },
+    loadDeferredAcceptance: () => ({
+      schemaVersion: 1,
+      issue: 243,
+      disposition: "deferred",
+      rationale: "Wait for the natural scheduled receipt.",
+      acceptance: ["natural-schedule"],
+    }),
+  }), /not linked to its recorded issue/u);
   assert.throws(() => validateHostedMetricIdentity(pullRequestMetric, {
     issue: { number: 243 },
     pullRequest: {
@@ -1955,6 +2448,7 @@ test("metric publication updates one owned PR comment and rejects unsafe executi
     readPullRequest: (number) => ({
       number,
       headRefOid: sha,
+      body: "- Issue: #243\n- Issue linkage: closes\nCloses #243",
       closingIssuesReferences: [{ number: 243, repository: "hyperledger-identus/sdk-rust" }],
     }),
     readLogin: () => "factory",
@@ -2091,7 +2585,44 @@ test("metric file ingestion rejects duplicate, oversized and symlinked payloads"
 
 test("preflight accepts only the named planning path before implementation", () => {
   assert.doesNotThrow(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md"]));
+  assert.doesNotThrow(() => validatePlanningPaths("bounded-change", [
+    "openspec/changes/bounded-change/proposal.md",
+    "docs/adr/0181-bounded-change.md",
+    "docs/architecture/identus-platform-change-ledger.toml",
+    "docs/architecture/identus-platform-change-ledger.md",
+    "docs/architecture/quality-evidence-declarations.toml",
+    "docs/architecture/quality-evidence-plan.md",
+  ]));
   assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "crates/core/src/lib.rs"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "Cargo.toml"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "docs/architecture/unrelated.md"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "docs/conformance/fixtures/bounded-change/v1/vectors.json"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "docs/conformance/fixtures/another-change/v1/vectors.json"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/bounded-change/proposal.md", "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json"]), /implementation changed/u);
+  assert.throws(() => validatePlanningPaths("bounded-change", ["openspec/changes/another-change/proposal.md"]), /implementation changed/u);
+});
+
+test("preflight registry evidence is additive and issue-owned", () => {
+  assert.doesNotThrow(() => validateAddedPlanningRegistry(
+    "docs/architecture/identus-platform-change-ledger.toml",
+    "+++ b/ledger.toml\n+[[changes]]\n+id = \"example.v1\"\n+issue = 536\n",
+    536,
+  ));
+  assert.doesNotThrow(() => validateAddedPlanningRegistry(
+    "docs/architecture/quality-evidence-declarations.toml",
+    "+++ b/quality.toml\n+[[declarations]]\n+id = \"example.quality.v1\"\n+owner_issue = 536\n+[[declarations.obligations]]\n+owner_issue = 536\n",
+    536,
+  ));
+  assert.throws(() => validateAddedPlanningRegistry(
+    "docs/architecture/identus-platform-change-ledger.toml",
+    "--- a/ledger.toml\n+++ b/ledger.toml\n-old_behavior = \"before\"\n+old_behavior = \"after\"\n",
+    536,
+  ), /may only add/u);
+  assert.throws(() => validateAddedPlanningRegistry(
+    "docs/architecture/quality-evidence-declarations.toml",
+    "+++ b/quality.toml\n+[[declarations]]\n+id = \"foreign.quality.v1\"\n+owner_issue = 535\n",
+    536,
+  ), /not owned/u);
 });
 
 test("worktree porcelain parser retains safety-relevant state", () => {

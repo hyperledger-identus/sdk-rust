@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 522,
+  "change": "add-prism-vdr-indexing",
+  "branch": "codex/feat/issue-522",
+  "baseRef": "origin/develop",
+  "baseSha": "706eed1eb81ce42daec8cedfb1cb47053f93cf1b",
+  "contractHeadSha": "e684d792495cb5c28bd965942fd2a7cac3f35c87",
+  "createdAt": "2026-10-27T02:17:32.485Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

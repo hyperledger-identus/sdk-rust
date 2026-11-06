@@ -39,7 +39,9 @@ Run `scripts/factory delivery pr-preflight` against the exact body file before
 `gh pr create` or `gh pr edit`. Do not reconstruct a multiline body with shell
 escape sequences. Use `delivery merge-pr` without `--execute` to validate the
 current hosted exact head and required checks, then repeat the equal command
-with `--execute` for the normal protected squash merge.
+with `--execute` for the normal protected squash merge. Deferred delivery
+fetches the immutable pull-request head ref and verifies its exact SHA before
+reading the archived acceptance sidecar.
 
 If GitHub accepted a merge but the client lost the response or private receipt
 retention failed, rerun the exact `merge-pr ... --execute` command. An already-

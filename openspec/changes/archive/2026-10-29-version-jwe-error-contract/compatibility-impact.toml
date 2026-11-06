@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 539
+disposition    = "behavior-neutral"
+scope          = "internal-refactor"
+rationale      = "The slice characterizes existing JweEncryptionError behavior without changing public API, runtime behavior, wire formats, dependencies, targets, or consumer outcomes."
+ledger_ids     = [  ]

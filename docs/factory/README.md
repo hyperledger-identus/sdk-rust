@@ -32,7 +32,8 @@ standing mandate / backlog / issue
                                sync specs and archive change
                                              │
                                              ▼
-                         issue-linked PR ──► green CI ──► develop
+                 explicit issue-link PR ──► green CI ──► develop
+                   closes │ deferred + archived acceptance evidence
 ```
 
 `main` is not part of this flow. Downstream adoption is a separate change in
@@ -73,6 +74,12 @@ Run `scripts/factory research-ready <change>` and `scripts/factory
 constraints-ready <change>`, commit the planning-only change, then run
 `scripts/factory preflight <change> --issue N --write` before the first
 implementation edit. Final readiness validates this durable exact-head receipt.
+The planning commit may include ADRs plus additive, issue-owned records in the
+canonical consumer-change and quality-evidence registries when a
+consumer-visible contract cannot validate without them. Existing records cannot
+be changed or removed. Vector catalogs, fixture packets, source, manifests,
+workflows and unrelated documentation remain implementation paths and are
+rejected before preflight.
 The [research readiness contract](research-readiness.md) is lightweight
 for routine changes and requires a full candidate/evidence matrix for new
 protocol, foundational, cryptography/security, storage or FFI work.
@@ -132,6 +139,7 @@ nix run .#factory -- check
 | `backlog-live` | explicitly resolves canonical roadmap issue ownership through GitHub before supervisor work selection; it is read-only and outside offline required CI |
 | `plan` | derives one immutable required fast lane plus risk-routed slow evidence available locally or through external orchestration |
 | `quality-plan` | validates the closed property/fuzz/benchmark/differential registry and renders deterministic, non-executing evidence routes, optionally for one capability |
+| `change-plan` | validates the closed consumer-change ledger and its OpenSpec impact declarations, or updates deterministic release/migration evidence with `--write` |
 | `delivery` | preflights file-backed PR metadata against both hosted policy layers and guards exact-head protected squash merges with private receipts |
 | `worktrees` | audits or explicitly mutates only canonical bounded issue worktrees |
 | `metrics` | validates, retains, renders or explicitly publishes privacy-bounded exact-head v1/v2 metrics; publication defaults to the recorded PR, then its issue |
@@ -147,6 +155,14 @@ not-applicable rationale, cadence, targets, freshness, budget, and debt state.
 The checked-in `quality-evidence-plan.md` is deterministic output. Issue,
 OpenSpec, and pull-request receipts reference declaration IDs instead of
 duplicating mutable commands or policy prose.
+
+`docs/architecture/identus-platform-change-ledger.toml` is the canonical
+consumer-change record. Qualifying OpenSpec changes declare either
+`consumer-visible` impact with stable ledger IDs or a bounded
+`behavior-neutral` scope with no IDs. The checked-in
+`identus-platform-change-ledger.md` is deterministic output; validation never
+executes stored selectors or commands and never authorizes release,
+deprecation, or migration.
 
 `./bootstrap.sh --pi` additionally prepares a verified, content-addressed Pi
 project-package cache outside all registered working trees. Exact harness
@@ -171,6 +187,29 @@ cannot recurse.
 
 The receipt proves only the factory contract. Rust, target, conformance,
 security and release gates must be attached separately and truthfully.
+
+### Immutable golden evidence after protected squash merges
+
+Error compatibility goldens keep their planning-before-implementation boundary
+across both historical ancestry-preserving integrations and the current
+protected squash path. Every binding pins the complete preimplementation
+receipt plus the exact planning/stable golden bytes.
+
+When the planning commit remains in `HEAD` ancestry, the checker proves the
+fixed base, planning-only diff, contract blob and current ancestry directly.
+After a protected squash, an archived binding instead requires the fixed base
+in current ancestry and requires the receipt, archived golden and stable
+fixture to resolve byte-for-byte from their exact paths in `HEAD`. If the
+source planning object is still locally reachable, its base, allowed paths and
+golden blob are validated as additional evidence; normal branch cleanup may
+later prune that object without invalidating the canonical snapshot.
+
+The archived path never applies to an active change and never treats a copied
+or uncommitted working-tree file as canonical. It proves which exact reviewed
+receipt and fixture survived integration; it does not claim that a
+behavior-bearing squash commit was itself planning-only. The contract is
+specified by [ADR 0196](../adr/0196-preserve-error-golden-evidence-across-squash-merges.md)
+and exercised by `factory.error-golden.quality.v1`.
 
 The slow `rust-audit` evidence is deliberately advisory-only. It first proves
 that pinned `cargo-audit 0.22.2` parses a deterministic CVSS 4.0 fixture, then
@@ -205,6 +244,14 @@ perform at most one remediation round. Blocking regressions always stay in the
 slice; later independent non-blocking hardening becomes a linked follow-up.
 See [ADR 0127](../adr/0127-separate-fast-integration-from-slow-production-promotion.md)
 and the [operations handbook](operations.md).
+
+Ordinary pull requests explicitly close their branch issue. A pull request may
+keep that issue open only when its body declares `deferred`, uses a standalone
+non-closing reference, and binds a strict `post-merge-acceptance.json` sidecar
+inside the archived OpenSpec change at the exact head. This is intended for
+natural schedules, protected-merge receipts, independent exact-receipt
+approval, or other acceptance that cannot exist before integration. It is not
+a generic substitute for finishing implementation or review.
 
 OpenSpec `MODIFIED` operations replace a complete canonical requirement. The
 repository checker permits the default additive path only when every existing

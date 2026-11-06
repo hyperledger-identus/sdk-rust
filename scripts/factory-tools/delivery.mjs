@@ -26,6 +26,7 @@ import {
   containsGitHubClosingKeyword,
   declaredIssueLinkageMode,
   readDeferredAcceptanceAt,
+  validateHostedClosingIssuePages,
   validatePullRequest,
 } from "../ci/contribution-policy.mjs";
 
@@ -310,10 +311,24 @@ function hostedGithub(repository) {
   };
   return {
     readPullRequest(number) {
-      return JSON.parse(run([
+      const pullRequest = JSON.parse(run([
         "pr", "view", String(number), "--repo", repository, "--json",
-        "state,isDraft,baseRefName,headRefOid,headRefName,title,body,author,mergeable,mergeStateStatus,reviewDecision,mergedAt,mergeCommit,closingIssuesReferences",
+        "state,isDraft,baseRefName,headRefOid,headRefName,title,body,author,mergeable,mergeStateStatus,reviewDecision,mergedAt,mergeCommit",
       ], { failure: "pull request state is unavailable" }));
+      const [owner, name] = repository.split("/");
+      const pages = JSON.parse(run([
+        "api", "graphql", "--paginate", "--slurp",
+        "-f", `owner=${owner}`,
+        "-f", `name=${name}`,
+        "-F", `number=${number}`,
+        "-f", "query=query($owner:String!,$name:String!,$number:Int!,$endCursor:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid closingIssuesReferences(first:100,after:$endCursor){nodes{number repository{nameWithOwner}}pageInfo{hasNextPage endCursor}}}}}",
+      ], { failure: "pull request closing references are unavailable" }));
+      const hostedClosing = validateHostedClosingIssuePages(pages, {
+        expectedPullRequest: number,
+        expectedHead: pullRequest.headRefOid,
+      });
+      if (!hostedClosing.ok) fail("pull request closing references are invalid");
+      return { ...pullRequest, closingIssuesReferences: hostedClosing.references };
     },
     requiredChecksPass(number) {
       run(["pr", "checks", String(number), "--repo", repository, "--required"], {
@@ -487,8 +502,11 @@ export function mergePullRequest(options, dependencies = {}) {
     ? before.closingIssuesReferences.filter((reference) => {
       const owner = reference?.repository?.owner?.login;
       const name = reference?.repository?.name;
+      const normalizedRepository = typeof reference?.repository === "string"
+        ? reference.repository
+        : (reference?.repository?.nameWithOwner ?? `${owner}/${name}`);
       return reference?.number === linkedIssue
-        && `${owner}/${name}`.toLowerCase() === repository.toLowerCase();
+        && normalizedRepository.toLowerCase() === repository.toLowerCase();
     })
     : [];
   const deferredIssue = contribution?.linkage.mode === "deferred" ? linkedIssue : null;

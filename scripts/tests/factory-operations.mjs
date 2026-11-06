@@ -1169,6 +1169,10 @@ test("hosted workflow runs exact base policy over untrusted head objects", () =>
   assert.doesNotMatch(workflow, /persist-credentials: true/u);
   assert.doesNotMatch(workflow, /^\s+secrets:/mu);
   assert.doesNotMatch(workflow, /^\s+id-token:\s+write\s*$/mu);
+  const delivery = readFileSync(new URL("../factory-tools/delivery.mjs", import.meta.url), "utf8");
+  assert.match(delivery, /"api", "graphql", "--paginate", "--slurp"/u);
+  assert.match(delivery, /validateHostedClosingIssuePages\(pages/u);
+  assert.doesNotMatch(delivery, /--json",\s*\n\s*"[^"]*closingIssuesReferences/u);
 });
 
 const cloneContributionPolicy = () => JSON.parse(JSON.stringify(policy));

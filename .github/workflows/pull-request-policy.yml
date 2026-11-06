@@ -118,5 +118,16 @@ jobs:
                 verification: .commit.verification,
                 actor: (.author.login // "")
               }]' > "$RUNNER_TEMP/pull-commits.json"
+          owner=${GITHUB_REPOSITORY%/*}
+          name=${GITHUB_REPOSITORY#*/}
+          # GraphQL variables are intentionally literal rather than shell expansions.
+          # shellcheck disable=SC2016
+          gh api graphql --paginate --slurp \
+            -f "owner=$owner" \
+            -f "name=$name" \
+            -F "number=$PR_NUMBER" \
+            -f 'query=query($owner:String!,$name:String!,$number:Int!,$endCursor:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid closingIssuesReferences(first:100,after:$endCursor){nodes{number repository{nameWithOwner}}pageInfo{hasNextPage endCursor}}}}}' \
+            > "$RUNNER_TEMP/pull-closing-issues.json"
           COMMITS_FILE="$RUNNER_TEMP/pull-commits.json" \
+            CLOSING_ISSUES_FILE="$RUNNER_TEMP/pull-closing-issues.json" \
             node scripts/ci/contribution-policy.mjs hosted-commits

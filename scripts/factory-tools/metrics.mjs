@@ -17,7 +17,12 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { declaredIssueLinkageMode, readDeferredAcceptanceAt, validateIssueLinkage } from "../ci/contribution-policy.mjs";
+import {
+  readDeferredAcceptanceAt,
+  validateHostedClosingIssuePages,
+  validateHostedIssueLinkage,
+  validateIssueLinkage,
+} from "../ci/contribution-policy.mjs";
 import { fetchExactPullRequestHead } from "./delivery.mjs";
 import { parseJsonWithoutDuplicates } from "./strict-json.mjs";
 
@@ -415,18 +420,17 @@ export function validateHostedMetricIdentity(record, {
     if (pullRequest?.number !== record.pullRequest || pullRequest?.headRefOid !== record.headSha) {
       fail("metric pull request does not match its exact hosted head");
     }
-    const closesRecordedIssue = Array.isArray(pullRequest.closingIssuesReferences)
-      && pullRequest.closingIssuesReferences.some((reference) => (
-        reference?.number === record.issue && reference?.repository === record.repository
-      ));
-    const declaredMode = declaredIssueLinkageMode(pullRequest?.body);
-    if (closesRecordedIssue && declaredMode !== "deferred") return;
-    const deferred = validateIssueLinkage(pullRequest?.body, record.issue, { loadDeferredAcceptance });
-    const defersRecordedIssue = deferred.ok && deferred.mode === "deferred";
-    if (closesRecordedIssue && defersRecordedIssue) {
-      fail("metric deferred pull request has a hosted closing reference to its issue");
-    }
-    if (!defersRecordedIssue) {
+    const linkage = validateIssueLinkage(pullRequest?.body, record.issue, {
+      additionalClosingText: pullRequest?.title,
+      loadDeferredAcceptance,
+    });
+    const hostedLinkage = validateHostedIssueLinkage(
+      linkage,
+      pullRequest?.closingIssuesReferences,
+      record.issue,
+      record.repository,
+    );
+    if (!linkage.ok || !hostedLinkage.ok) {
       fail("metric pull request is not linked to its recorded issue");
     }
   } else if (currentHead !== record.headSha) {
@@ -543,22 +547,25 @@ function publish(record, issue, requestedTarget, execute) {
       "unable to verify authoritative metric issue",
     ),
     readPullRequest: (number) => {
-      const response = githubJson([
-        "api", "graphql",
+      const pages = githubJson([
+        "api", "graphql", "--paginate", "--slurp",
         "-f", `owner=${owner}`,
         "-f", `name=${name}`,
         "-F", `number=${number}`,
-        "-f", "query=query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid body closingIssuesReferences(first:100){nodes{number repository{nameWithOwner}}}}}}",
+        "-f", "query=query($owner:String!,$name:String!,$number:Int!,$endCursor:String){repository(owner:$owner,name:$name){pullRequest(number:$number){number headRefOid title body closingIssuesReferences(first:100,after:$endCursor){nodes{number repository{nameWithOwner}}pageInfo{hasNextPage endCursor}}}}}",
       ], "unable to verify authoritative metric pull request");
-      const pullRequest = response?.data?.repository?.pullRequest;
+      const pullRequest = pages?.[0]?.data?.repository?.pullRequest;
+      const hostedClosing = validateHostedClosingIssuePages(pages, {
+        expectedPullRequest: number,
+        expectedHead: pullRequest?.headRefOid,
+      });
+      if (!hostedClosing.ok) fail("unable to verify complete authoritative metric closing references");
       return {
         number: pullRequest?.number,
         headRefOid: pullRequest?.headRefOid,
+        title: pullRequest?.title,
         body: pullRequest?.body,
-        closingIssuesReferences: pullRequest?.closingIssuesReferences?.nodes?.map((reference) => ({
-          number: reference?.number,
-          repository: reference?.repository?.nameWithOwner,
-        })),
+        closingIssuesReferences: hostedClosing.references,
       };
     },
     readLogin: () => githubText(["api", "user", "--jq", ".login"], "unable to resolve authenticated metric publisher"),

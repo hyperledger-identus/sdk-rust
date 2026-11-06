@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 590
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "This change hardens repository-local pull-request linkage parsing and hosted evidence without changing SDK public APIs, wire formats, persisted representations, dependencies, ABI, supported targets, release artifacts, or downstream consumers."
+ledger_ids     = [  ]

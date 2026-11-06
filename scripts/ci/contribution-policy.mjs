@@ -68,46 +68,112 @@ export function validateBranchName(branch, { expectedType = null, actor = "" } =
   return result(errors, { exempt: false, type, issue });
 }
 
-function authoritativeMarkdownLines(body) {
-  const source = String(body ?? "");
-  let withoutComments = "";
-  let comment = false;
-  for (let index = 0; index < source.length;) {
-    if (!comment && source.startsWith("<!--", index)) {
-      comment = true;
-      withoutComments += "    ";
-      index += 4;
+function maskInlineCode(line) {
+  let masked = "";
+  for (let index = 0; index < line.length;) {
+    if (line[index] !== "`") {
+      masked += line[index];
+      index += 1;
       continue;
     }
-    if (comment && source.startsWith("-->", index)) {
-      comment = false;
-      withoutComments += "   ";
-      index += 3;
+    let end = index + 1;
+    while (line[end] === "`") end += 1;
+    const marker = line.slice(index, end);
+    let closing = -1;
+    for (let search = end; search < line.length;) {
+      const run = line.indexOf("`", search);
+      if (run === -1) break;
+      let runEnd = run + 1;
+      while (line[runEnd] === "`") runEnd += 1;
+      if (runEnd - run === marker.length) {
+        closing = run;
+        break;
+      }
+      search = runEnd;
+    }
+    if (closing === -1) {
+      masked += marker;
+      index = end;
       continue;
     }
-    const character = source[index];
-    withoutComments += comment && character !== "\n" && character !== "\r" ? " " : character;
-    index += 1;
+    masked += " ".repeat(closing + marker.length - index);
+    index = closing + marker.length;
   }
+  return masked;
+}
 
+function parseMarkdown(body, { includeListContinuations = false } = {}) {
   const lines = [];
   let fence = null;
-  for (const line of withoutComments.split(/\r?\n/u)) {
-    const opening = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/u);
-    const marker = opening?.[1] ?? null;
-    const info = opening?.[2] ?? "";
-    if (fence === null && marker !== null && !(marker[0] === "`" && info.includes("`"))) {
-      fence = { character: marker[0], length: marker.length };
-      continue;
-    }
+  let comment = false;
+  let listContext = false;
+  for (const rawLine of String(body ?? "").split(/\r?\n/u)) {
     if (fence !== null) {
-      const closing = line.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/u)?.[1] ?? null;
+      const closing = rawLine.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/u)?.[1] ?? null;
       if (closing !== null && closing[0] === fence.character && closing.length >= fence.length) fence = null;
       continue;
     }
-    lines.push(line);
+
+    if (comment) {
+      const closing = rawLine.indexOf("-->");
+      if (closing === -1) continue;
+      comment = false;
+      continue;
+    }
+    const indented = /^(?: {0,3}\t| {4})/u.test(rawLine);
+    if (indented && !(includeListContinuations && listContext)) continue;
+
+    const candidate = maskInlineCode(rawLine);
+    const blockComment = candidate.match(/^ {0,3}<!--/u);
+    if (blockComment !== null) {
+      if (candidate.indexOf("-->", blockComment.index + blockComment[0].length) === -1) comment = true;
+      continue;
+    }
+
+    let visible = "";
+    for (let index = 0; index < candidate.length;) {
+      if (!comment) {
+        const opening = candidate.indexOf("<!--", index);
+        if (opening === -1) {
+          visible += candidate.slice(index);
+          break;
+        }
+        visible += candidate.slice(index, opening);
+        comment = true;
+        index = opening + 4;
+        continue;
+      }
+      const closing = candidate.indexOf("-->", index);
+      if (closing === -1) break;
+      comment = false;
+      index = closing + 3;
+    }
+    const opening = visible.match(/^ {0,3}(`{3,}|~{3,})(.*)$/u);
+    const marker = opening?.[1] ?? null;
+    const info = opening?.[2] ?? "";
+    if (marker !== null && !(marker[0] === "`" && info.includes("`"))) {
+      fence = { character: marker[0], length: marker.length };
+      comment = false;
+      listContext = false;
+      continue;
+    }
+    lines.push(visible);
+    if (visible.trim().length === 0) {
+      listContext = false;
+    } else if (/^ {0,3}[-+*][ \t]+\S/u.test(visible)) {
+      listContext = true;
+    } else if (!indented) {
+      listContext = false;
+    }
   }
-  return lines;
+  const errors = [];
+  if (fence !== null) errors.push("body contains an unterminated fenced code block");
+  if (comment) errors.push("body contains an unterminated HTML comment");
+  return result(errors, { lines: errors.length === 0 ? lines : [], observedLines: lines });
+}
+
+export function parseAuthoritativeMarkdown(body) {
+  return parseMarkdown(body);
 }
 
 function captures(lines, pattern) {
@@ -123,7 +189,9 @@ function linkageModes(lines) {
 }
 
 export function declaredIssueLinkageMode(body) {
-  const modes = linkageModes(authoritativeMarkdownLines(body));
+  const parsed = parseAuthoritativeMarkdown(body);
+  if (!parsed.ok) return null;
+  const modes = linkageModes(parsed.lines);
   return modes.length === 1 ? modes[0] : null;
 }
 
@@ -203,8 +271,9 @@ export function validateIssueLinkage(body, expectedIssue, {
   loadDeferredAcceptance = null,
   additionalClosingText = "",
 } = {}) {
-  const lines = authoritativeMarkdownLines(body);
-  const errors = [];
+  const parsed = parseAuthoritativeMarkdown(body);
+  const lines = parsed.lines;
+  const errors = [...parsed.errors];
   const issues = captures(lines, /^\s*-\s*Issue:\s*#([1-9][0-9]*)\s*$/iu).map(Number);
   const modes = linkageModes(lines);
   const closing = captures(
@@ -228,7 +297,9 @@ export function validateIssueLinkage(body, expectedIssue, {
     }
     if (sidecars.length > 0) errors.push("closing linkage must not declare post-merge acceptance evidence");
   } else if (mode === "deferred") {
-    if (containsGitHubClosingKeyword(lines.join("\n"), expectedIssue)
+    const closingText = parseMarkdown(body, { includeListContinuations: true });
+    errors.push(...closingText.errors);
+    if (containsGitHubClosingKeyword(closingText.lines.join("\n"), expectedIssue)
         || containsGitHubClosingKeyword(additionalClosingText, expectedIssue)) {
       errors.push(`deferred linkage must not close issue #${expectedIssue}`);
     }
@@ -453,6 +524,95 @@ export function validateHostedCommits(records, expectedHead, context = {}) {
   return result(errors);
 }
 
+const maximumHostedClosingPages = 8;
+const maximumHostedClosingReferences = 800;
+
+export function validateHostedClosingIssuePages(
+  pages,
+  { expectedPullRequest, expectedHead, repository = repositorySlug } = {},
+) {
+  const errors = [];
+  const references = [];
+  if (!Array.isArray(pages) || pages.length === 0) {
+    return result(["hosted closing-issue evidence has no pages"], { references });
+  }
+  if (pages.length > maximumHostedClosingPages) {
+    return result([`hosted closing-issue evidence exceeds ${maximumHostedClosingPages} pages`], { references });
+  }
+  if (!Number.isSafeInteger(expectedPullRequest) || expectedPullRequest < 1 || !validSha(expectedHead)) {
+    return result(["expected hosted pull-request identity is invalid"], { references });
+  }
+  const cursors = new Set();
+  for (const [index, page] of pages.entries()) {
+    const pullRequest = page?.data?.repository?.pullRequest;
+    if (pullRequest?.number !== expectedPullRequest || pullRequest?.headRefOid !== expectedHead) {
+      errors.push(`hosted closing-issue page ${index + 1} does not match exact PR #${expectedPullRequest} at ${expectedHead}`);
+      continue;
+    }
+    const connection = pullRequest.closingIssuesReferences;
+    if (!Array.isArray(connection?.nodes) || connection.nodes.length > 100
+        || typeof connection?.pageInfo?.hasNextPage !== "boolean") {
+      errors.push(`hosted closing-issue page ${index + 1} is malformed`);
+      continue;
+    }
+    const endCursor = connection.pageInfo.endCursor;
+    if (endCursor !== null && (typeof endCursor !== "string" || endCursor.length === 0 || endCursor.length > 1024)) {
+      errors.push(`hosted closing-issue page ${index + 1} has an invalid cursor`);
+    }
+    const last = index === pages.length - 1;
+    if (connection.pageInfo.hasNextPage === last) {
+      errors.push(`hosted closing-issue page ${index + 1} has inconsistent pagination state`);
+    }
+    if (connection.pageInfo.hasNextPage) {
+      const cursor = endCursor;
+      if (typeof cursor !== "string" || cursor.length === 0 || cursor.length > 1024 || cursors.has(cursor)) {
+        errors.push(`hosted closing-issue page ${index + 1} has an invalid or repeated cursor`);
+      } else {
+        cursors.add(cursor);
+      }
+    }
+    for (const reference of connection.nodes) {
+      const number = reference?.number;
+      const nameWithOwner = reference?.repository?.nameWithOwner;
+      if (!Number.isSafeInteger(number) || number < 1
+          || typeof nameWithOwner !== "string" || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(nameWithOwner)) {
+        errors.push(`hosted closing-issue page ${index + 1} contains an invalid reference`);
+        continue;
+      }
+      references.push({ number, repository: nameWithOwner });
+    }
+  }
+  if (references.length > maximumHostedClosingReferences) {
+    errors.push(`hosted closing-issue evidence exceeds ${maximumHostedClosingReferences} references`);
+  }
+  if (pages.length === maximumHostedClosingPages) {
+    const lastConnection = pages.at(-1)?.data?.repository?.pullRequest?.closingIssuesReferences;
+    if (lastConnection?.pageInfo?.hasNextPage) {
+      errors.push(`hosted closing-issue evidence exceeds ${maximumHostedClosingPages} pages`);
+    }
+  }
+  return result(errors, {
+    references: references.length <= maximumHostedClosingReferences ? references : [],
+    repository,
+  });
+}
+
+export function validateHostedIssueLinkage(linkage, references, issue, repository = repositorySlug) {
+  if (!linkage?.ok) return result(["hosted issue linkage requires valid authoritative metadata"]);
+  if (!Array.isArray(references)) return result(["hosted closing-issue references are unavailable"]);
+  const matching = references.filter((reference) => (
+    reference?.number === issue
+      && String(reference?.repository ?? "").toLowerCase() === repository.toLowerCase()
+  ));
+  if (linkage.mode === "closes" && (matching.length !== 1 || references.length !== 1)) {
+    return result([`hosted closing references must contain only issue #${issue}`]);
+  }
+  if (linkage.mode === "deferred" && matching.length !== 0) {
+    return result([`hosted closing references must not contain deferred issue #${issue}`]);
+  }
+  return result([]);
+}
+
 function requireEnv(name) {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is required`);
@@ -498,6 +658,7 @@ function main() {
   }
   if (command === "hosted-commits") {
     const records = JSON.parse(readFileSync(requireEnv("COMMITS_FILE"), "utf8"));
+    const closingPages = JSON.parse(readFileSync(requireEnv("CLOSING_ISSUES_FILE"), "utf8"));
     const head = requireEnv("HEAD_SHA");
     const branch = validateBranchName(requireEnv("PR_HEAD_REF"), {
       actor: process.env.PR_ACTOR ?? "",
@@ -526,7 +687,19 @@ function main() {
       repository: root,
       deferredIssue: linkage.ok && linkage.mode === "deferred" ? branch.issue : null,
     });
-    const combined = result([...linkage.errors, ...outcome.errors]);
+    const hostedClosing = validateHostedClosingIssuePages(closingPages, {
+      expectedPullRequest: Number(requireEnv("PR_NUMBER")),
+      expectedHead: head,
+    });
+    const hostedLinkage = branch.exempt
+      ? result([])
+      : validateHostedIssueLinkage(linkage, hostedClosing.references, branch.issue);
+    const combined = result([
+      ...linkage.errors,
+      ...outcome.errors,
+      ...hostedClosing.errors,
+      ...hostedLinkage.errors,
+    ]);
     report(combined);
     if (combined.ok) process.stdout.write(`Hosted commit policy passed for ${records.length} commit(s).\n`);
     return;

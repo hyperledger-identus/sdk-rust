@@ -28,7 +28,7 @@
 
 - [x] 3.1 Run focused backlog, platform inventory, parity, OpenSpec, and
       documentation checks plus complete factory structural evidence.
-- [ ] 3.2 Complete exact-diff architecture/specification review with zero
+- [x] 3.2 Complete exact-diff architecture/specification review with zero
       unresolved blockers and record verification limitations.
 - [ ] 3.3 Archive the ready change, verify signed/DCO commits, and hand the
       issue-linked branch to protected PR/CI without publishing or releasing.
@@ -62,9 +62,9 @@
 
 ## 6. Success-criteria verification and delivery
 
-- [ ] 6.1 Run focused matrix/mutation, strict OpenSpec, documentation, and
+- [x] 6.1 Run focused matrix/mutation, strict OpenSpec, documentation, and
       complete factory structural checks.
-- [ ] 6.2 Complete an exact-diff local review with zero unresolved blockers and
+- [x] 6.2 Complete an exact-diff local review with zero unresolved blockers and
       record verification limitations.
 - [ ] 6.3 Archive the ready change and verify signed/DCO commits, without
       pushing, publishing, releasing, or activating runtime support.

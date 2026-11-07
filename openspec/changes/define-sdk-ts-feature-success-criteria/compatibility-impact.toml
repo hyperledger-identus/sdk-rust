@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 594
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "The change extends the machine-checked TS1 roadmap and exit criteria without changing Rust or TypeScript APIs, wire behavior, dependencies, targets, packages, consumers, or publication state."
+ledger_ids     = [  ]

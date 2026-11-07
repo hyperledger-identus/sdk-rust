@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-11-07
+goal: Turn TS1 into a maintained Rust-versus-TypeScript feature ledger with explicit runtime, E2E, coverage, type-safety, maintainability, and reuse success criteria.

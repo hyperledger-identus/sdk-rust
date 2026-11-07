@@ -12,6 +12,7 @@ from pathlib import Path
 
 MATRIX_PATH = Path("docs/roadmap/sdk-ts-parity-conformance.toml")
 INVENTORY_PATH = Path("docs/architecture/identus-platform-ts-capabilities.toml")
+REPORT_PATH = Path("docs/roadmap/sdk-ts-parity-conformance.md")
 SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 RELATIONS = {
     "semantic-equivalent",
@@ -106,11 +107,30 @@ def load(path: Path, label: str, errors: list[str]) -> dict[str, object]:
         return {}
 
 
+def report_group_rows(report: str, values: set[str], label: str, errors: list[str]) -> dict[str, tuple[int, set[str]]]:
+    observed: dict[str, tuple[int, set[str]]] = {}
+    for line in report.splitlines():
+        match = re.fullmatch(r"\| `([^`]+)` \| ([0-9]+) \| (.+) \|", line)
+        if not match or match.group(1) not in values:
+            continue
+        key, count_text, members_text = match.groups()
+        members = set(re.findall(r"`([^`]+)`", members_text)) if members_text != "none" else set()
+        observed[key] = (int(count_text), members)
+    if set(observed) != values:
+        errors.append(f"report {label} rows differ: missing={sorted(values - set(observed))}")
+    return observed
+
+
 def main() -> int:
     root = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path.cwd().resolve()
     errors: list[str] = []
     matrix = load(root / MATRIX_PATH, str(MATRIX_PATH), errors)
     inventory = load(root / INVENTORY_PATH, str(INVENTORY_PATH), errors)
+    try:
+        report = (root / REPORT_PATH).read_text(encoding="utf-8")
+    except OSError as error:
+        errors.append(f"cannot load {REPORT_PATH}: {error}")
+        report = ""
     if errors:
         print("sdk-ts-parity-conformance: " + "; ".join(errors), file=sys.stderr)
         return 1
@@ -127,8 +147,9 @@ def main() -> int:
         errors.append("TS1 must remain the issue #502 parity program")
     if matrix.get("milestone_number") != 7 or matrix.get("milestone_url") != "https://github.com/hyperledger-identus/sdk-rust/milestone/7":
         errors.append("TS1 must remain bound to GitHub milestone 7")
-    if matrix.get("definition_issue") != 594 or matrix.get("status") != "baseline":
-        errors.append("definition_issue/status must remain 594/baseline")
+    status = matrix.get("status")
+    if matrix.get("definition_issue") != 594 or status not in {"baseline", "active", "complete"}:
+        errors.append("definition_issue must remain 594 and status must be baseline, active, or complete")
 
     source = matrix.get("source")
     inventory_source = inventory.get("source")
@@ -183,6 +204,9 @@ def main() -> int:
         )
 
     counts: Counter[str] = Counter()
+    relation_counts: Counter[str] = Counter()
+    state_members = {state: set() for state in STATES}
+    relation_members = {relation: set() for relation in RELATIONS}
     for index, row in enumerate(rows, start=1):
         identifier = str(row.get("id"))
         prefix = f"capability[{index}] {identifier}"
@@ -198,6 +222,11 @@ def main() -> int:
         if state not in STATES:
             errors.append(f"{prefix}: unknown state {state!r}")
         counts[str(state)] += 1
+        relation_counts[str(relation)] += 1
+        if state in STATES:
+            state_members[str(state)].add(identifier)
+        if relation in RELATIONS:
+            relation_members[str(relation)].add(identifier)
         text(row.get("rationale"), f"{prefix}.rationale", errors)
         required = set(strings(row.get("required_dimensions"), f"{prefix}.required_dimensions", errors))
         if required - DIMENSIONS:
@@ -229,10 +258,21 @@ def main() -> int:
             if "not activated" in str(row.get("next_action", "")).lower():
                 errors.append(f"{prefix}: delivered claim contradicts its next action")
 
-    if not rows or counts["partial"] + counts["blocked"] + counts["not-applicable"] != len(rows):
-        errors.append("baseline must expose every capability as partial, blocked, or not-applicable")
-    if counts["delivered"] or counts["excluded"]:
+    if not rows or sum(counts[state] for state in STATES) != len(rows):
+        errors.append("every capability must have exactly one recognized conformance state")
+    if status == "baseline" and (counts["delivered"] or counts["excluded"]):
         errors.append("baseline must not claim delivered or excluded SDK-TS routes")
+    if status == "complete" and (counts["partial"] or counts["blocked"]):
+        errors.append("complete TS1 status cannot retain partial or blocked capabilities")
+
+    report_states = report_group_rows(report, STATES, "state", errors)
+    report_relations = report_group_rows(report, RELATIONS, "relation", errors)
+    for state in STATES:
+        if report_states.get(state) != (counts[state], state_members[state]):
+            errors.append(f"report state row {state} must match the machine matrix")
+    for relation in RELATIONS:
+        if report_relations.get(relation) != (relation_counts[relation], relation_members[relation]):
+            errors.append(f"report relation row {relation} must match the machine matrix")
 
     if errors:
         for error in errors:

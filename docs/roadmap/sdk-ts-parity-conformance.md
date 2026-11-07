@@ -41,6 +41,8 @@ SDK-TS adapter, consumer, observability, and rollback evidence is complete.
 
 ## Current baseline
 
+### By conformance state
+
 | State | Count | Capability IDs |
 | --- | ---: | --- |
 | `partial` | 14 | `crypto.key-operations`, `crypto.hd-derivation`, `did.syntax`, `did.document`, `did.method.peer`, `did.method.prism`, `did.resolution`, `credentials.jwt-vc`, `credentials.sd-jwt`, `credentials.status`, `openid4vc.issuance-wallet`, `wallet.storage-contracts`, `platform.browser-node-networking`, `bindings.wasm-did` |
@@ -48,6 +50,17 @@ SDK-TS adapter, consumer, observability, and rollback evidence is complete.
 | `not-applicable` | 3 | `wallet.storage-browser`, `platform.typescript-plugin-host`, `platform.npm-packaging` |
 | `delivered` | 0 | none |
 | `excluded` | 0 | none |
+
+### By parity relation
+
+| Relation | Count | Capability IDs |
+| --- | ---: | --- |
+| `semantic-equivalent` | 3 | `did.method.peer`, `messaging.didcomm-application-protocols`, `agent.protocol-state` |
+| `compatible-adapter` | 15 | `crypto.key-operations`, `crypto.hd-derivation`, `did.syntax`, `did.document`, `did.method.prism`, `did.resolution`, `credentials.jwt-vc`, `credentials.anoncreds-v1`, `credentials.status`, `openid4vc.issuance-wallet`, `messaging.didcomm-v2`, `wallet.storage-contracts`, `agent.runtime-orchestration`, `platform.browser-node-networking`, `bindings.wasm-did` |
+| `platform-owned` | 3 | `wallet.storage-browser`, `platform.typescript-plugin-host`, `platform.npm-packaging` |
+| `intentionally-different` | 1 | `credentials.sd-jwt` |
+| `deferred` | 2 | `presentations.exchange`, `wallet.backup-format` |
+| `retired` | 0 | none |
 
 The first activation remains issue #492: an opt-in DID and DID URL facade over
 the existing WASM value surface. It proves the migration mechanism and rollback

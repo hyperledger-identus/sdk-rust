@@ -1,0 +1,369 @@
+schema_version   = 1
+milestone_id     = "TS1"
+milestone_number = 7
+milestone_url    = "https://github.com/hyperledger-identus/sdk-rust/milestone/7"
+title            = "SDK-Rust/SDK-TS capability parity and conformance"
+program_issue    = 502
+definition_issue = 594
+status           = "baseline"
+snapshot_date    = "2026-11-07"
+
+[source]
+inventory = "docs/architecture/identus-platform-ts-capabilities.toml"
+repository = "https://github.com/hyperledger-identus/sdk-ts"
+revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+package = "@hyperledger/identus-sdk"
+version = "8.1.4"
+
+[delivery]
+mode = "local-first-capability-trains"
+target_changed_loc_min = 5000
+target_changed_loc_max = 10000
+target_is_merge_gate = false
+excluded_loc = [ "generated", "vendored", "lockfiles", "evidence-artifacts" ]
+required_contents = [ "implementation", "adapters", "vectors", "migration", "documentation", "tests" ]
+split_conditions = [ "independent-ownership", "security-or-release-authority", "independent-rollback", "unsafe-review-size" ]
+checkpoint_policy = "signed-reviewable-commits-with-targeted-local-gates"
+candidate_policy = "complete-applicable-local-gate-before-push"
+hosted_ci_policy = "mandatory-final-confirmation"
+
+[vocabulary]
+relations = [ "semantic-equivalent", "compatible-adapter", "platform-owned", "intentionally-different", "deferred", "retired" ]
+states = [ "delivered", "partial", "blocked", "excluded", "not-applicable" ]
+dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+
+[[capability]]
+id = "crypto.key-operations"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "Portable key operations are Rust-owned while custody and ergonomic key facades remain host concerns."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations = [ "Secret custody and key-object ergonomics remain TypeScript adapter responsibilities." ]
+evidence = [ "docs/architecture/apollo-parity.toml", "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 415
+next_action = "Select a named SDK-TS key-operation canary and freeze its compatibility adapter."
+consumer = "sdk-ts root API"
+rollback = "Retain the current Apollo route behind the canary boundary."
+non_claims = [ "secret-custody migration", "default SDK-TS activation" ]
+
+[[capability]]
+id = "crypto.hd-derivation"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "Rust owns deterministic derivation semantics; mnemonic sources and custody stay in the host."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations = [ "CIP-0003 applies only where an explicit profile selects it." ]
+evidence = [ "docs/architecture/apollo-parity.toml", "docs/architecture/cross-language-vectors.toml" ]
+owner_issue = 420
+next_action = "Add an SDK-TS derivation adapter over the frozen Rust vectors."
+consumer = "SDK-TS wallet key creation"
+rollback = "Keep the existing TypeScript derivation path selectable."
+non_claims = [ "mnemonic custody migration", "all derivation profiles" ]
+
+[[capability]]
+id = "did.syntax"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "DID and DID URL semantics are mature in Rust, but SDK-TS has not activated the value facade."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "TypeScript constructors and error classes remain compatibility adapters." ]
+evidence = [ "docs/architecture/cross-language-vectors.toml", "docs/architecture/language-adapter-mappings.toml" ]
+owner_issue = 492
+next_action = "Deliver the opt-in DID and DID URL facade canary in SDK-TS."
+consumer = "SDK-TS DID parser facade"
+rollback = "Disable the opt-in Rust-backed facade and retain current parsing."
+non_claims = [ "DID document parity", "default activation" ]
+
+[[capability]]
+id = "did.document"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "The portable DID document model is Rust-owned while TypeScript serialization ergonomics may differ."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+known_deviations = [ "Method-specific extensions remain versioned adapters." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/architecture/cross-language-vectors.toml" ]
+owner_issue = 420
+next_action = "Freeze document DTO mappings after the DID value canary."
+consumer = "SDK-TS DID resolution"
+rollback = "Retain current SDK-TS document projection until mapping evidence passes."
+non_claims = [ "all method extensions", "consumer activation" ]
+
+[[capability]]
+id = "did.method.peer"
+relation = "semantic-equivalent"
+state = "partial"
+rationale = "Selected peer DID profiles require the same deterministic identifiers and documents across SDKs."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+known_deviations = [ "Only explicitly selected numalgo profiles are in scope." ]
+evidence = [ "docs/roadmap/platform-core-adoption-milestones.toml", "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 523
+next_action = "Route a pairwise SDK-TS fixture through the selected Rust peer DID profile."
+consumer = "SDK-TS DIDComm connection fixture"
+rollback = "Keep the TypeScript peer DID implementation selectable during canary."
+non_claims = [ "all peer DID numalgos", "DIDComm engine migration" ]
+
+[[capability]]
+id = "did.method.prism"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "Rust owns portable PRISM method semantics; Cardano effects and runtime policy remain downstream."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations = [ "Cardano observation, submission, persistence, and service composition are not SDK-Rust parity targets." ]
+evidence = [ "https://github.com/hyperledger-identus/neoprism/pull/324", "https://github.com/hyperledger-identus/neoprism/pull/346" ]
+owner_issue = 521
+next_action = "Define the SDK-TS PRISM facade over the proven portable boundary."
+consumer = "NeoPRISM main at merged PR 324"
+rollback = "NeoPRISM retains its compatibility facade and downstream effects."
+non_claims = [ "Cardano client ownership", "SDK-TS activation" ]
+
+[[capability]]
+id = "did.resolution"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "Resolver semantics and HTTP contracts are portable; fetch, cache, and network policy remain injected."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "Browser and Node fetch policy remains platform-owned." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/roadmap/platform-core-adoption-milestones.toml" ]
+owner_issue = 420
+next_action = "Select one SDK-TS resolver canary with explicit host network policy."
+consumer = "SDK-TS credential verification"
+rollback = "Retain the current resolver registry and HTTP proxy route."
+non_claims = [ "unbounded network access", "all DID methods" ]
+
+[[capability]]
+id = "credentials.jwt-vc"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "JWT credential semantics belong in Rust after an exact VC profile is selected; workflows remain host adapters."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+known_deviations = [ "No generic historical JWT VC behavior is normative without a selected profile." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 420
+next_action = "Pin the Identus JWT VC profile and add cross-SDK issuance and verification vectors."
+consumer = "SDK-TS OID4VCI workflow"
+rollback = "Retain the current did-jwt based route until the selected profile passes."
+non_claims = [ "profile selection", "SDK-TS route migration" ]
+
+[[capability]]
+id = "credentials.sd-jwt"
+relation = "intentionally-different"
+state = "partial"
+rationale = "SDK-Rust selects RFC 9901 and draft-22 rather than preserving the donor dependency's historical behavior."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations = [ "dc+sd-jwt is canonical; vc+sd-jwt is only a named-consumer-gated compatibility adapter." ]
+evidence = [ "docs/adr/0193-select-an-identus-owned-sd-jwt-engine.md", "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 568
+next_action = "Complete the selected base/profile train and decide the legacy media-type adapter from consumer evidence."
+consumer = "SDK-TS OEA selective-disclosure workflow"
+rollback = "Keep the existing SDK-TS SD-JWT dependency route until the new profile is opt-in and measured."
+non_claims = [ "legacy media-type equivalence", "default migration" ]
+
+[[capability]]
+id = "credentials.anoncreds-v1"
+relation = "compatible-adapter"
+state = "blocked"
+rationale = "Portable AnonCreds semantics need a qualified engine; VDR, secret, and packaging remain adapters."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "The SDK-TS embedded engine revision is evidence, not an approved SDK-Rust dependency." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 490
+next_action = "Qualify the engine and target matrix before implementing an Identus facade."
+consumer = "Cloud Agent AnonCreds flows"
+rollback = "No route changes until an opt-in engine facade is qualified."
+non_claims = [ "engine approval", "mobile or WASM support" ]
+
+[[capability]]
+id = "credentials.status"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "Status validation is portable while retrieval, caching, and privacy policy remain host-owned."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations = [ "Network retrieval is injected and bounded rather than embedded in the core." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 420
+next_action = "Select the exact status profile and freeze retrieval-port behavior."
+consumer = "SDK-TS presentation verification"
+rollback = "Retain current TypeScript status handlers during the canary."
+non_claims = [ "all revocation formats", "network policy migration" ]
+
+[[capability]]
+id = "presentations.exchange"
+relation = "deferred"
+state = "blocked"
+rationale = "The exact Presentation Exchange version and its overlap with DCQL remain unresolved."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "consumer-proof", "rollback" ]
+known_deviations = [ "No parity target is selected until Presentation Exchange versus DCQL ownership is decided." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 494
+next_action = "Choose the protocol/version boundary before scheduling implementation."
+consumer = "SDK-TS credential presentation flow"
+rollback = "No migration is activated while the target remains deferred."
+non_claims = [ "Presentation Exchange version", "DCQL replacement" ]
+
+[[capability]]
+id = "openid4vc.issuance-wallet"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "SDK-Rust owns the Final-spec bounded protocol core; browser redirects, callbacks, fetch, and consent stay in TypeScript."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "Rust Final-spec behavior supersedes older donor-flow semantics." ]
+evidence = [ "docs/conformance/oid4vci-1.0.toml", "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 502
+next_action = "Define an SDK-TS wallet flow adapter and browser/Node canary over the Final core."
+consumer = "SDK-TS OIDC plugin"
+rollback = "Keep the existing TypeScript OIDC route selectable per flow."
+non_claims = [ "browser consent migration", "default route switch" ]
+
+[[capability]]
+id = "messaging.didcomm-v2"
+relation = "compatible-adapter"
+state = "blocked"
+rationale = "DIDComm v2.1 needs a qualified Rust engine behind Identus resolver, secret, and transport ports."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "The SDK-TS embedded fork is not an approved SDK-Rust dependency." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 491
+next_action = "Complete the engine/facade qualification and exact target decision."
+consumer = "Existing Mediator endpoint"
+rollback = "No SDK-TS route changes before a qualified opt-in engine exists."
+non_claims = [ "engine selection", "application protocol migration" ]
+
+[[capability]]
+id = "messaging.didcomm-application-protocols"
+relation = "semantic-equivalent"
+state = "blocked"
+rationale = "Protocol messages and deterministic state must match selected PIURI/version/role contracts across hosts."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+known_deviations = [ "Product workflow, consent, and lifecycle remain host effects." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/roadmap/platform-core-adoption-milestones.toml" ]
+owner_issue = 500
+next_action = "Create the versioned protocol catalog after DIDComm engine and agent-kernel prerequisites."
+consumer = "Cloud Agent and Mediator deployments"
+rollback = "Keep existing TypeScript protocol tasks until each bounded state machine passes E2E."
+non_claims = [ "all DIDComm protocols", "product workflow ownership" ]
+
+[[capability]]
+id = "wallet.storage-contracts"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "Portable repository contracts belong in Rust while concrete browser storage and migrations stay platform-specific."
+required_dimensions = [ "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "Rust contracts do not mandate RIDB or a browser database." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 420
+next_action = "Select one credential repository canary and freeze the storage adapter mapping."
+consumer = "SDK-TS agent repositories"
+rollback = "Retain the existing Pluto repository implementation behind the adapter."
+non_claims = [ "browser database replacement", "data migration" ]
+
+[[capability]]
+id = "wallet.storage-browser"
+relation = "platform-owned"
+state = "not-applicable"
+rationale = "Browser persistence, schema upgrades, quotas, and lifecycle are TypeScript platform responsibilities."
+required_dimensions = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "No duplicate Rust browser database implementation is planned." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 502
+next_action = "Document the Rust storage-port boundary and retain browser implementation ownership."
+consumer = "SDK-TS browser wallet"
+rollback = "Browser storage remains unchanged."
+non_claims = [ "Rust browser database", "storage engine replacement" ]
+
+[[capability]]
+id = "wallet.backup-format"
+relation = "deferred"
+state = "blocked"
+rationale = "Backup scope, encryption, compatibility, and product recovery policy need a separate decision."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "resource-security", "consumer-proof", "rollback" ]
+known_deviations = [ "No parity target exists until format and recovery ownership are accepted." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 495
+next_action = "Define the backup threat model and versioned format before implementation."
+consumer = "SDK-TS wallet recovery"
+rollback = "No migration is activated while the target is deferred."
+non_claims = [ "backup standard", "recovery compatibility" ]
+
+[[capability]]
+id = "agent.protocol-state"
+relation = "semantic-equivalent"
+state = "blocked"
+rationale = "Portable protocol transitions must be deterministic across reference, native, and WASM-shaped executors."
+required_dimensions = [ "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "Host effects and scheduling are outside deterministic transition semantics." ]
+evidence = [ "docs/roadmap/platform-core-adoption-milestones.toml" ]
+owner_issue = 500
+next_action = "Prove the agent kernel boundary with two unrelated consumer protocols."
+consumer = "SDK-TS DIDComm protocol tasks"
+rollback = "Keep existing protocol task state until per-protocol canaries pass."
+non_claims = [ "product agent framework", "mandatory async runtime" ]
+
+[[capability]]
+id = "agent.runtime-orchestration"
+relation = "compatible-adapter"
+state = "blocked"
+rationale = "Rust owns deterministic events, transitions, and typed effects; TypeScript owns host scheduling and lifecycle."
+required_dimensions = [ "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "Product lifecycle, consent, telemetry, and scheduling remain platform effects." ]
+evidence = [ "docs/roadmap/platform-core-adoption-milestones.toml" ]
+owner_issue = 498
+next_action = "Build the bounded reference executor and native/WASM-shaped fixture."
+consumer = "SDK-TS agent host"
+rollback = "Retain current TypeScript orchestration during opt-in canaries."
+non_claims = [ "product agent replacement", "Tokio requirement" ]
+
+[[capability]]
+id = "platform.typescript-plugin-host"
+relation = "platform-owned"
+state = "not-applicable"
+rationale = "Plugin loading, permissions, UI, consent, and product lifecycle are inherently TypeScript host concerns."
+required_dimensions = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "Portable protocol semantics may move below the host, but the plugin host itself does not." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 502
+next_action = "Keep the plugin host thin and prevent duplication of migrated portable semantics."
+consumer = "SDK-TS internal plugins"
+rollback = "Plugin hosting remains unchanged."
+non_claims = [ "Rust plugin host", "UI or consent migration" ]
+
+[[capability]]
+id = "platform.browser-node-networking"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "Portable request/response contracts may be Rust-owned while browser and Node transports remain host adapters."
+required_dimensions = [ "rust-contract", "adapter-mapping", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "Fetch, redirects, proxies, cancellation wiring, and credential policy differ by host." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 499
+next_action = "Decide browser and Node transport boundaries per selected canary."
+consumer = "SDK-TS browser and Node runtimes"
+rollback = "Keep current fetch adapters selectable per runtime."
+non_claims = [ "one transport for every target", "implicit React Native support" ]
+
+[[capability]]
+id = "platform.npm-packaging"
+relation = "platform-owned"
+state = "not-applicable"
+rationale = "npm packaging, bundler exports, source maps, and JavaScript ergonomics remain SDK-TS responsibilities."
+required_dimensions = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "Rust artifacts may be inputs, but npm distribution is not reproduced in Cargo." ]
+evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue = 502
+next_action = "Define package and bundler evidence for each activated binding surface."
+consumer = "@hyperledger/identus-sdk consumers"
+rollback = "Retain the current npm package surface during opt-in activation."
+non_claims = [ "npm replacement", "all bundlers supported" ]
+
+[[capability]]
+id = "bindings.wasm-did"
+relation = "compatible-adapter"
+state = "partial"
+rationale = "The WASM DID value surface exists, but SDK-TS still needs an opt-in facade, package evidence, and rollback proof."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations = [ "WASM DTOs and JavaScript errors are adapters, not the canonical domain model." ]
+evidence = [ "docs/architecture/language-adapter-mappings.toml", "docs/architecture/cross-language-vectors.toml" ]
+owner_issue = 492
+next_action = "Complete the SDK-TS DID facade package/image canary and rollback packet."
+consumer = "SDK-TS DID syntax canary"
+rollback = "Disable the Rust-backed facade and restore the existing TypeScript parser route."
+non_claims = [ "all DID bindings", "default SDK-TS activation" ]

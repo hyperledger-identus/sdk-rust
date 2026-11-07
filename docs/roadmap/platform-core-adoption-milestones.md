@@ -5,6 +5,9 @@
 **Machine record:**
 [`platform-core-adoption-milestones.toml`](platform-core-adoption-milestones.toml)
 
+**Cross-language parity milestone:**
+[`sdk-ts-parity-conformance.md`](sdk-ts-parity-conformance.md)
+
 **Architecture:** ADRs [0170](../adr/0170-make-rust-contracts-canonical-and-language-adapters-transitional.md),
 [0171](../adr/0171-own-a-portable-effect-driven-agent-runtime.md),
 [0172](../adr/0172-version-didcomm-engine-and-application-protocols-separately.md),
@@ -50,6 +53,7 @@ cannot skip a predecessor contract or proof.
 | A7 | Host/language adapters: browser/Node networking decision, WASM/UniFFI surfaces, and thin TypeScript/Swift hosts | #499, #492 | named browser, Node, iOS, and Android canaries pass only for explicitly selected targets |
 | A8 | Language SDK adoption: SDK-TS first, SDK-Swift deviation/parity second, SDK-KMP compatibility last | #502, #421, #416 | released-language APIs route selected capabilities through Rust with measured fallback and deprecation evidence |
 | A9 | Composable reference services from public SDK primitives | #418, #419 | operational, persistence/migration, tenancy, QoS, consumer, and rollback parity supports a separate deprecation decision |
+| TS1 | Cross-cutting SDK-Rust/SDK-TS capability parity and conformance; advances per normalized capability after A1 rather than waiting for all A2–A7 work | #594, #502; first canary #492 | every capability is delivered, explicitly excluded/not applicable, or moved to an accepted later milestone with no misleading parity claim |
 
 ## Dependency flow
 
@@ -83,6 +87,10 @@ A1 shared evidence ───────────────┐
 The diagram shows adoption dependencies, not a ban on parallel research. A3
 can progress beside A2/A4. A7 adapter research can start early, but a target
 support claim waits for the capabilities it exposes.
+
+TS1 is cross-cutting rather than A10. It starts from the completed A1 evidence
+foundation and advances each capability only when its actual A2–A7 Rust,
+binding, profile, target, and consumer prerequisites are present.
 
 ## Deliverable decomposition
 
@@ -177,15 +185,22 @@ build reference services from public SDK crates and explicit adapters. Service
 deprecation needs a separate decision after protocol, persistence/migration,
 tenancy, deployment, operations, security, QoS, consumer, and rollback parity.
 
-## Immediate sequence after A0
+## Current sequence after A1
 
-The next implementation milestone should be A1, not peer DID or the agent
-runtime directly. It creates the shared vector and adapter evidence every
-later adoption slice needs. Within A1, use the existing bounded Rust DID values
-as the first concrete packet. Keep #492 as the first downstream SDK-TS adoption
-proof, blocked by all four A1 contracts. In parallel, research-only work may
-continue on issues #489, #491, #493, #498, and #499 without activating
-dependencies or APIs.
+A0 and A1 are complete. A2 is in progress: the portable DID implementation,
+exact-revision slow evidence, and NeoPRISM adoption are delivered, while #492
+remains the first SDK-TS activation proof. TS1 now records the intended parity
+relation and actual conformance state for all 24 normalized capabilities. It
+does not wait for every A2–A7 capability and it does not start mdoc.
+
+Implementation should use local-first capability trains: one cohesive
+capability or tightly coupled cluster normally targets 5,000–10,000 meaningful
+changed lines including implementation, adapters, vectors, migration, docs,
+and tests. Generated/vendor/lockfile/evidence churn does not count, and work is
+split for independent ownership, authority, rollback, or unsafe review size.
+Signed internal checkpoints run targeted local checks; the assembled candidate
+passes the complete applicable local gate before push. Protected hosted CI is
+still mandatory final confirmation, not the primary discovery loop.
 
 ## Non-claims
 

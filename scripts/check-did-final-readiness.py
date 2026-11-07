@@ -12,7 +12,7 @@ from typing import Any
 
 MANIFEST = Path("docs/release/did-candidate-readiness.toml")
 PAGE = Path("site/src/did-candidate-readiness.md")
-EXPECTED_PAGE_SHA256 = "61d47fd322c077c5885990819e348ce643c08e2f47a82517ac6f8d1d2c458919"
+EXPECTED_PAGE_SHA256 = "1c15269ae6aa8f99e03ad56ba9ef0e61cc7ab005790715d6db45ad837a0f8e97"
 EXPECTED_TOP_LEVEL_KEYS = {
     "schema_version",
     "candidate",
@@ -25,6 +25,7 @@ EXPECTED_TOP_LEVEL_KEYS = {
     "limitations",
     "identity",
     "evidence",
+    "authorization",
     "historical_failed_slow",
     "downstream",
 }
@@ -34,7 +35,7 @@ EXPECTED_LIMITATIONS = [
     "No stable API, certification, vulnerability-free, or production-readiness claim.",
     "Portable targets are compile-checked only for identus-did; identus-did-resolver-http remains host-only.",
     "NeoPRISM evidence is source-pinned downstream compatibility evidence, not SDK-owned Cardano or runtime support.",
-    "Independent approval cannot be self-issued by the implementing agent.",
+    "Human review applies to the code diff, acceptance behavior, evidence limits, and retained ownership boundary; opaque receipt hashes are identifiers, not review content.",
 ]
 EXPECTED_IDENTITY = {
     "descriptor": "docs/release/did-candidate.toml",
@@ -42,8 +43,8 @@ EXPECTED_IDENTITY = {
     "staged_lock": "docs/release/did-candidate.lock",
     "staged_lock_sha256": "f7535a6819c9b9e4474c95b427b54646d46ccac51703c680086ef75c790fba4f",
     "reserved_tag": "identus-did-v0.1.0-rc.1",
-    "protected_base_revision": "34420235103fe9dc599aa061047525c459d422cf",
-    "merge_revision": "pending-protected-merge",
+    "protected_base_revision": "c429ac494a6eaeb2e22c0b38a5b1d70c0eb6ff62",
+    "merge_revision": "c429ac494a6eaeb2e22c0b38a5b1d70c0eb6ff62",
     "did_api_sha256": "5c985cd2d3f26c07230ace1086d7a178662a4f583d0086574ac9baa6a00be639",
     "resolver_api_sha256": "9c432f0d0c3d5db92da3aa88aed05164aa2adf483c11be84b9239c9973179df6",
     "did_archive_sha256": "7736e445ffce327fae19a55c7b8b7adf38887f93f56aba4a9a804d18d765fb68",
@@ -51,6 +52,8 @@ EXPECTED_IDENTITY = {
     "did_sbom_sha256": "d0e0976fa6d96918d59202cd173c4162459f19b253120c41fce3058e5c59d109",
     "resolver_sbom_sha256": "fbaa3985eacf2c89649799c1a33effeb2b521aa21c5ec92ff70444a6afb126d6",
     "api_origin_receipt": "docs/release/did-api-origin-rebaseline.toml",
+    "slow_receipt_sha256": "b8b4cb25793776c5e01a0752fd3ca6b3b09ae1554829821425b2a663288bc14d",
+    "did_matrix_sha256": "d1cb0f8c55b08bc89100a0401ca348b1f8167c8117c0be39ba96ca48e50187c4",
 }
 EXPECTED_EVIDENCE = {
     "train-identity": {
@@ -70,13 +73,26 @@ EXPECTED_EVIDENCE = {
         "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/387",
     },
     "exact-revision-slow": {
-        "status": "pending",
-        "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/388",
+        "status": "complete",
+        "uri": "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40888621367",
     },
-    "independent-approval": {
-        "status": "pending",
-        "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/388",
+    "downstream-adoption": {
+        "status": "complete",
+        "uri": "https://github.com/hyperledger-identus/neoprism/pull/324",
     },
+    "publication-authority": {
+        "status": "pending",
+        "uri": "https://github.com/hyperledger-identus/sdk-rust/issues/344",
+    },
+}
+EXPECTED_AUTHORIZATION = {
+    "engineering_qualification": "complete",
+    "publication": "blocked-explicit-human-authority",
+    "stable_api": False,
+    "main_promotion": False,
+    "release_tag": False,
+    "registry_publication": False,
+    "owner_issue": "https://github.com/hyperledger-identus/sdk-rust/issues/344",
 }
 EXPECTED_SLOW = {
     "status": "failed",
@@ -85,7 +101,7 @@ EXPECTED_SLOW = {
     "run_uri": "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503",
     "failing_lane": "slow (macos-latest)",
     "cause": "RUSTSEC-2026-0374 classified build-time basic-toml 0.1.10 as unmaintained",
-    "resolution": "Issue #564 and ADR 0191 added a narrow exact-path acceptance with machine-checked expiry; a fresh complete run is still required.",
+    "resolution": "Issue #564 and ADR 0191 added a narrow exact-path acceptance with machine-checked expiry; exact protected run 40888621367 later passed all eleven jobs on attempt 1.",
 }
 EXPECTED_DOWNSTREAM = {
     "consumer": "hyperledger-identus/neoprism",
@@ -98,9 +114,13 @@ EXPECTED_DOWNSTREAM = {
     "comparison_slot": 10723321,
     "semantic_result": "pass",
     "qos_class": "diagnostic",
+    "adoption_status": "merged",
+    "pinned_sdk_revision": "c429ac494a6eaeb2e22c0b38a5b1d70c0eb6ff62",
+    "adoption_merge_revision": "41b7f1991a2665c3cb9d0d994d861f9a32f07727",
 }
 PAGE_IDENTITY_ROWS = (
     f"| Protected evidence base | `{EXPECTED_IDENTITY['protected_base_revision']}` |",
+    f"| Protected merge revision | `{EXPECTED_IDENTITY['merge_revision']}` |",
     f"| Staged lock SHA-256 | `{EXPECTED_IDENTITY['staged_lock_sha256']}` |",
     f"| `identus-did` API SHA-256 | `{EXPECTED_IDENTITY['did_api_sha256']}` |",
     f"| Resolver API SHA-256 | `{EXPECTED_IDENTITY['resolver_api_sha256']}` |",
@@ -111,17 +131,22 @@ PAGE_IDENTITY_ROWS = (
     f"`{EXPECTED_IDENTITY['did_sbom_sha256']}` / "
     f"`{EXPECTED_IDENTITY['resolver_sbom_sha256']}` |",
     f"| Reserved future tag | `{EXPECTED_IDENTITY['reserved_tag']}` |",
+    f"| Slow receipt SHA-256 | `{EXPECTED_IDENTITY['slow_receipt_sha256']}` |",
+    f"| DID matrix SHA-256 | `{EXPECTED_IDENTITY['did_matrix_sha256']}` |",
 )
 PAGE_EVIDENCE_ROWS = {
     "train-identity": "| Independent train identity and deterministic archives | Complete | [#382](https://github.com/hyperledger-identus/sdk-rust/issues/382), ADR 0153 |",
     "api-and-sbom": "| Public API origins and normalized CycloneDX | Complete | [PR #584](https://github.com/hyperledger-identus/sdk-rust/pull/584), [factory receipt](https://github.com/hyperledger-identus/sdk-rust/pull/584#issuecomment-6493993716), ADR 0154 |",
     "documentation": "| Engineer handbook and source-adoption guidance | Complete | [#386](https://github.com/hyperledger-identus/sdk-rust/issues/386) |",
     "compiler-target-matrix": "| Linux/macOS primary + MSRV and package-specific portable targets | Complete | [#387](https://github.com/hyperledger-identus/sdk-rust/issues/387), ADR 0155 |",
-    "exact-revision-slow": "| Exact protected-revision slow evidence | Pending | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |",
-    "independent-approval": "| Independent exact-receipt approval | Pending | [#388](https://github.com/hyperledger-identus/sdk-rust/issues/388) |",
+    "exact-revision-slow": "| Exact protected-revision slow evidence | Complete; 11 jobs passed on attempt 1 | [run 40888621367](https://github.com/hyperledger-identus/sdk-rust/actions/runs/40888621367), [receipt packet](https://github.com/hyperledger-identus/sdk-rust/issues/388#issuecomment-6500723610) |",
+    "downstream-adoption": "| Downstream source-pinned adoption | Complete | [NeoPRISM PR #324](https://github.com/hyperledger-identus/neoprism/pull/324) |",
+    "publication-authority": "| Publication authority | Pending and separate from engineering review | [#344](https://github.com/hyperledger-identus/sdk-rust/issues/344) |",
 }
 REQUIRED_PAGE_TEXT = (
-    "pending an exact-protected-revision slow run and independent",
+    "engineering qualification complete; publication blocked on",
+    "Opaque receipt hashes are identifiers, not review content",
+    "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40888621367",
     "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40260649503",
     "https://github.com/hyperledger-identus/sdk-rust/pull/584#issuecomment-6493993716",
     "https://github.com/hyperledger-identus/neoprism/pull/324",
@@ -154,7 +179,7 @@ def check(root: Path) -> list[str]:
         "candidate": "identus-did-0.1.0-rc.1",
         "version": "0.1.0-rc.1",
         "lifecycle": "candidate-only",
-        "status": "pending-exact-slow-and-independent-approval",
+        "status": "engineering-qualified-publication-blocked",
         "coordinator": "https://github.com/hyperledger-identus/sdk-rust/issues/381",
         "delivery_issue": "https://github.com/hyperledger-identus/sdk-rust/issues/388",
         "packages": EXPECTED_PACKAGES,
@@ -191,6 +216,9 @@ def check(root: Path) -> list[str]:
             }
     if observed != EXPECTED_EVIDENCE:
         failures.append(f"{MANIFEST}: evidence matrix must equal {EXPECTED_EVIDENCE!r}")
+
+    if manifest.get("authorization") != EXPECTED_AUTHORIZATION:
+        failures.append(f"{MANIFEST}: authorization must keep engineering qualification separate from publication authority")
 
     slow = manifest.get("historical_failed_slow", {})
     if slow != EXPECTED_SLOW:
@@ -236,7 +264,7 @@ def main() -> int:
     if failures:
         print(f"did-final-readiness: {len(failures)} failure(s)", file=sys.stderr)
         return 1
-    print("did-final-readiness: pending packet contract passed (6 evidence classes)")
+    print("did-final-readiness: qualified packet contract passed (7 evidence classes; publication blocked)")
     return 0
 
 

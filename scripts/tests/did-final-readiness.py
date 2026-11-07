@@ -39,12 +39,12 @@ class ReadinessContractTests(unittest.TestCase):
         result = self.run_checker(ROOT)
         self.assertEqual(result.returncode, 0, result.stderr)
 
-    def test_premature_completion_fails(self) -> None:
+    def test_engineering_qualification_cannot_claim_publication(self) -> None:
         root = self.fixture()
         path = root / FILES[0]
         path.write_text(
             path.read_text(encoding="utf-8").replace(
-                'status         = "pending-exact-slow-and-independent-approval"',
+                'status         = "engineering-qualified-publication-blocked"',
                 'status         = "complete"',
             ),
             encoding="utf-8",
@@ -52,6 +52,34 @@ class ReadinessContractTests(unittest.TestCase):
         result = self.run_checker(root)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("status must be", result.stderr)
+
+    def test_publication_authority_cannot_be_self_completed(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                'publication               = "blocked-explicit-human-authority"',
+                'publication               = "complete"',
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("publication authority", result.stderr)
+
+    def test_exact_successful_slow_run_cannot_drift(self) -> None:
+        root = self.fixture()
+        path = root / FILES[0]
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40888621367",
+                "https://example.invalid/successful-slow",
+            ),
+            encoding="utf-8",
+        )
+        result = self.run_checker(root)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("evidence matrix must equal", result.stderr)
 
     def test_delivery_issue_cannot_drift(self) -> None:
         root = self.fixture()

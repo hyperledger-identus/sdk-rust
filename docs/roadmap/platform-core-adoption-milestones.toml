@@ -8,7 +8,7 @@ quality_classes = [ "property", "fuzz", "benchmark", "differential" ]
 [[milestone]]
 id                = "A0"
 title             = "contract correction"
-state             = "in-progress"
+state             = "complete"
 owner_issue       = 497
 supporting_issues = [  ]
 depends_on        = [  ]
@@ -21,7 +21,7 @@ non_claims        = [ "feature implementation", "dependency adoption", "target s
 [[milestone]]
 id                = "A1"
 title             = "shared compatibility foundation"
-state             = "planned"
+state             = "complete"
 owner_issue       = 504
 supporting_issues = [ 420, 422, 501, 505 ]
 depends_on        = [ "A0" ]
@@ -34,7 +34,7 @@ non_claims        = [ "all future vectors complete", "SDK-TS default switch", "b
 [[milestone]]
 id                = "A2"
 title             = "portable DID platform"
-state             = "planned"
+state             = "in-progress"
 owner_issue       = 493
 supporting_issues = [ 420, 492, 501, 524, 521, 522, 523 ]
 depends_on        = [ "A1" ]

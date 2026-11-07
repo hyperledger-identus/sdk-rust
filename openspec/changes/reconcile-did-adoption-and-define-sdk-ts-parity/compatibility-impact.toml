@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 594
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "The change reconciles evidence and defines a machine-checked cross-language parity roadmap without changing Rust or TypeScript APIs, wire behavior, dependencies, targets, packages, consumers, or publication state."
+ledger_ids     = [  ]

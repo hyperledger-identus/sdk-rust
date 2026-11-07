@@ -30,7 +30,7 @@
       documentation checks plus complete factory structural evidence.
 - [x] 3.2 Complete exact-diff architecture/specification review with zero
       unresolved blockers and record verification limitations.
-- [ ] 3.3 Archive the ready change, verify signed/DCO commits, and hand the
+- [x] 3.3 Archive the ready change, verify signed/DCO commits, and hand the
       issue-linked branch to protected PR/CI without publishing or releasing.
 
 ## 4. Success-criteria planning
@@ -66,5 +66,5 @@
       complete factory structural checks.
 - [x] 6.2 Complete an exact-diff local review with zero unresolved blockers and
       record verification limitations.
-- [ ] 6.3 Archive the ready change and verify signed/DCO commits, without
+- [x] 6.3 Archive the ready change and verify signed/DCO commits, without
       pushing, publishing, releasing, or activating runtime support.

@@ -40,6 +40,40 @@ def mutate_first_target_state(value: str, target: str, state: str) -> str:
     return replace_regex_once(value, pattern, rf'\1"{state}"')
 
 
+def complete_without_receipts(matrix: str, report: str) -> tuple[str, str]:
+    prefix, capabilities = matrix.split("[[capability]]", 1)
+    capabilities = re.sub(r'(?m)^state = "(?:partial|blocked)"$', 'state = "excluded"', capabilities)
+    capabilities = re.sub(
+        r'(?m)^target_states = \{.*\}$',
+        lambda match: re.sub(r'"(?:partial|blocked)"', '"excluded"', match.group(0)),
+        capabilities,
+    )
+    mutated_matrix = replace_once(prefix + "[[capability]]" + capabilities, 'status           = "baseline"', 'status           = "complete"')
+
+    state_rows = {}
+    for state in ("partial", "blocked"):
+        match = re.search(rf'^\| `{state}` \| [0-9]+ \| (.+) \|$', report, flags=re.MULTILINE)
+        if match is None:
+            raise AssertionError(f"missing report state row {state}")
+        state_rows[state] = match.group(0)
+    members = re.findall(r'`([^`]+)`', state_rows["partial"] + state_rows["blocked"])
+    members = [member for member in members if member not in {"partial", "blocked"}]
+    mutated_report = replace_once(report, "matrix status = `baseline`", "matrix status = `complete`")
+    mutated_report = replace_once(mutated_report, state_rows["partial"], "| `partial` | 0 | none |")
+    mutated_report = replace_once(mutated_report, state_rows["blocked"], "| `blocked` | 0 | none |")
+    mutated_report = replace_once(
+        mutated_report,
+        "| `excluded` | 0 | none |",
+        f"| `excluded` | {len(members)} | " + ", ".join(f"`{member}`" for member in members) + " |",
+    )
+    start = "<!-- feature-comparison:start -->"
+    end = "<!-- feature-comparison:end -->"
+    before, remainder = mutated_report.split(start, 1)
+    feature, after = remainder.split(end, 1)
+    feature = re.sub(r'=(?:partial|blocked)', "=excluded", feature)
+    return mutated_matrix, before + start + feature + end + after
+
+
 def run(matrix: str, inventory: str, report: str, should_pass: bool) -> None:
     with tempfile.TemporaryDirectory(prefix="sdk-ts-parity-") as temporary:
         root = Path(temporary)
@@ -118,6 +152,16 @@ def main() -> None:
     run(
         replace_once(
             matrix,
+            'selected_terminal = "only-success-satisfies-selected-job; failure-cancelled-skipped-timed-out-or-missing-blocks"',
+            'selected_terminal = "skipped-selected-jobs-are-acceptable"',
+        ),
+        inventory,
+        report,
+        False,
+    )
+    run(
+        replace_once(
+            matrix,
             'legacy_public_names = [ "apollo", "castor", "mercury", "pluto", "pollux", "edge-agent" ]',
             'legacy_public_names = [ "apollo", "castor", "mercury", "pluto", "pollux" ]',
         ),
@@ -146,8 +190,26 @@ def main() -> None:
         report,
         False,
     )
+    sc_contradiction = "Historical component names are allowed in new public exports."
+    sc_matrix = replace_once(
+        matrix,
+        "New public exports, package paths, and primary documentation use capability or standards names and contain none of the closed legacy-public-name vocabulary.",
+        sc_contradiction,
+    )
+    sc_report = replace_once(
+        report,
+        "New public exports, package paths, and primary documentation use capability or standards names and contain none of the closed legacy-public-name vocabulary.",
+        sc_contradiction,
+    )
+    run(sc_matrix, inventory, sc_report, False)
     run(mutate_first_target_state(matrix, "browser", "not-applicable"), inventory, report, False)
     run(mutate_first_target_state(matrix, "browser", "unknown"), inventory, report, False)
+    run(
+        replace_regex_once(matrix, r'(?m)^missing_proof\s*=\s*"[^"]+"$', 'missing_proof = "none"'),
+        inventory,
+        report,
+        False,
+    )
     run(
         replace_regex_once(
             matrix,
@@ -189,8 +251,34 @@ def main() -> None:
         False,
     )
     active = replace_once(matrix, 'status           = "baseline"', 'status           = "active"')
-    run(active, inventory, report, True)
-    run(replace_once(matrix, 'status           = "baseline"', 'status           = "complete"'), inventory, report, False)
+    active_report = replace_once(report, "matrix status = `baseline`", "matrix status = `active`")
+    run(active, inventory, active_report, True)
+    complete = replace_once(matrix, 'status           = "baseline"', 'status           = "complete"')
+    complete_report = replace_once(report, "matrix status = `baseline`", "matrix status = `complete`")
+    run(complete, inventory, complete_report, False)
+    receiptless_complete, receiptless_complete_report = complete_without_receipts(matrix, report)
+    run(receiptless_complete, inventory, receiptless_complete_report, False)
+    excluded = replace_once(
+        active,
+        'id = "crypto.key-operations"\nrelation = "compatible-adapter"\nstate = "partial"',
+        'id = "crypto.key-operations"\nrelation = "compatible-adapter"\nstate = "excluded"',
+    )
+    excluded_report = replace_once(active_report, "| `partial` | 14 | `crypto.key-operations`, ", "| `partial` | 13 | ")
+    excluded_report = replace_once(excluded_report, "| `excluded` | 0 | none |", "| `excluded` | 1 | `crypto.key-operations` |")
+    run(excluded, inventory, excluded_report, False)
+
+    run(
+        matrix,
+        inventory,
+        replace_once(report, "browser ESM WASM package", "contradictory browser artifact"),
+        False,
+    )
+    run(
+        matrix,
+        inventory,
+        replace_once(report, "Capability-oriented TypeScript contract", "Legacy-shaped TypeScript contract"),
+        False,
+    )
     feature_start = "<!-- feature-comparison:start -->"
     feature_end = "<!-- feature-comparison:end -->"
     feature_section = report.split(feature_start, 1)[1].split(feature_end, 1)[0]
@@ -203,9 +291,15 @@ def main() -> None:
     if not data_lines:
         raise AssertionError("feature-comparison table contains no data rows")
     run(matrix, inventory, replace_once(report, data_lines[0] + "\n", ""), False)
+    run(
+        matrix,
+        inventory,
+        replace_once(report, "delivered capabilities = 0", "delivered capabilities = 1"),
+        False,
+    )
     cells = [cell.strip() for cell in data_lines[0][1:-1].split("|")]
-    if len(cells) != 6:
-        raise AssertionError("feature-comparison table data row must contain six cells")
+    if len(cells) != 8:
+        raise AssertionError("feature-comparison table data row must contain eight cells")
     drifted = data_lines[0].replace(cells[1], cells[1] + " (drift)", 1)
     run(matrix, inventory, replace_once(report, data_lines[0], drifted), False)
     print("sdk-ts-parity-conformance-tests: mutation suite passed")

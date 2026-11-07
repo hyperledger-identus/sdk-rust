@@ -161,7 +161,10 @@ requires an owner, rationale, review/expiry trigger, and reconsideration rule.
 Property, fuzz, benchmark, and differential obligations reference stable
 quality-evidence declaration IDs rather than duplicating commands in prose.
 The checker rejects missing IDs, target references, empty evidence, forbidden
-legacy exported names, and a success claim without complete criteria.
+legacy exported names, and a success claim without complete criteria. Schema
+version 2 has no executable success-receipt records, so it rejects milestone
+status `complete`; a later reviewed schema must bind SC-01 through SC-09 to
+immutable evidence before completion can be represented.
 
 ### E2E applicability ledger
 

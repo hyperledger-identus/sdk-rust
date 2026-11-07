@@ -99,6 +99,80 @@ SUCCESS_CRITERION_KEYS = {
     "non_claims",
 }
 SUCCESS_CRITERIA = tuple(f"SC-{number:02d}" for number in range(1, 10))
+SUCCESS_CRITERIA_CONTRACT = {
+    "SC-01": (
+        "Capability-oriented TypeScript contract",
+        "New public exports, package paths, and primary documentation use capability or standards names and contain none of the closed legacy-public-name vocabulary.",
+        ("public API and package-export snapshot", "case-insensitive legacy-name guard", "migration-only exception inventory"),
+        "all new Rust-backed TypeScript public surfaces",
+        "No exemption for new public names; donor-history and private legacy providers are outside the public scan.",
+        ("identical Rust and TypeScript API shapes", "removal of private legacy providers"),
+    ),
+    "SC-02": (
+        "Target-specific build and runtime proof",
+        "Every claimed target has delivered build, artifact, loader, package, consumer E2E, resource, budget, and rollback evidence for its pinned runtime matrix.",
+        ("target record", "exact artifact identity", "consumer fixture", "accepted target budget", "rollback rehearsal"),
+        "each applicable target of a delivered capability",
+        "Requires owner, rationale, review or expiry trigger, and reconsideration rule in the capability record.",
+        ("cross-target inference", "support from compile-only evidence"),
+    ),
+    "SC-03": (
+        "Applicable SDK-TS E2E reuse",
+        "Every discovered donor E2E test is ledgered and each shared journey runs one TypeScript assertion body against legacy and Rust-backed private providers on every applicable target.",
+        ("donor revision path suite test ID and content hash", "discovered-count equality", "disposition and authority", "no unledgered skip focus or quarantine"),
+        "all SDK-TS E2E tests discovered from the pinned donor revision",
+        "Only adapted, platform-owned, superseded, or excluded with owner, rationale, replacement evidence, and reconsideration trigger.",
+        ("all donor behavior is normative", "unchanged execution for superseded profiles"),
+    ),
+    "SC-04": (
+        "Rust evidence for additions and deviations",
+        "Additional or intentionally different portable behavior has Rust-owned normative, negative, resource-bound, and E2E or conformance evidence plus applicable quality-evidence dispositions.",
+        ("rust-addition or rust-deviation ledger", "selected profile", "negative and boundary tests", "TypeScript boundary smoke"),
+        "every Rust addition or deviation from the donor journey",
+        "Requires a stable quality-evidence declaration or owner, rationale, review trigger, and reconsideration rule per evidence class.",
+        ("TypeScript regressions define Rust semantics", "coverage alone establishes authority"),
+    ),
+    "SC-05": (
+        "Coverage and public-operation exercise",
+        "Every owned public operation maps to contract or E2E evidence; owned changed executable code reaches at least 80 percent line and 70 percent branch coverage where reliable and never regresses below a higher established package baseline.",
+        ("public-operation inventory", "pinned tool version", "base head numerator denominator target and profile", "coverage artifact", "condition mutation and negative evidence where branch coverage is unavailable"),
+        "owned changed executable Rust and TypeScript adapter code",
+        "Unsupported measures require an owner, tool limitation, strongest alternative evidence, and reconsideration trigger; invented percentages are forbidden.",
+        ("coverage proves conformance", "lowering an established higher baseline"),
+    ),
+    "SC-06": (
+        "Type-safe and validated boundary",
+        "Pinned strict TypeScript declarations expose no explicit any, narrow unknown at ingress, validate wire values, and map numbers, bigint, bytes, null, undefined, errors, lifecycle, Promises, cancellation, and AbortSignal deterministically while Rust revalidates domain invariants.",
+        ("strict compiler receipt", "public declaration snapshot", "runtime wire-validation tests", "DTO error and API drift snapshots", "lifecycle and cancellation tests"),
+        "all owned TypeScript binding and facade surfaces",
+        "Platform-owned values still require strict host types and a bounded mapping rationale.",
+        ("unknown is forbidden at ingress", "TypeScript validation replaces Rust validation"),
+    ),
+    "SC-07": (
+        "Shared portable semantics and thin adapters",
+        "Portable core crates contain no inward binding or platform dependency; bindings depend inward only and TypeScript duplicates no cryptography, canonical parsing, format, or protocol-state logic.",
+        ("dependency-direction guard", "semantic-duplication review", "generated mapping drift test", "host-port contract tests"),
+        "all Rust-backed capabilities",
+        "Generated outer allocation bounds and explicit host policy are permitted when Rust remains authoritative.",
+        ("one universal artifact", "platform-owned behavior moves to Rust"),
+    ),
+    "SC-08": (
+        "Operable target with accepted budgets",
+        "Before support, each target has accepted size, startup, latency, throughput, and memory budgets as applicable plus bounded diagnostics, observability, fallback, and rollback.",
+        ("pinned runner and protocol", "compressed and uncompressed artifact size", "cold and warm p50 p95", "representative latency throughput and memory", "variance regression and rollback rules"),
+        "each target support claim",
+        "A measure may be omitted only with owner, rationale, review or expiry trigger, and reconsideration rule; until a budget is accepted results remain measurement-only.",
+        ("universal performance threshold", "measurement activates support"),
+    ),
+    "SC-09": (
+        "Rust-core-first isolated CI",
+        "The independent Rust-core job passes first, a fail-closed exact-head impact plan selects all dependent target jobs, selected jobs do not cancel siblings, and the existing protected fast aggregator is satisfied only when core and every selected target succeeds.",
+        ("core package-set guard", "API and schema fingerprints", "impact-plan receipt", "isolated target receipts", "single fast aggregation receipt"),
+        "every pull request after CI implementation",
+        "Unselected targets emit an inapplicable receipt without installing target tools; unknown impact selects all targets.",
+        ("changing SDK-LIM-009", "a target failure erases core evidence", "path-only impact routing"),
+    ),
+}
 LEGACY_PUBLIC_NAMES = {"apollo", "castor", "mercury", "pluto", "pollux", "edge-agent"}
 DONOR_TEST_DISPOSITIONS = {"shared", "adapted", "platform-owned", "superseded", "excluded"}
 RUST_EVIDENCE_DISPOSITIONS = {"rust-addition", "rust-deviation"}
@@ -126,6 +200,7 @@ CI = {
     ],
     "unknown_impact": "select-all-target-jobs",
     "selected_failure": "preserve-core-result-and-fail-fast-aggregator",
+    "selected_terminal": "only-success-satisfies-selected-job; failure-cancelled-skipped-timed-out-or-missing-blocks",
     "unselected_target": "machine-readable-inapplicable-receipt-without-target-toolchain",
     "fail_fast": False,
     "dependency_direction": "bindings-and-platform-adapters-depend-inward-on-portable-core-only",
@@ -182,17 +257,24 @@ def report_group_rows(report: str, values: set[str], label: str, errors: list[st
             continue
         key, count_text, members_text = match.groups()
         members = set(re.findall(r"`([^`]+)`", members_text)) if members_text != "none" else set()
+        if key in observed:
+            errors.append(f"report {label} row {key} is duplicated")
         observed[key] = (int(count_text), members)
     if set(observed) != values:
         errors.append(f"report {label} rows differ: missing={sorted(values - set(observed))}")
     return observed
 
 
-def table_rows_between_markers(report: str, errors: list[str]) -> list[list[str]]:
-    start = "<!-- feature-comparison:start -->"
-    end = "<!-- feature-comparison:end -->"
+def table_rows_between_markers(
+    report: str,
+    marker: str,
+    expected_header: list[str],
+    errors: list[str],
+) -> list[list[str]]:
+    start = f"<!-- {marker}:start -->"
+    end = f"<!-- {marker}:end -->"
     if report.count(start) != 1 or report.count(end) != 1:
-        errors.append("report must contain one feature-comparison marker pair")
+        errors.append(f"report must contain one {marker} marker pair")
         return []
     section = report.split(start, 1)[1].split(end, 1)[0]
     parsed: list[list[str]] = []
@@ -200,10 +282,17 @@ def table_rows_between_markers(report: str, errors: list[str]) -> list[list[str]
         if not line.startswith("|") or not line.endswith("|"):
             continue
         cells = [cell.strip() for cell in line[1:-1].split("|")]
-        if not cells or cells[0] in {"Capability", "---"} or all(set(cell) <= {"-", ":"} for cell in cells):
-            continue
         parsed.append(cells)
-    return parsed
+    if len(parsed) < 2:
+        errors.append(f"report {marker} must contain a Markdown table")
+        return []
+    if parsed[0] != expected_header:
+        errors.append(f"report {marker} header must equal {expected_header}")
+    if len(parsed[1]) != len(expected_header) or not all(
+        cell and set(cell) <= {"-", ":"} for cell in parsed[1]
+    ):
+        errors.append(f"report {marker} separator must match its header width")
+    return parsed[2:]
 
 
 def unquote_code(value: str) -> str:
@@ -218,6 +307,40 @@ def expected_gap_summary(row: dict[str, object]) -> str:
     deviations = row.get("known_deviations")
     prefix = "; ".join(deviations) + "; " if isinstance(deviations, list) and deviations else ""
     return f"{prefix}Missing proof: {row.get('missing_proof')}"
+
+
+def joined(value: object) -> str:
+    return "; ".join(str(item) for item in value) if isinstance(value, list) else str(value)
+
+
+def expected_target_report_row(row: dict[str, object]) -> list[str]:
+    return [
+        str(row.get("id")),
+        str(row.get("state")),
+        joined(row.get("runtime_matrix")),
+        str(row.get("binding")),
+        str(row.get("artifact")),
+        str(row.get("module_format")),
+        str(row.get("loader")),
+        joined(row.get("host_ports")),
+        str(row.get("consumer_fixture")),
+        str(row.get("support_tier")),
+        str(row.get("ci_job")),
+        joined(row.get("success_evidence")),
+        f"limitations: {joined(row.get('limitations'))}; non-claims: {joined(row.get('non_claims'))}",
+    ]
+
+
+def expected_success_report_row(row: dict[str, object]) -> list[str]:
+    return [
+        str(row.get("id")),
+        str(row.get("title")),
+        str(row.get("pass_condition")),
+        joined(row.get("evidence")),
+        str(row.get("applicability")),
+        str(row.get("not_applicable_policy")),
+        joined(row.get("non_claims")),
+    ]
 
 
 def main() -> int:
@@ -355,6 +478,17 @@ def main() -> int:
             text(criterion.get(field), f"{prefix}.{field}", errors)
         for field in ("evidence", "non_claims"):
             strings(criterion.get(field), f"{prefix}.{field}", errors)
+        expected_contract = SUCCESS_CRITERIA_CONTRACT.get(identifier)
+        actual_contract = (
+            criterion.get("title"),
+            criterion.get("pass_condition"),
+            tuple(criterion.get("evidence", [])) if isinstance(criterion.get("evidence"), list) else (),
+            criterion.get("applicability"),
+            criterion.get("not_applicable_policy"),
+            tuple(criterion.get("non_claims", [])) if isinstance(criterion.get("non_claims"), list) else (),
+        )
+        if expected_contract is not None and actual_contract != expected_contract:
+            errors.append(f"{prefix} must preserve the exact accepted success semantics")
 
     inventory_rows = inventory.get("capability")
     rows = matrix.get("capability")
@@ -415,6 +549,7 @@ def main() -> int:
         strings(row.get("non_claims"), f"{prefix}.non_claims", errors)
         for field in ("next_action", "consumer", "rollback", "rust_surface", "target_surface", "missing_proof"):
             text(row.get(field), f"{prefix}.{field}", errors)
+        missing_proof = str(row.get("missing_proof", "")).strip()
         if not isinstance(row.get("owner_issue"), int) or row["owner_issue"] <= 0:
             errors.append(f"{prefix}.owner_issue must be a positive issue number")
 
@@ -468,15 +603,33 @@ def main() -> int:
                 errors.append(f"{prefix}: delivered claim has undelivered applicable targets {undelivered_targets}")
             if "not activated" in str(row.get("next_action", "")).lower():
                 errors.append(f"{prefix}: delivered claim contradicts its next action")
-        elif not missing:
-            errors.append(f"{prefix}: non-delivered capability must identify missing_dimensions")
+            if missing_proof.lower() != "none":
+                errors.append(f"{prefix}: delivered claim must set missing_proof to 'none'")
+        else:
+            if state == "excluded":
+                non_excluded_targets = sorted(
+                    target_id for target_id in applicable_targets if target_states.get(target_id) != "excluded"
+                )
+                if non_excluded_targets:
+                    errors.append(f"{prefix}: excluded claim has non-excluded applicable targets {non_excluded_targets}")
+            if not missing:
+                errors.append(f"{prefix}: non-delivered capability must identify missing_dimensions")
+            elif missing_proof.lower() == "none":
+                errors.append(f"{prefix}: non-delivered capability cannot set missing_proof to 'none'")
 
     if not rows or sum(counts[state] for state in STATES) != len(rows):
         errors.append("every capability must have exactly one recognized conformance state")
     if status == "baseline" and (counts["delivered"] or counts["excluded"]):
         errors.append("baseline must not claim delivered or excluded SDK-TS routes")
-    if status == "complete" and (counts["partial"] or counts["blocked"]):
-        errors.append("complete TS1 status cannot retain partial or blocked capabilities")
+    if status == "complete":
+        errors.append("schema_version 2 cannot claim complete before an explicit success-evidence receipt schema exists")
+
+    expected_status_line = (
+        f"**Status:** matrix status = `{status}`; delivered capabilities = "
+        f"{counts['delivered']}; no runtime support is claimed"
+    )
+    if expected_status_line not in report.splitlines():
+        errors.append("report status line must match matrix status and delivered count")
 
     report_states = report_group_rows(report, STATES, "state", errors)
     report_relations = report_group_rows(report, RELATIONS, "relation", errors)
@@ -487,11 +640,69 @@ def main() -> int:
         if report_relations.get(relation) != (relation_counts[relation], relation_members[relation]):
             errors.append(f"report relation row {relation} must match the machine matrix")
 
-    feature_rows = table_rows_between_markers(report, errors)
+    target_report_rows = table_rows_between_markers(
+        report,
+        "target-contract",
+        [
+            "Target",
+            "State",
+            "Runtime matrix",
+            "Binding",
+            "Artifact",
+            "Module format",
+            "Loader",
+            "Host ports",
+            "Consumer fixture",
+            "Support tier",
+            "CI job",
+            "Success evidence",
+            "Limits and non-claims",
+        ],
+        errors,
+    )
+    if len(target_report_rows) != len(target_rows):
+        errors.append("report target-contract row count must match the machine target records")
+    for index, target_row in enumerate(target_rows):
+        if index >= len(target_report_rows):
+            break
+        actual = [unquote_code(cell) for cell in target_report_rows[index]]
+        if actual != expected_target_report_row(target_row):
+            errors.append(f"report target-contract row {target_row.get('id')} must exactly match the machine target")
+
+    success_report_rows = table_rows_between_markers(
+        report,
+        "success-criteria",
+        ["ID", "Title", "Pass condition", "Evidence", "Applicability", "Not-applicable policy", "Non-claims"],
+        errors,
+    )
+    if len(success_report_rows) != len(criteria):
+        errors.append("report success-criteria row count must match the machine success criteria")
+    for index, criterion in enumerate(criteria):
+        if index >= len(success_report_rows):
+            break
+        actual = [unquote_code(cell) for cell in success_report_rows[index]]
+        if actual != expected_success_report_row(criterion):
+            errors.append(f"report success-criteria row {criterion.get('id')} must exactly match the machine criterion")
+
+    feature_rows = table_rows_between_markers(
+        report,
+        "feature-comparison",
+        [
+            "Capability",
+            "Rust today",
+            "SDK-TS today",
+            "Rust owner",
+            "TypeScript owner",
+            "Target",
+            "B/N/RW/RN",
+            "Deviation / missing proof",
+        ],
+        errors,
+    )
     report_features: dict[str, list[str]] = {}
     for cells in feature_rows:
-        if len(cells) != 6:
-            errors.append(f"report feature-comparison row must have 6 cells: {cells}")
+        if len(cells) != 8:
+            errors.append(f"report feature-comparison row must have 8 cells: {cells}")
             continue
         identifier = unquote_code(cells[0])
         if identifier in report_features:
@@ -514,6 +725,8 @@ def main() -> int:
             identifier,
             str(row.get("rust_surface")),
             str(inventory_row.get("outcome")),
+            str(inventory_row.get("target_owner")),
+            str(inventory_row.get("typescript_owner")),
             str(row.get("target_surface")),
             expected_target_summary(row.get("target_states") if isinstance(row.get("target_states"), dict) else {}),
             expected_gap_summary(row),

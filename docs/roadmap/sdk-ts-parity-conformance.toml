@@ -46,6 +46,7 @@ target_jobs = [ "target-browser", "target-nodejs", "target-react-web", "target-r
 impact_inputs = [ "exported-api-fingerprint", "binding-schema-fingerprint", "transitive-bound-crates", "relevant-lockfiles", "generated-mappings", "package-metadata", "target-contracts", "changed-paths" ]
 unknown_impact = "select-all-target-jobs"
 selected_failure = "preserve-core-result-and-fail-fast-aggregator"
+selected_terminal = "only-success-satisfies-selected-job; failure-cancelled-skipped-timed-out-or-missing-blocks"
 unselected_target = "machine-readable-inapplicable-receipt-without-target-toolchain"
 fail_fast = false
 dependency_direction = "bindings-and-platform-adapters-depend-inward-on-portable-core-only"
@@ -189,7 +190,7 @@ non_claims = [ "universal performance threshold", "measurement activates support
 [[success_criterion]]
 id = "SC-09"
 title = "Rust-core-first isolated CI"
-pass_condition = "The independent Rust-core job passes first, a fail-closed exact-head impact plan selects all dependent target jobs, selected jobs do not cancel siblings, and the existing protected fast aggregator fails only for selected failures."
+pass_condition = "The independent Rust-core job passes first, a fail-closed exact-head impact plan selects all dependent target jobs, selected jobs do not cancel siblings, and the existing protected fast aggregator is satisfied only when core and every selected target succeeds."
 evidence = [ "core package-set guard", "API and schema fingerprints", "impact-plan receipt", "isolated target receipts", "single fast aggregation receipt" ]
 applicability = "every pull request after CI implementation"
 not_applicable_policy = "Unselected targets emit an inapplicable receipt without installing target tools; unknown impact selects all targets."
@@ -280,12 +281,12 @@ id = "did.method.peer"
 relation = "semantic-equivalent"
 state = "partial"
 rationale = "Selected peer DID profiles require the same deterministic identifiers and documents across SDKs."
-rust_surface = "No production SDK-Rust implementation for the selected peer DID profiles."
+rust_surface = "Bounded experimental SDK-Rust support for peer DID numalgo 4 and opt-in numalgo 2 creation, parsing, local resolution, and generic DID-document projection."
 target_surface = "Rust-owned deterministic creation and resolution for explicitly selected peer DID profiles with a thin TypeScript facade."
 applicable_targets = [ "browser", "nodejs", "react-web", "react-native" ]
 target_states = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
-missing_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
-missing_proof = "Implementation, selected-profile vectors, document equivalence, pairwise messaging E2E tests, and runtime-target evidence."
+missing_dimensions = [ "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+missing_proof = "Cross-SDK and DID-document equivalence, typed TypeScript facade and error mapping, pairwise messaging consumer E2E tests, per-target receipts, and rollback proof."
 required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
 known_deviations = [ "Only explicitly selected numalgo profiles are in scope." ]
 evidence = [ "docs/roadmap/platform-core-adoption-milestones.toml", "docs/architecture/identus-platform-ts-capabilities.toml" ]
@@ -522,10 +523,10 @@ state = "not-applicable"
 rationale = "Browser persistence, schema upgrades, quotas, and lifecycle are TypeScript platform responsibilities."
 rust_surface = "Outside the portable Rust core except for storage ports and shared contracts."
 target_surface = "Platform-owned storage implementations conforming to Rust-defined ports and shared data contracts."
-applicable_targets = [ "browser", "react-web" ]
-target_states = { browser = "blocked", nodejs = "not-applicable", react-web = "blocked", react-native = "not-applicable" }
+applicable_targets = [ "browser", "nodejs", "react-web" ]
+target_states = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "not-applicable" }
 missing_dimensions = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
-missing_proof = "Port-conformance suite, schema and migration tests, encryption and lifecycle evidence, and browser and React web runtime coverage."
+missing_proof = "Port-conformance suite, schema and migration tests, encryption and lifecycle evidence, and browser, Node.js, and React web runtime coverage."
 required_dimensions = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
 known_deviations = [ "No duplicate Rust browser database implementation is planned." ]
 evidence = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]

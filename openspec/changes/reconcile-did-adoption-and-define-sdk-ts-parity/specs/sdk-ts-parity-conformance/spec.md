@@ -171,6 +171,13 @@ jobs.
   reviewable, while the failed target remains undelivered and its changed-path
   policy gate remains red
 
+#### Scenario: a selected target has no successful terminal result
+
+- **WHEN** a selected target job fails, is cancelled, skipped, times out, or
+  produces no exact-head terminal result
+- **THEN** the protected aggregator fails closed while preserving the separate
+  Rust-core and unaffected target evidence
+
 #### Scenario: a Rust-only change is proposed
 
 - **WHEN** impact classification proves that no binding, package, generated
@@ -251,6 +258,9 @@ rules.
 Each evidence class SHALL either reference an executable artifact or stable
 quality-evidence declaration ID, or carry an owner, rationale, review/expiry
 trigger, and reconsideration rule for a bounded not-applicable disposition.
+Schema version 2 defines the criteria but does not yet carry their executable
+completion receipts; it SHALL reject milestone status `complete` until a later
+reviewed schema binds all nine criteria to immutable evidence.
 
 #### Scenario: an adapter duplicates portable semantics
 

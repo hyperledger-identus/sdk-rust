@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 594,
+  "change": "reconcile-did-adoption-and-define-sdk-ts-parity",
+  "branch": "codex/docs/issue-594",
+  "baseRef": "origin/develop",
+  "baseSha": "f07719d606ade1f0387854535ca9ac029811cd3a",
+  "contractHeadSha": "69390a5164611c1dd94be681804c8f7be25387ad",
+  "createdAt": "2026-11-07T00:47:20.867Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

@@ -6,7 +6,7 @@
       release evidence, current inventory, and roadmap contracts.
 - [x] 1.2 Record relation/state vocabulary, conformance dimensions, scope,
       constraints, non-goals, and issue #594 authority.
-- [ ] 1.3 Pass strict research/constraint readiness, commit planning only, and
+- [x] 1.3 Pass strict research/constraint readiness, commit planning only, and
       record the exact factory preflight receipt.
 
 ## 2. Reconciliation and milestone
@@ -39,7 +39,7 @@
       limits, target policy, and source test authority.
 - [x] 4.2 Record the maintained-table schema, runtime distinctions, E2E
       applicability model, quality criteria, constraints, and non-goals.
-- [ ] 4.3 Pass research/constraint readiness, commit planning only, and record
+- [x] 4.3 Pass research/constraint readiness, commit planning only, and record
       the exact issue #594 preflight receipt.
 
 ## 5. Feature table and success contract

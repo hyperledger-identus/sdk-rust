@@ -44,19 +44,19 @@
 
 ## 5. Feature table and success contract
 
-- [ ] 5.1 Add current Rust, target surface, and missing proof plus per-target
+- [x] 5.1 Add current Rust, target surface, and missing proof plus per-target
       evidence state to every capability record, and join current SDK-TS
       behavior from the canonical inventory.
-- [ ] 5.2 Add browser, Node.js, React web, and React Native target records with
+- [x] 5.2 Add browser, Node.js, React web, and React Native target records with
       explicit binding and evidence limits.
-- [ ] 5.3 Add machine success criteria for facade naming, target proof, reused
+- [x] 5.3 Add machine success criteria for facade naming, target proof, reused
       TypeScript E2E, Rust deviation E2E, coverage, type safety, reuse,
       maintainability, budgets, observability, rollback, and isolated CI.
-- [ ] 5.4 Publish the checked human feature and success tables without a
+- [x] 5.4 Publish the checked human feature and success tables without a
       repository-wide parity percentage.
-- [ ] 5.5 Extend strict offline validation and mutation coverage for all new
+- [x] 5.5 Extend strict offline validation and mutation coverage for all new
       fields, targets, criteria, and report rows.
-- [ ] 5.6 Record the future fail-closed binding-impact plan and isolated target
+- [x] 5.6 Record the future fail-closed binding-impact plan and isolated target
       job contract without replacing the effective single protected `fast`
       status or adding hosted workflows in this change.
 

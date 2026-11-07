@@ -47,6 +47,9 @@ TOP_LEVEL_KEYS = {
     "source",
     "delivery",
     "vocabulary",
+    "ci",
+    "target",
+    "success_criterion",
     "capability",
 }
 CAPABILITY_KEYS = {
@@ -62,6 +65,70 @@ CAPABILITY_KEYS = {
     "consumer",
     "rollback",
     "non_claims",
+    "rust_surface",
+    "target_surface",
+    "applicable_targets",
+    "target_states",
+    "missing_dimensions",
+    "missing_proof",
+}
+TARGETS = ("browser", "nodejs", "react-web", "react-native")
+TARGET_KEYS = {
+    "id",
+    "state",
+    "runtime_matrix",
+    "binding",
+    "artifact",
+    "module_format",
+    "loader",
+    "host_ports",
+    "consumer_fixture",
+    "support_tier",
+    "ci_job",
+    "success_evidence",
+    "limitations",
+    "non_claims",
+}
+SUCCESS_CRITERION_KEYS = {
+    "id",
+    "title",
+    "pass_condition",
+    "evidence",
+    "applicability",
+    "not_applicable_policy",
+    "non_claims",
+}
+SUCCESS_CRITERIA = tuple(f"SC-{number:02d}" for number in range(1, 10))
+LEGACY_PUBLIC_NAMES = {"apollo", "castor", "mercury", "pluto", "pollux", "edge-agent"}
+DONOR_TEST_DISPOSITIONS = {"shared", "adapted", "platform-owned", "superseded", "excluded"}
+RUST_EVIDENCE_DISPOSITIONS = {"rust-addition", "rust-deviation"}
+CI = {
+    "core_job": "core-rust",
+    "protected_status": "fast",
+    "policy_constraint": "SDK-LIM-009",
+    "impact_job": "binding-impact-plan",
+    "target_jobs": [
+        "target-browser",
+        "target-nodejs",
+        "target-react-web",
+        "target-react-native",
+        "target-package-types",
+    ],
+    "impact_inputs": [
+        "exported-api-fingerprint",
+        "binding-schema-fingerprint",
+        "transitive-bound-crates",
+        "relevant-lockfiles",
+        "generated-mappings",
+        "package-metadata",
+        "target-contracts",
+        "changed-paths",
+    ],
+    "unknown_impact": "select-all-target-jobs",
+    "selected_failure": "preserve-core-result-and-fail-fast-aggregator",
+    "unselected_target": "machine-readable-inapplicable-receipt-without-target-toolchain",
+    "fail_fast": False,
+    "dependency_direction": "bindings-and-platform-adapters-depend-inward-on-portable-core-only",
 }
 DELIVERY = {
     "mode": "local-first-capability-trains",
@@ -121,6 +188,38 @@ def report_group_rows(report: str, values: set[str], label: str, errors: list[st
     return observed
 
 
+def table_rows_between_markers(report: str, errors: list[str]) -> list[list[str]]:
+    start = "<!-- feature-comparison:start -->"
+    end = "<!-- feature-comparison:end -->"
+    if report.count(start) != 1 or report.count(end) != 1:
+        errors.append("report must contain one feature-comparison marker pair")
+        return []
+    section = report.split(start, 1)[1].split(end, 1)[0]
+    parsed: list[list[str]] = []
+    for line in section.splitlines():
+        if not line.startswith("|") or not line.endswith("|"):
+            continue
+        cells = [cell.strip() for cell in line[1:-1].split("|")]
+        if not cells or cells[0] in {"Capability", "---"} or all(set(cell) <= {"-", ":"} for cell in cells):
+            continue
+        parsed.append(cells)
+    return parsed
+
+
+def unquote_code(value: str) -> str:
+    return value[1:-1] if len(value) >= 2 and value.startswith("`") and value.endswith("`") else value
+
+
+def expected_target_summary(target_states: dict[str, object]) -> str:
+    return "; ".join(f"{target}={target_states.get(target)}" for target in TARGETS)
+
+
+def expected_gap_summary(row: dict[str, object]) -> str:
+    deviations = row.get("known_deviations")
+    prefix = "; ".join(deviations) + "; " if isinstance(deviations, list) and deviations else ""
+    return f"{prefix}Missing proof: {row.get('missing_proof')}"
+
+
 def main() -> int:
     root = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path.cwd().resolve()
     errors: list[str] = []
@@ -141,8 +240,8 @@ def main() -> int:
             f"missing={sorted(TOP_LEVEL_KEYS - set(matrix))}, "
             f"unknown={sorted(set(matrix) - TOP_LEVEL_KEYS)}"
         )
-    if matrix.get("schema_version") != 1:
-        errors.append("schema_version must equal 1")
+    if matrix.get("schema_version") != 2:
+        errors.append("schema_version must equal 2")
     if matrix.get("milestone_id") != "TS1" or matrix.get("program_issue") != 502:
         errors.append("TS1 must remain the issue #502 parity program")
     if matrix.get("milestone_number") != 7 or matrix.get("milestone_url") != "https://github.com/hyperledger-identus/sdk-rust/milestone/7":
@@ -173,6 +272,11 @@ def main() -> int:
         "relations": sorted(RELATIONS),
         "states": sorted(STATES),
         "dimensions": sorted(DIMENSIONS),
+        "targets": sorted(TARGETS),
+        "target_states": sorted(STATES),
+        "legacy_public_names": sorted(LEGACY_PUBLIC_NAMES),
+        "donor_test_dispositions": sorted(DONOR_TEST_DISPOSITIONS),
+        "rust_evidence_dispositions": sorted(RUST_EVIDENCE_DISPOSITIONS),
     }
     if not isinstance(vocabulary, dict):
         errors.append("vocabulary must be a table")
@@ -181,6 +285,76 @@ def main() -> int:
             actual = vocabulary.get(field)
             if not isinstance(actual, list) or sorted(actual) != expected:
                 errors.append(f"vocabulary.{field} must contain the closed {field} set")
+
+    if matrix.get("ci") != CI:
+        errors.append("ci must preserve the exact Rust-core-first isolated target contract")
+
+    target_rows = matrix.get("target")
+    if not isinstance(target_rows, list) or not all(isinstance(item, dict) for item in target_rows):
+        errors.append("target must be an array of tables")
+        target_rows = []
+    target_ids = [str(item.get("id")) for item in target_rows]
+    target_duplicates = sorted(identifier for identifier, count in Counter(target_ids).items() if count > 1)
+    if target_duplicates:
+        errors.append(f"duplicate target IDs: {target_duplicates}")
+    if set(target_ids) != set(TARGETS) or len(target_rows) != len(TARGETS):
+        errors.append(f"target IDs must be exactly {list(TARGETS)}")
+    elif target_ids != list(TARGETS):
+        errors.append(f"target records must preserve order {list(TARGETS)}")
+    target_by_id = {str(item.get("id")): item for item in target_rows}
+    for target_id in TARGETS:
+        row = target_by_id.get(target_id)
+        if row is None:
+            continue
+        prefix = f"target {target_id}"
+        if set(row) != TARGET_KEYS:
+            errors.append(
+                f"{prefix} fields differ: missing={sorted(TARGET_KEYS - set(row))}, "
+                f"unknown={sorted(set(row) - TARGET_KEYS)}"
+            )
+        expected_state = "blocked" if target_id == "react-native" else "target"
+        if row.get("state") != expected_state:
+            errors.append(f"{prefix}.state must equal {expected_state!r} at the baseline")
+        expected_job = f"target-{target_id}"
+        if row.get("ci_job") != expected_job:
+            errors.append(f"{prefix}.ci_job must equal {expected_job!r}")
+        for field in ("binding", "artifact", "module_format", "loader", "consumer_fixture", "support_tier"):
+            text(row.get(field), f"{prefix}.{field}", errors)
+        for field in ("runtime_matrix", "host_ports", "success_evidence", "limitations", "non_claims"):
+            strings(row.get(field), f"{prefix}.{field}", errors)
+        binding = str(row.get("binding", "")).lower()
+        if target_id == "react-native":
+            if "wasm" in binding or "native" not in binding or "turbomodule" not in binding:
+                errors.append("target react-native must use the ADR 0163 native TurboModule route, never WASM")
+            if "ADR-0163" not in row.get("limitations", []):
+                errors.append("target react-native must retain the ADR-0163 limitation")
+        elif "wasm" not in binding:
+            errors.append(f"{prefix}.binding must retain its WASM route")
+
+    criteria = matrix.get("success_criterion")
+    if not isinstance(criteria, list) or not all(isinstance(item, dict) for item in criteria):
+        errors.append("success_criterion must be an array of tables")
+        criteria = []
+    criterion_ids = [str(item.get("id")) for item in criteria]
+    criterion_duplicates = sorted(identifier for identifier, count in Counter(criterion_ids).items() if count > 1)
+    if criterion_duplicates:
+        errors.append(f"duplicate success criterion IDs: {criterion_duplicates}")
+    if set(criterion_ids) != set(SUCCESS_CRITERIA) or len(criteria) != len(SUCCESS_CRITERIA):
+        errors.append(f"success criterion IDs must be exactly {list(SUCCESS_CRITERIA)}")
+    elif criterion_ids != list(SUCCESS_CRITERIA):
+        errors.append(f"success criterion records must preserve order {list(SUCCESS_CRITERIA)}")
+    for index, criterion in enumerate(criteria, start=1):
+        identifier = str(criterion.get("id"))
+        prefix = f"success_criterion[{index}] {identifier}"
+        if set(criterion) != SUCCESS_CRITERION_KEYS:
+            errors.append(
+                f"{prefix} fields differ: missing={sorted(SUCCESS_CRITERION_KEYS - set(criterion))}, "
+                f"unknown={sorted(set(criterion) - SUCCESS_CRITERION_KEYS)}"
+            )
+        for field in ("title", "pass_condition", "applicability", "not_applicable_policy"):
+            text(criterion.get(field), f"{prefix}.{field}", errors)
+        for field in ("evidence", "non_claims"):
+            strings(criterion.get(field), f"{prefix}.{field}", errors)
 
     inventory_rows = inventory.get("capability")
     rows = matrix.get("capability")
@@ -231,13 +405,43 @@ def main() -> int:
         required = set(strings(row.get("required_dimensions"), f"{prefix}.required_dimensions", errors))
         if required - DIMENSIONS:
             errors.append(f"{prefix}: unknown dimensions {sorted(required - DIMENSIONS)}")
+        missing = set(strings(row.get("missing_dimensions"), f"{prefix}.missing_dimensions", errors, allow_empty=True))
+        if missing - DIMENSIONS:
+            errors.append(f"{prefix}: unknown missing dimensions {sorted(missing - DIMENSIONS)}")
+        if missing - required:
+            errors.append(f"{prefix}: missing_dimensions must be a subset of required_dimensions")
         deviations = strings(row.get("known_deviations"), f"{prefix}.known_deviations", errors)
         strings(row.get("evidence"), f"{prefix}.evidence", errors)
         strings(row.get("non_claims"), f"{prefix}.non_claims", errors)
-        for field in ("next_action", "consumer", "rollback"):
+        for field in ("next_action", "consumer", "rollback", "rust_surface", "target_surface", "missing_proof"):
             text(row.get(field), f"{prefix}.{field}", errors)
         if not isinstance(row.get("owner_issue"), int) or row["owner_issue"] <= 0:
             errors.append(f"{prefix}.owner_issue must be a positive issue number")
+
+        applicable_targets = strings(row.get("applicable_targets"), f"{prefix}.applicable_targets", errors)
+        if len(set(applicable_targets)) != len(applicable_targets):
+            errors.append(f"{prefix}.applicable_targets must not contain duplicates")
+        unknown_targets = set(applicable_targets) - set(TARGETS)
+        if unknown_targets:
+            errors.append(f"{prefix}: unknown applicable targets {sorted(unknown_targets)}")
+        target_states = row.get("target_states")
+        if not isinstance(target_states, dict):
+            errors.append(f"{prefix}.target_states must be a target-state table")
+            target_states = {}
+        if set(target_states) != set(TARGETS):
+            errors.append(
+                f"{prefix}.target_states keys differ: missing={sorted(set(TARGETS) - set(target_states))}, "
+                f"unknown={sorted(set(target_states) - set(TARGETS))}"
+            )
+        for target_id in TARGETS:
+            target_state = target_states.get(target_id)
+            if target_state not in STATES:
+                errors.append(f"{prefix}.target_states.{target_id} has unknown state {target_state!r}")
+                continue
+            if target_id in applicable_targets and target_state == "not-applicable":
+                errors.append(f"{prefix}: applicable target {target_id} cannot be not-applicable")
+            if target_id not in applicable_targets and target_state != "not-applicable":
+                errors.append(f"{prefix}: non-applicable target {target_id} must be not-applicable")
 
         inventory_row = inventory_by_id.get(identifier, {})
         disposition = inventory_row.get("disposition") if isinstance(inventory_row, dict) else None
@@ -255,8 +459,17 @@ def main() -> int:
             missing_dimensions = DIMENSIONS - required
             if missing_dimensions:
                 errors.append(f"{prefix}: delivered claim lacks dimensions {sorted(missing_dimensions)}")
+            if missing:
+                errors.append(f"{prefix}: delivered claim retains missing dimensions {sorted(missing)}")
+            undelivered_targets = sorted(
+                target_id for target_id in applicable_targets if target_states.get(target_id) != "delivered"
+            )
+            if undelivered_targets:
+                errors.append(f"{prefix}: delivered claim has undelivered applicable targets {undelivered_targets}")
             if "not activated" in str(row.get("next_action", "")).lower():
                 errors.append(f"{prefix}: delivered claim contradicts its next action")
+        elif not missing:
+            errors.append(f"{prefix}: non-delivered capability must identify missing_dimensions")
 
     if not rows or sum(counts[state] for state in STATES) != len(rows):
         errors.append("every capability must have exactly one recognized conformance state")
@@ -273,6 +486,41 @@ def main() -> int:
     for relation in RELATIONS:
         if report_relations.get(relation) != (relation_counts[relation], relation_members[relation]):
             errors.append(f"report relation row {relation} must match the machine matrix")
+
+    feature_rows = table_rows_between_markers(report, errors)
+    report_features: dict[str, list[str]] = {}
+    for cells in feature_rows:
+        if len(cells) != 6:
+            errors.append(f"report feature-comparison row must have 6 cells: {cells}")
+            continue
+        identifier = unquote_code(cells[0])
+        if identifier in report_features:
+            errors.append(f"report feature-comparison duplicates {identifier}")
+        report_features[identifier] = cells
+    if set(report_features) != set(identifiers):
+        errors.append(
+            "report feature-comparison coverage differs: "
+            f"missing={sorted(set(identifiers) - set(report_features))}, "
+            f"extra={sorted(set(report_features) - set(identifiers))}"
+        )
+    rows_by_id = {str(row.get("id")): row for row in rows}
+    for identifier in identifiers:
+        cells = report_features.get(identifier)
+        row = rows_by_id.get(identifier)
+        inventory_row = inventory_by_id.get(identifier)
+        if cells is None or row is None or not isinstance(inventory_row, dict):
+            continue
+        expected = [
+            identifier,
+            str(row.get("rust_surface")),
+            str(inventory_row.get("outcome")),
+            str(row.get("target_surface")),
+            expected_target_summary(row.get("target_states") if isinstance(row.get("target_states"), dict) else {}),
+            expected_gap_summary(row),
+        ]
+        actual = [unquote_code(cells[0]), *cells[1:]]
+        if actual != expected:
+            errors.append(f"report feature-comparison row {identifier} must match the machine matrix and donor inventory")
 
     if errors:
         for error in errors:

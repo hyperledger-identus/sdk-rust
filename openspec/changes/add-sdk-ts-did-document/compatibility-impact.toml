@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 502
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "This preimplementation contract records intended private DID Document behavior, evidence, constraints, and sequencing without yet changing an SDK API, runtime behavior, wire format, dependency, target artifact, package, consumer, or publication state."
+ledger_ids     = [  ]

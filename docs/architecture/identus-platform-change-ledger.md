@@ -51,7 +51,7 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 
 ### `did.syntax.typescript-migration.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. A private additive TypeScript facade projects target-specific Rust WASM values into frozen plain DID and DID URL values with stable redacted errors, explicit provider selection, browser and Node loaders, React web lifecycle integration, shared vector evidence, and isolated exact-head target receipts.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. A private additive TypeScript facade projects target-specific Rust WASM values into frozen plain DID and DID URL values with stable redacted errors, explicit provider selection, browser and Node loaders, React web lifecycle integration, shared vector evidence, and isolated exact-head target receipts.
 
 ### `did.web.profile.v1`
 

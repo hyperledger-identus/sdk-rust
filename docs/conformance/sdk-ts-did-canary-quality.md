@@ -1,6 +1,6 @@
 # SDK-TS DID canary quality receipt
 
-- Candidate revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
+- Candidate revision: `25fd106bd0d56f283b9c2a71a4310bfcd409b181`
 - Recorded: `2026-11-10`
 - Host: `aarch64-darwin`
 - Scope: private DID and DID URL TypeScript facade over `identus-wasm-did`
@@ -18,8 +18,10 @@ WASM artifacts twice with assembly SHA-256
 `ed7c98a4bb7808582be56fd7f9365014c63500699f379f1f1be06e8e0b6730ff`,
 passed the one-way dependency boundary, strict TypeScript compilation, 13
 provider and public-API tests, all 22 browser vectors, Node ESM and CommonJS,
-React server rendering and browser hydration. React Native was recorded as
-inapplicable to the WASM canary.
+React server rendering and effect-confirmed browser hydration. One shared
+provider-neutral assertion body executed all 22 vectors across browser, Node
+ESM, Node CommonJS, React SSR, and the hydrated React client. React Native was
+recorded as inapplicable to the WASM canary.
 
 ## Fuzz evidence
 
@@ -31,7 +33,9 @@ nix develop path:.#fuzz --command ./scripts/fuzz-did.sh soak all
 
 Both targets used cargo-fuzz 0.13.2 with AddressSanitizer,
 `max_len=139264`, `timeout=5`, `rss_limit_mb=1024`, and a 300-second target
-budget.
+budget. This parser evidence remains source-bound to
+`7fec337ee8a0a02847ddf86a1057c459711b86c2`; the later candidate changes only
+the TypeScript test harness and does not change the fuzzed Rust/WASM source.
 
 | Target | Executions | Coverage/features | Peak RSS | Result |
 | --- | ---: | ---: | ---: | --- |
@@ -49,7 +53,8 @@ Command:
 nix develop path:.#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements
 ```
 
-The directional Node 24.19.0 measurement on Apple arm64 recorded 55,095 web
+The directional Node 24.19.0 measurement at
+`7fec337ee8a0a02847ddf86a1057c459711b86c2` on Apple arm64 recorded 55,095 web
 artifact bytes, 49,489 Node artifact bytes, 0.124083 ms initialization, 101
 measured parses after 21 warmups, ordinary parse p50/p95 of 0.003500/0.005791
 ms, near-limit parse p50/p95 of 0.403375/0.444583 ms, and 53,854,208 bytes

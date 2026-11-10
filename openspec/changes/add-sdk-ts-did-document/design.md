@@ -81,3 +81,20 @@ This branch is a local-first implementation train under issue #502. It may be
 reviewed locally after the complete gate, but it is not pushed, published, or
 activated by this change. The next external action requires an explicit user
 decision after the local candidate and evidence packet are complete.
+
+## Cohesion and decomposition
+
+This train changes more than 12 files because the one reviewable invariant is
+cross-language: raw document JSON is accepted or rejected by canonical Rust,
+then the same owned result and stable failure contract must remain coherent
+through the generated declaration, strict TypeScript projection, every target
+fixture, immutable vectors, impact routing, and source-bound evidence. Splitting
+those layers into independently mergeable changes would temporarily publish an
+API-version mismatch, an untested projection, or target receipts that do not
+bind the document contract.
+
+The work remains reviewable as signed checkpoints for contract registration,
+Rust/WASM, TypeScript projection, target conformance, and harness isolation.
+Resolution, method effects, storage, credentials, DIDComm, React Native,
+publication, support activation, and mdoc are independent ownership or release
+boundaries and therefore stay outside this train.

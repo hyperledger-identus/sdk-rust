@@ -6,7 +6,7 @@ title            = "SDK-Rust/SDK-TS capability parity and conformance"
 program_issue    = 502
 definition_issue = 594
 status           = "baseline"
-snapshot_date    = "2026-11-07"
+snapshot_date    = "2026-11-11"
 
 [source]
 inventory  = "docs/architecture/identus-platform-ts-capabilities.toml"
@@ -264,17 +264,17 @@ rationale           = "The portable DID document model is Rust-owned while TypeS
 rust_surface        = "Substantial portable DID document, verification method, service, and relationship model."
 target_surface      = "Rust-owned DID document semantics exposed through generated or versioned typed TypeScript DTO mappings."
 applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
-target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
-missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
-missing_proof       = "Round-trip vectors, stable field and error mapping, extension policy, and resolver-consumer E2E evidence."
-required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
-known_deviations    = [ "Method-specific extensions remain versioned adapters." ]
-evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/architecture/cross-language-vectors.toml" ]
+target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "blocked" }
+missing_dimensions  = [ "resource-security", "consumer-proof", "rollback" ]
+missing_proof       = "External SDK-TS consumer and named legacy-provider rollback rehearsals, accepted target budgets, default-switch and support decisions, resolver-consumer E2E evidence, publication authority, and a separate React Native native-binding package."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "The strict projection preserves wire cardinality, unresolved relationship references, service endpoint variants, and bounded extensions that the legacy donor shape loses.", "JavaScript-unsafe integers are rejected with an explicit stable adapter error rather than rounded.", "Method-specific extensions remain versioned adapters.", "React Native requires a separate native binding and is not proven by the WASM canary." ]
+evidence            = [ "docs/conformance/fixtures/did-document/v1/vectors.json", "docs/conformance/sdk-ts-did-document-quality.md", "docs/architecture/language-adapter-mappings.toml", "packages/identus-sdk/tests/document-vector-assertions.mjs", "packages/identus-sdk/tests/provider.test.mjs", "fuzz/fuzz_targets/did_document.rs" ]
 owner_issue         = 502
-next_action         = "Freeze document DTO mappings after the DID value canary."
+next_action         = "Rehearse the opt-in document facade in an external SDK-TS resolver consumer and its named rollback path before any default, publication, support, or budget claim."
 consumer            = "SDK-TS DID resolution"
-rollback            = "Retain current SDK-TS document projection until mapping evidence passes."
-non_claims          = [ "all method extensions", "consumer activation" ]
+rollback            = "Disable the opt-in Rust-backed document facade before initialization and retain the current SDK-TS document projection."
+non_claims          = [ "all method extensions", "external consumer activation", "React Native evidence", "publication", "stable support" ]
 
 [[capability]]
 id                  = "did.method.peer"

@@ -9,7 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 
-import { loadVectors } from "./vector-assertions.mjs";
+import { loadVectors } from "./vector-loader.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -31,6 +31,7 @@ function browserExecutable() {
 const mime = new Map([
   [".html", "text/html; charset=utf-8"],
   [".js", "text/javascript; charset=utf-8"],
+  [".mjs", "text/javascript; charset=utf-8"],
   [".wasm", "application/wasm"],
 ]);
 
@@ -54,47 +55,27 @@ await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const address = server.address();
 if (address === null || typeof address === "string") throw new Error("server address unavailable");
 
-const browser = await chromium.launch({ executablePath: browserExecutable(), headless: true });
+let browser;
 try {
+  browser = await chromium.launch({ executablePath: browserExecutable(), headless: true });
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${address.port}/`);
   const result = await page.evaluate(async (vectors) => {
     const { createDidProvider } = await import("/dist/browser.js");
+    const { assertAllVectors } = await import("/tests/vector-assertions.mjs");
     const provider = await createDidProvider();
-    const failures = [];
-    const materialize = (input) => typeof input.literal === "string"
-      ? input.literal
-      : `${input.generated.prefix}${input.generated.repeat.repeat(input.generated.count)}${input.generated.suffix}`;
-    for (const vector of vectors) {
-      const input = materialize(vector.input);
-      const invoke = vector.operation === "did.parse"
-        ? () => provider.parseDid(input)
-        : () => provider.parseDidUrl(input);
-      if (vector.expected.kind === "error") {
-        try {
-          invoke();
-          failures.push(`${vector.id}:accepted`);
-        } catch (error) {
-          if (error.code !== vector.expected.errorCode || error.stack !== undefined) {
-            failures.push(`${vector.id}:error-contract`);
-          }
-        }
-      } else {
-        const value = invoke();
-        if (!Object.isFrozen(value)) failures.push(`${vector.id}:not-frozen`);
-        for (const [field, expected] of Object.entries(vector.expected.fields)) {
-          const wanted = expected === null ? undefined : expected;
-          if (value[field] !== wanted) failures.push(`${vector.id}:${field}`);
-        }
-      }
+    try {
+      assertAllVectors(provider, vectors);
+      return { status: "success", count: vectors.length };
+    } catch {
+      return { status: "failure", count: vectors.length };
     }
-    return { failures, count: vectors.length };
   }, await loadVectors());
-  if (result.count !== 22 || result.failures.length !== 0) {
-    throw new Error(`browser vector failures: ${result.failures.join(",")}`);
+  if (result.count !== 22 || result.status !== "success") {
+    throw new Error("browser DID vector canary failed");
   }
   process.stdout.write("browser DID vectors: 22 passed\n");
 } finally {
-  await browser.close();
+  await browser?.close();
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 }

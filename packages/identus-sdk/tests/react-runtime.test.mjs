@@ -5,6 +5,8 @@ import { test } from "node:test";
 
 import { createDidProvider } from "../dist/node.js";
 import { DidProviderBoundary, useDidProvider } from "../dist/react.js";
+import { assertAllVectors } from "./vector-assertions.mjs";
+import { loadVectors } from "./vector-loader.mjs";
 
 function DidText() {
   const state = useDidProvider();
@@ -19,6 +21,7 @@ function DidText() {
 
 test("React SSR crosses the Node provider without duplicated DID logic", async () => {
   const provider = await createDidProvider();
+  assertAllVectors(provider, await loadVectors());
   const factory = async () => {
     throw new Error("SSR must use the explicit initial provider");
   };

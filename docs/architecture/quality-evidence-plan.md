@@ -4,8 +4,8 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-10-29`
-- Declaration count: `19`
+- Evidence evaluated: `2026-11-10`
+- Declaration count: `20`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -247,7 +247,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #501 |
-| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `max-age-days (8 days)` | #501 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #501 |
 | `benchmark` | `not-applicable` | `none` | `not-applicable` | `not-applicable` | #501 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #501 |
 
@@ -261,9 +261,9 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all`
-- Budget: Run each DID and DID URL fuzz target for 300 seconds with max_len=8192, timeout=5, and rss_limit_mb=1024.
-- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925`
-- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
+- Budget: Run each DID and DID URL fuzz target for 300 seconds with max_len=139264, timeout=5, and rss_limit_mb=1024.
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
 
 ### `benchmark`
 
@@ -275,6 +275,51 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Evaluate all 22 immutable DID syntax packet cases without network access or an unpublished consumer dependency.
 - Receipt: `source:crates/conformance/tests/cross_language_did_vectors.rs`
 - Evidence revision: `a2683961fb07305d12e96fbcabdb07bb7c0cbab8`
+
+## `did.syntax.typescript-canary.quality.v1`
+
+- Capability: `did.syntax`
+- Slice: Private SDK-TS DID and DID URL facade canary
+- Owner: SDK-Rust TypeScript binding maintainers (issue #492)
+- Risk: A TypeScript facade can drift from canonical DID syntax, leak WASM ownership or caller input, select the wrong runtime artifact, duplicate portable semantics, or hide target-specific failures.
+- Targets: `package:identus-typescript-sdk`, `package:identus-wasm-did`, `consumer:sdk-ts`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
+- Vector IDs: `22` local catalog entries
+- Limitations: Private additive facade and local browser, Node.js, and React web evidence only; no external SDK-TS mutation, default switch, npm publication, target support, accepted performance budget, React Native package, or production certification.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #492 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #492 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #492 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #492 |
+
+### `property`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
+- Budget: Execute all 22 canonical vectors plus lifecycle, exact-free, observer-failure, singleton, module-format, rollback, strict-type, public-name, and dependency-direction properties on every applicable local target.
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `25fd106bd0d56f283b9c2a71a4310bfcd409b181`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all`
+- Budget: Run DID and DID URL fuzz targets for 300 seconds each with max_len=139264, timeout=5 and rss_limit_mb=1024, then bind the fresh exact-revision receipt to the canary.
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
+
+### `benchmark`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
+- Budget: Measure deterministic compressed and uncompressed artifacts, cold and warm initialization, ordinary and near-limit parse p50/p95, retained memory where reliable, and variance without activating a support threshold.
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
+
+### `differential`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
+- Budget: Execute every active did.syntax.v1 case through canonical Rust and each applicable facade target, compare normalized exact values/components/stable codes, and separately label donor-only rollback mechanics.
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `25fd106bd0d56f283b9c2a71a4310bfcd409b181`
 
 ## `did.prism.quality.v1`
 
@@ -336,7 +381,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #522 |
-| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `max-age-days (8 days)` | #522 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #522 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #522 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #522 |
 
@@ -351,8 +396,9 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-prism-vdr-indexer.sh soak all`
 - Budget: Run each target for 300 seconds with 139264-byte inputs, five seconds per case and 1024 MiB RSS; promote failures into checked-in regression seeds.
-- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925`
-- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #522
 
 ### `benchmark`
 

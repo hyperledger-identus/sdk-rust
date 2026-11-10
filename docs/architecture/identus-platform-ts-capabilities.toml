@@ -1,8 +1,8 @@
 schema_version   = 2
 program_issue    = 417
 correction_issue = 497
-snapshot_date    = "2026-09-29"
-status           = "preliminary"
+snapshot_date    = "2026-11-07"
+status           = "accepted"
 
 [source]
 repository = "https://github.com/hyperledger-identus/sdk-ts"
@@ -147,7 +147,7 @@ test_authority     = "implementation-regression"
 test_paths         = [ "packages/lib/sdk/tests/castor" ]
 known_consumers    = [ "DIDComm connection workflows" ]
 compatibility_risk = "high"
-rust_state         = "absent"
+rust_state         = "substantial"
 target_owner       = "identus-did-peer"
 typescript_owner   = "thin compatibility and host adapter during migration"
 disposition        = "move-to-rust"

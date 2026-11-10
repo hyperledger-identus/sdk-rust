@@ -2,7 +2,7 @@ schema_version   = 1
 registry_version = "1.0.0"
 status           = "active"
 owner_issue      = 501
-evaluated_at     = "2026-10-29"
+evaluated_at     = "2026-11-10"
 allowed_classes  = [ "property", "fuzz", "benchmark", "differential" ]
 allowed_lanes    = [ "focused", "fast", "slow", "release", "none" ]
 allowed_cadences = [ "on-change", "per-pull-request", "weekly-or-manual", "per-candidate", "not-applicable" ]
@@ -769,21 +769,21 @@ risk = "Unexpected byte sequences may trigger parser panics, excessive allocatio
 selectors = [
   "fuzz/fuzz_targets/did.rs#fuzz_target!",
   "fuzz/fuzz_targets/did_url.rs#fuzz_target!",
-  "scripts/fuzz-did.sh#-max_len=8192",
+  "scripts/fuzz-did.sh#-max_len=139264",
   ".github/workflows/did-fuzz.yml#Run bounded nightly soak",
 ]
 command = "nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all"
 lane = "slow"
 cadence = "weekly-or-manual"
-targets = [ "package:identus-did", "host:linux", "sanitizer:address" ]
-freshness = "max-age-days"
-freshness_days = 8
-budget = "Run each DID and DID URL fuzz target for 300 seconds with max_len=8192, timeout=5, and rss_limit_mb=1024."
-receipt_kind = "github-run"
-receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925"
-evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
-recorded_at = "2026-10-27"
-artifact = "did-fuzz-artifacts-<sha>-<attempt> on failure"
+targets = [ "package:identus-did", "host:darwin", "sanitizer:address" ]
+freshness = "source-bound"
+freshness_days = 0
+budget = "Run each DID and DID URL fuzz target for 300 seconds with max_len=139264, timeout=5, and rss_limit_mb=1024."
+receipt_kind = "source"
+receipt = "source:docs/conformance/sdk-ts-did-canary-quality.md"
+evidence_revision = "7fec337ee8a0a02847ddf86a1057c459711b86c2"
+recorded_at = "2026-11-10"
+artifact = "docs/conformance/sdk-ts-did-canary-quality.md"
 owner = "SDK-Rust DID maintainers"
 owner_issue = 501
 debt_status = "none"
@@ -793,7 +793,7 @@ details = [
   "harness=libFuzzer DID and DID URL parse/round-trip targets",
   "corpus=fuzz/corpus/did and fuzz/corpus/did_url",
   "seed=libFuzzer-managed reproducible failing inputs",
-  "bounds=max_len=8192;timeout=5;rss_limit_mb=1024;max_total_time=300",
+  "bounds=max_len=139264;timeout=5;rss_limit_mb=1024;max_total_time=300",
   "sanitizer=address",
 ]
 
@@ -852,6 +852,116 @@ details = [
   "normalization=compare accept/reject and canonical parsed component expectations, not foreign DTO or error shapes",
   "deviations=none for the lexical syntax packet",
 ]
+
+[[declarations]]
+id          = "did.syntax.typescript-canary.quality.v1"
+capability  = "did.syntax"
+slice       = "Private SDK-TS DID and DID URL facade canary"
+owner       = "SDK-Rust TypeScript binding maintainers"
+owner_issue = 492
+risk        = "A TypeScript facade can drift from canonical DID syntax, leak WASM ownership or caller input, select the wrong runtime artifact, duplicate portable semantics, or hide target-specific failures."
+targets     = [ "package:identus-typescript-sdk", "package:identus-wasm-did", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+vector_ids  = [ "did-url.syntax.empty-fragment", "did-url.syntax.empty-query", "did-url.syntax.invalid-percent", "did-url.syntax.max-bytes", "did-url.syntax.over-max-bytes", "did-url.syntax.space", "did-url.syntax.valid-components", "did.syntax.consumer-shared-basic", "did.syntax.consumer-shared-percent", "did.syntax.invalid-method", "did.syntax.invalid-percent", "did.syntax.invalid-prefix", "did.syntax.max-bytes", "did.syntax.missing-method", "did.syntax.missing-method-specific-id", "did.syntax.non-ascii", "did.syntax.over-max-bytes", "did.syntax.trailing-colon", "did.syntax.url-delimiter", "did.syntax.valid-basic", "did.syntax.valid-colon-segments", "did.syntax.valid-percent-case" ]
+limitations = "Private additive facade and local browser, Node.js, and React web evidence only; no external SDK-TS mutation, default switch, npm publication, target support, accepted performance budget, React Native package, or production certification."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Projection, lifecycle, provider selection, observability, module format, or empty-versus-absent component handling can diverge across target loaders."
+selectors         = [ "openspec/specs/sdk-ts-did-facade/spec.md#Requirement: Shared vectors and rollback are provider-neutral", "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md#Decision" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-typescript-sdk", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Execute all 22 canonical vectors plus lifecycle, exact-free, observer-failure, singleton, module-format, rollback, strict-type, public-name, and dependency-direction properties on every applicable local target."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/sdk-ts-did-canary-quality.md"
+evidence_revision = "25fd106bd0d56f283b9c2a71a4310bfcd409b181"
+recorded_at       = "2026-11-10"
+artifact          = "docs/conformance/sdk-ts-did-canary-quality.md"
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 492
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Every target exposes the same frozen plain DID values and stable redacted errors while generated objects are freed exactly once and provider selection remains explicit", "domain=All 22 did.syntax.v1 cases across browser, Node ESM, Node CommonJS, React client, SSR and hydration where applicable", "cases=Canonical vectors plus exceptional projection, observer failure, repeated initialization, artifact mismatch, rollback selection, strict declaration and closed legacy-name mutations" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Arbitrary bytes at the Rust-backed TypeScript boundary can trigger parser panics, excessive allocation, lifecycle leaks, or differences between DID and DID URL entry points."
+selectors         = [ "fuzz/fuzz_targets/did.rs#fuzz_target!", "fuzz/fuzz_targets/did_url.rs#fuzz_target!", "scripts/fuzz-did.sh#max_total_time" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did", "package:identus-wasm-did", "host:darwin", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Run DID and DID URL fuzz targets for 300 seconds each with max_len=139264, timeout=5 and rss_limit_mb=1024, then bind the fresh exact-revision receipt to the canary."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/sdk-ts-did-canary-quality.md"
+evidence_revision = "7fec337ee8a0a02847ddf86a1057c459711b86c2"
+recorded_at       = "2026-11-10"
+artifact          = "docs/conformance/sdk-ts-did-canary-quality.md"
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 492
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Existing libFuzzer DID and DID URL parser targets reused for the canonical Rust boundary consumed by the facade", "corpus=Canonical DID syntax vectors plus promoted parser regressions", "seed=libFuzzer-managed reproducible failures promoted to checked-in regression cases", "bounds=max_len=139264;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Target packaging, initialization, projection, module duplication, or near-limit values can introduce disproportionate size, latency, memory, or retained-WASM regressions."
+selectors         = [ "openspec/changes/archive/2026-11-10-add-sdk-ts-did-canary/design.md#Package and quality evidence", "openspec/specs/sdk-ts-did-facade/spec.md#Requirement: Resource evidence remains measurement-only" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-typescript-sdk", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure deterministic compressed and uncompressed artifacts, cold and warm initialization, ordinary and near-limit parse p50/p95, retained memory where reliable, and variance without activating a support threshold."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/sdk-ts-did-canary-quality.md"
+evidence_revision = "7fec337ee8a0a02847ddf86a1057c459711b86c2"
+recorded_at       = "2026-11-10"
+artifact          = "docs/conformance/sdk-ts-did-canary-quality.md"
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 492
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Build/load target artifacts and parse ordinary plus near-limit DID and DID URL values through the public TypeScript facade", "fixture=Canonical ordinary, exact-boundary and near-boundary public identifier values with deterministic package assembly", "environment=Pinned Nix Node 24, wasm-pack 0.15.0, wasm-bindgen-cli 0.2.121, Chromium and Firefox plus exact npm lock", "statistic=Artifact bytes and SHA-256 plus cold/warm initialization and parse p50/p95 with retained memory where the runtime exposes a reliable measure", "samples=At least 101 measured parses after 21 warm-up iterations per stable target and fixture", "threshold=Measurement-only directional baseline; accepted regression and support budgets require a later target decision" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "The facade can appear internally consistent while changing canonical Rust acceptance, stable codes, exact serialization, SDK-TS consumer cases, or absent-versus-empty DID URL semantics."
+selectors         = [ "openspec/specs/sdk-ts-did-facade/spec.md#Requirement: Shared vectors and rollback are provider-neutral", "docs/conformance/cross-language-vector-catalog.toml#did.syntax.consumer-shared-basic" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-did", "package:identus-typescript-sdk", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Execute every active did.syntax.v1 case through canonical Rust and each applicable facade target, compare normalized exact values/components/stable codes, and separately label donor-only rollback mechanics."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/sdk-ts-did-canary-quality.md"
+evidence_revision = "25fd106bd0d56f283b9c2a71a4310bfcd409b181"
+recorded_at       = "2026-11-10"
+artifact          = "docs/conformance/sdk-ts-did-canary-quality.md"
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 492
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=W3C DID Core 1.0 plus canonical identus-did and the immutable did.syntax.v1 packet; SDK-TS 8.1.4 selectors are consumer-regression evidence only", "oracle-revision=SDK-Rust canonical source record 4612053cef68dd68a26a6940aa10fd41f3fb14e0; SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e; did.syntax.v1 SHA-256 a7ed2b8f1351c8aedcb2b38f8849a1e3d81e058f6b5636413340cf4157733508", "normalization=Compare accept/reject, exact serialized value, method, method-specific identifier, path, raw query, fragment presence and stable redacted code rather than generated classes or error text", "deviations=The additive exact-value facade preserves absent-versus-empty and raw query distinctions that the legacy SDK-TS DID URL shape loses; actual consumer adoption remains downstream" ]
 
 [[declarations]]
 id = "did.prism.quality.v1"
@@ -1060,7 +1170,7 @@ details = [
 
 [[declarations.obligations]]
 class = "fuzz"
-disposition = "satisfied"
+disposition = "required"
 risk = "Malformed exact-wire storage envelopes and adversarial batch boundaries may trigger panics, allocation amplification, parser disagreement, or digest instability."
 selectors = [
   "fuzz/fuzz_targets/prism_vdr.rs#fuzz_target!",
@@ -1072,18 +1182,18 @@ command = "nix develop .#fuzz --command ./scripts/fuzz-prism-vdr-indexer.sh soak
 lane = "slow"
 cadence = "weekly-or-manual"
 targets = [ "package:identus-prism-vdr", "package:identus-prism-indexer", "host:linux", "sanitizer:address" ]
-freshness = "max-age-days"
-freshness_days = 8
+freshness = "pending"
+freshness_days = 0
 budget = "Run each target for 300 seconds with 139264-byte inputs, five seconds per case and 1024 MiB RSS; promote failures into checked-in regression seeds."
-receipt_kind = "github-run"
-receipt = "https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925"
-evidence_revision = "fd808b1df5e25923d60eea5f8d276e6c7a00ac27"
-recorded_at = "2026-10-27"
-artifact = "did-fuzz-artifacts-<sha>-<attempt> on failure"
+receipt_kind = "none"
+receipt = ""
+evidence_revision = ""
+recorded_at = ""
+artifact = ""
 owner = "SDK-Rust PRISM VDR and indexer maintainers"
 owner_issue = 522
-debt_status = "none"
-debt_issue = 0
+debt_status = "open"
+debt_issue = 522
 rationale = ""
 details = [
   "harness=libFuzzer exact VDR parsing and complete transaction batch construction targets",

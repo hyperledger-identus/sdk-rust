@@ -112,6 +112,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "did.syntax.typescript-migration.v1"
+capability                        = "did.syntax"
+lifecycle_state                   = "active"
+issue                             = 492
+pull_request                      = 595
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "error", "public-api", "runtime-requirement", "target-support" ]
+affected_packages                 = [ "@hyperledger/identus-sdk", "identus-wasm-did" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "SDK-Rust exposes canonical DID and DID URL values plus an unpublished generated browser WASM boundary, but no strict capability-named TypeScript facade, Node loader, React web lifecycle, provider rollback seam, or isolated target receipts."
+new_behavior                      = "A private additive TypeScript facade projects target-specific Rust WASM values into frozen plain DID and DID URL values with stable redacted errors, explicit provider selection, browser and Node loaders, React web lifecycle integration, shared vector evidence, and isolated exact-head target receipts."
+migration_action                  = "Adopt the private facade only through an explicit provider selection and keep the separately owned SDK-TS legacy provider available until its named consumer rehearsal and rollback evidence pass."
+replacement                       = "Capability-named additive DID/DID URL TypeScript facade backed by canonical SDK-Rust semantics."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The canary remains private, opt-in, non-default, and unpublished; a later SDK-TS change owns any supported migration window or default switch."
+deprecation_phase                 = "proposed"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "required"
+mapping_ids                       = [ "did-url.value.typescript.legacy-v1", "did.error.invalid-did-url.typescript.legacy-v1", "did.error.invalid-did.typescript.legacy-v1", "did.value.typescript.legacy-v1" ]
+mapping_rationale                 = "The facade consumes the four versioned SDK-TS 8.1.4 compatibility mappings while keeping canonical Rust values and stable error codes authoritative; no legacy DTO constrains the Rust core."
+vector_ids                        = [ "did-url.syntax.empty-fragment", "did-url.syntax.empty-query", "did-url.syntax.invalid-percent", "did-url.syntax.max-bytes", "did-url.syntax.over-max-bytes", "did-url.syntax.space", "did-url.syntax.valid-components", "did.syntax.consumer-shared-basic", "did.syntax.consumer-shared-percent", "did.syntax.invalid-method", "did.syntax.invalid-percent", "did.syntax.invalid-prefix", "did.syntax.max-bytes", "did.syntax.missing-method", "did.syntax.missing-method-specific-id", "did.syntax.non-ascii", "did.syntax.over-max-bytes", "did.syntax.trailing-colon", "did.syntax.url-delimiter", "did.syntax.valid-basic", "did.syntax.valid-colon-segments", "did.syntax.valid-percent-case" ]
+quality_declaration_ids           = [ "did.syntax.quality.v1", "did.syntax.typescript-canary.quality.v1" ]
+observability                     = "Record only operation, selected provider route, mapping ID, stable result or error category, target identity, bounded duration, and artifact identity; never record DID input, components, generated errors, stacks, WASM memory, or consumer data."
+fallback                          = "No automatic parser fallback; rollback selects the legacy provider before initialization and a Rust rejection remains terminal."
+rollback                          = "Remove the private facade, loaders, target fixtures, and target routing as one unreleased unit while preserving identus-did, identus-wasm-did API version 1, canonical mappings/vectors, and unchanged SDK-TS behavior."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = "A separate consumer-visible change may retire the legacy route only after every supported SDK-TS consumer uses the Rust-backed facade, target budgets and support are accepted, rollback is rehearsed, and the announced compatibility window elapses."
+evidence_selectors                = [ "docs/architecture/language-adapter-mappings.toml#did.value.typescript.legacy-v1", "docs/architecture/quality-evidence-declarations.toml#did.syntax.typescript-canary.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.syntax.valid-basic" ]
+evidence_artifacts                = [ "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md", "openspec/changes/archive/2026-11-10-add-sdk-ts-did-canary/design.md", "openspec/specs/sdk-ts-did-facade/spec.md" ]
+limitations                       = "Private repository-local DID and DID URL canary only; no SDK-TS repository mutation, default switch, npm publication, runtime certification, accepted support budget, React Native/TurboModule, DID documents, methods, resolution, keys, credentials, storage, networking, agent orchestration, mdoc, stable API, or production claim."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "siopv2.did-authentication.diagnostics.v1"
 capability                        = "siopv2.did-authentication"
 lifecycle_state                   = "active"

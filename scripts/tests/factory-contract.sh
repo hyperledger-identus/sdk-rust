@@ -25,6 +25,7 @@ trap 'rm -rf "$fixture_root"' EXIT
 "$repository_root/scripts/tests/support-policy.py"
 "$repository_root/scripts/tests/apollo-parity.py"
 "$repository_root/scripts/tests/platform-ts-capabilities.py"
+"$repository_root/scripts/tests/sdk-ts-parity-conformance.py"
 "$repository_root/scripts/tests/a1-compatibility-plan.py"
 "$repository_root/scripts/tests/language-adapter-mappings.py"
 "$repository_root/scripts/tests/platform-change-ledger.py"
@@ -279,6 +280,7 @@ required_files=(
   scripts/check-rustsec-audit.py
   scripts/check-apollo-parity.py
   scripts/check-platform-ts-capabilities.py
+  scripts/check-sdk-ts-parity-conformance.py
   scripts/check-a1-compatibility-plan.py
   scripts/check-language-adapter-mappings.py
   scripts/check-platform-change-ledger.py
@@ -335,6 +337,7 @@ required_files=(
   scripts/tests/uniffi-generator-supply-chain.py
   scripts/tests/apollo-parity.py
   scripts/tests/platform-ts-capabilities.py
+  scripts/tests/sdk-ts-parity-conformance.py
   scripts/tests/a1-compatibility-plan.py
   scripts/tests/language-adapter-mappings.py
   scripts/tests/platform-change-ledger.py
@@ -561,6 +564,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/check-support-policy.py" \
   "$fixture_root/scripts/check-apollo-parity.py" \
   "$fixture_root/scripts/check-platform-ts-capabilities.py" \
+  "$fixture_root/scripts/check-sdk-ts-parity-conformance.py" \
   "$fixture_root/scripts/check-a1-compatibility-plan.py" \
   "$fixture_root/scripts/check-language-adapter-mappings.py" \
   "$fixture_root/scripts/check-platform-change-ledger.py" \
@@ -604,6 +608,7 @@ chmod +x "$fixture_root/bootstrap.sh" "$fixture_root/scripts/factory" "$fixture_
   "$fixture_root/scripts/tests/weekly-slow-live.py"
 chmod +x "$fixture_root/scripts/tests/apollo-parity.py"
 chmod +x "$fixture_root/scripts/tests/platform-ts-capabilities.py"
+chmod +x "$fixture_root/scripts/tests/sdk-ts-parity-conformance.py"
 chmod +x "$fixture_root/scripts/tests/a1-compatibility-plan.py"
 chmod +x "$fixture_root/scripts/tests/language-adapter-mappings.py"
 chmod +x "$fixture_root/scripts/tests/platform-change-ledger.py"

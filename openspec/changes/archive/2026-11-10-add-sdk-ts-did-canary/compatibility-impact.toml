@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 492
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The change adds a private additive DID/DID URL TypeScript facade, target loaders, provider rollback seam, and exact target evidence while preserving existing Rust APIs, SDK-TS behavior, default routing, support state, and publication state."
+ledger_ids     = [ "did.syntax.typescript-migration.v1" ]

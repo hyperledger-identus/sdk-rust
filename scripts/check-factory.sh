@@ -179,6 +179,7 @@ required_files=(
   scripts/check-support-policy.py
   scripts/check-apollo-parity.py
   scripts/check-platform-ts-capabilities.py
+  scripts/check-sdk-ts-parity-conformance.py
   scripts/check-a1-compatibility-plan.py
   scripts/check-language-adapter-mappings.py
   scripts/check-platform-change-ledger.py
@@ -231,6 +232,7 @@ required_files=(
   scripts/tests/jwe-engine-qualification.py
   scripts/tests/apollo-parity.py
   scripts/tests/platform-ts-capabilities.py
+  scripts/tests/sdk-ts-parity-conformance.py
   scripts/tests/a1-compatibility-plan.py
   scripts/tests/language-adapter-mappings.py
   scripts/tests/platform-change-ledger.py
@@ -323,6 +325,12 @@ fi
 if [[ -x "$factory_root/scripts/check-platform-ts-capabilities.py" && -f "$factory_root/docs/architecture/identus-platform-ts-capabilities.toml" ]]; then
   if ! "$factory_root/scripts/check-platform-ts-capabilities.py" "$factory_root"; then
     report_failure "SDK-TS capability-inventory validation failed"
+  fi
+fi
+
+if [[ -x "$factory_root/scripts/check-sdk-ts-parity-conformance.py" && -f "$factory_root/docs/roadmap/sdk-ts-parity-conformance.toml" ]]; then
+  if ! "$factory_root/scripts/check-sdk-ts-parity-conformance.py" "$factory_root"; then
+    report_failure "SDK-TS parity/conformance validation failed"
   fi
 fi
 

@@ -49,6 +49,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably.
 
+### `did.syntax.typescript-migration.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. A private additive TypeScript facade projects target-specific Rust WASM values into frozen plain DID and DID URL values with stable redacted errors, explicit provider selection, browser and Node loaders, React web lifecycle integration, shared vector evidence, and isolated exact-head target receipts.
+
 ### `did.web.profile.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-web crate parses a strict bounded profile, derives exact HTTPS requests, retrieves through a caller-injected port, and binds bounded DID documents to the exact requested identifier.
@@ -130,6 +134,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `did.syntax.long-form-resource-policy.v1`
 
 `0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Use the exported constants rather than copied literals, handle KeyBudgetBypass as an uncached successful resolution path, and keep external transport limits explicit.
+
+### `did.syntax.typescript-migration.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Adopt the private facade only through an explicit provider selection and keep the separately owned SDK-TS legacy provider available until its named consumer rehearsal and rollback evidence pass.
 
 ### `did.web.profile.v1`
 
@@ -213,6 +221,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The release-candidate line documents the new limits before a stable 0.1.0 contract is declared.
 
+### `did.syntax.typescript-migration.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The canary remains private, opt-in, non-default, and unpublished; a later SDK-TS change owns any supported migration window or default switch.
+
 ### `did.web.profile.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
@@ -295,6 +307,10 @@ Fallback: Consumers remain on their existing PRISM storage and indexing implemen
 
 Fallback: Bypass cache retention for valid oversized identities; do not truncate keys or fall back to a second parser. Rollback: Restore the prior lexical constants and cache outcome before publication while retaining issue and measurement evidence. Removal gate: Not applicable; this is an expansion of a bounded public envelope rather than a deprecated facade.
 
+### `did.syntax.typescript-migration.v1`
+
+Fallback: No automatic parser fallback; rollback selects the legacy provider before initialization and a Rust rejection remains terminal. Rollback: Remove the private facade, loaders, target fixtures, and target routing as one unreleased unit while preserving identus-did, identus-wasm-did API version 1, canonical mappings/vectors, and unchanged SDK-TS behavior. Removal gate: A separate consumer-visible change may retire the legacy route only after every supported SDK-TS consumer uses the Rust-backed facade, target budgets and support are accepted, rollback is rehearsed, and the announced compatibility window elapses.
+
 ### `did.web.profile.v1`
 
 Fallback: Consumers retain their existing did:web implementation until they explicitly adopt the crate and provide an approved fetch adapter. Rollback: Before publication remove the additive crate and evidence; generic SDK-Rust DID behavior remains unchanged. Removal gate: Not applicable.
@@ -376,6 +392,10 @@ Visibility: behavior, public-api, security, target-support, wire. No Cardano sou
 ### `did.syntax.long-form-resource-policy.v1`
 
 Visibility: behavior, public-api. The lexical envelope does not guarantee transportability through every host, cache retention, or acceptance by a method-specific semantic profile.
+
+### `did.syntax.typescript-migration.v1`
+
+Visibility: behavior, error, public-api, runtime-requirement, target-support. Private repository-local DID and DID URL canary only; no SDK-TS repository mutation, default switch, npm publication, runtime certification, accepted support budget, React Native/TurboModule, DID documents, methods, resolution, keys, credentials, storage, networking, agent orchestration, mdoc, stable API, or production claim.
 
 ### `did.web.profile.v1`
 

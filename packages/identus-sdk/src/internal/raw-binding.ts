@@ -15,6 +15,11 @@ export interface RawDidUrlView extends RawDidView {
   readonly fragment: unknown;
 }
 
+export interface RawDidDocumentView extends RawOwnedValue {
+  readonly serialized: unknown;
+  readonly id: unknown;
+}
+
 export interface RawDidParseError extends RawOwnedValue {
   readonly code: unknown;
 }
@@ -23,5 +28,6 @@ export interface RawDidBinding {
   bindingApiVersion(): unknown;
   parseDid(value: string): RawDidView;
   parseDidUrl(value: string): RawDidUrlView;
+  parseDidDocument(value: string): RawDidDocumentView;
   isParseError(error: unknown): error is RawDidParseError;
 }

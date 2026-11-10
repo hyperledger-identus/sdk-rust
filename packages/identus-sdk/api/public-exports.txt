@@ -1,4 +1,10 @@
 DidError
+DidDocumentContextEntryValue
+DidDocumentContextValue
+DidDocumentControllerValue
+DidDocumentExtensionMapValue
+DidDocumentExtensionValue
+DidDocumentValue
 DidErrorCode
 DidMappingId
 DidObservation
@@ -8,5 +14,10 @@ DidProvider
 DidProviderFactory
 DidProviderOptions
 DidProviderRoute
+DidServiceEndpointEntryValue
+DidServiceEndpointValue
+DidServiceValue
 DidUrlValue
 DidValue
+DidVerificationMethodValue
+DidVerificationRelationshipValue

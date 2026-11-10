@@ -22,13 +22,16 @@ function owned(fields) {
 
 function binding(overrides = {}) {
   return {
-    bindingApiVersion: () => 1,
+    bindingApiVersion: () => 2,
     isParseError: (error) => error?.kind === "parse",
     parseDid: () => {
       throw new Error("parseDid mock is missing");
     },
     parseDidUrl: () => {
       throw new Error("parseDidUrl mock is missing");
+    },
+    parseDidDocument: () => {
+      throw new Error("parseDidDocument mock is missing");
     },
     ...overrides,
   };
@@ -232,11 +235,259 @@ test("sanitizes unknown binding failures and rejects API drift", () => {
   );
   assert.throws(
     () => createRustDidProvider(
-      binding({ bindingApiVersion: () => 2 }),
+      binding({ bindingApiVersion: () => 1 }),
       "node-wasm",
     ),
     /DID binding contract failed/u,
   );
+});
+
+function assertDeepFrozen(root) {
+  const pending = [root];
+  const visited = new Set();
+  while (pending.length > 0) {
+    const value = pending.pop();
+    if (value === null || typeof value !== "object" || visited.has(value)) continue;
+    visited.add(value);
+    assert.equal(Object.isFrozen(value), true);
+    pending.push(...Object.values(value));
+  }
+}
+
+test("projects a complete DID document as strict deeply frozen values", () => {
+  const serialized = JSON.stringify({
+    "@context": [
+      "https://www.w3.org/ns/did/v1",
+      { example: "https://example.com/ns#" },
+    ],
+    id: "did:example:123",
+    controller: ["did:example:123", "did:example:controller"],
+    alsoKnownAs: ["https://example.com/profile"],
+    verificationMethod: [{
+      id: "did:example:123#key-1",
+      type: "JsonWebKey2020",
+      controller: "did:example:123",
+      publicKeyJwk: { kty: "OKP", crv: "Ed25519", x: "public" },
+      expires: "2030-01-01T00:00:00Z",
+    }],
+    authentication: [
+      "did:example:123#key-1",
+      {
+        id: "did:example:123#key-2",
+        type: "Multikey",
+        controller: "did:example:123",
+        publicKeyMultibase: "z6MkiTBz1y",
+      },
+    ],
+    assertionMethod: ["did:example:123#key-1"],
+    keyAgreement: ["did:example:123#key-1"],
+    capabilityInvocation: ["did:example:123#key-1"],
+    capabilityDelegation: ["did:example:123#key-1"],
+    service: [{
+      id: "did:example:123#messages",
+      type: ["DIDCommMessaging", "ExampleInbox"],
+      serviceEndpoint: [
+        "https://inbox.example/123",
+        { uri: "https://backup.example/123", accept: ["didcomm/v2"] },
+      ],
+      priority: 1,
+    }],
+    "example:profile": { locale: "en", features: ["identity"] },
+  });
+  const raw = owned({ serialized, id: "did:example:123" });
+  const provider = createRustDidProvider(
+    binding({ parseDidDocument: () => raw.value }),
+    "node-wasm",
+  );
+
+  const result = provider.parseDidDocument("caller bytes are Rust-owned");
+
+  assert.equal(result.serialized, serialized);
+  assert.deepEqual(result.id, {
+    serialized: "did:example:123",
+    method: "example",
+    methodSpecificId: "123",
+  });
+  assert.equal(Array.isArray(result.context), true);
+  assert.equal(Array.isArray(result.controller), true);
+  assert.equal(result.verificationMethod[0].properties.publicKeyJwk.kty, "OKP");
+  assert.deepEqual(result.authentication[0], {
+    kind: "reference",
+    reference: "did:example:123#key-1",
+  });
+  assert.equal(result.authentication[1].kind, "embedded");
+  assert.equal(result.authentication[1].method.properties.publicKeyMultibase, "z6MkiTBz1y");
+  assert.equal(Array.isArray(result.service[0].type), true);
+  assert.equal(Array.isArray(result.service[0].serviceEndpoint), true);
+  assert.equal(result.service[0].properties.priority, 1);
+  assert.equal(result.properties["example:profile"].locale, "en");
+  assertDeepFrozen(result);
+  assert.equal(raw.freeCount(), 1);
+  assert.equal("free" in result, false);
+});
+
+test("preserves scalar document cardinality and absent optional fields", () => {
+  const serialized = JSON.stringify({
+    "@context": "https://www.w3.org/ns/did/v1",
+    id: "did:example:123",
+    controller: "did:example:controller",
+    service: [{
+      id: "did:example:123#profile",
+      type: "Profile",
+      serviceEndpoint: { origins: ["https://example.com"] },
+    }],
+  });
+  const raw = owned({ serialized, id: "did:example:123" });
+  const provider = createRustDidProvider(
+    binding({ parseDidDocument: () => raw.value }),
+    "browser-wasm",
+  );
+
+  const result = provider.parseDidDocument(serialized);
+
+  assert.equal(result.context, "https://www.w3.org/ns/did/v1");
+  assert.equal(Array.isArray(result.controller), false);
+  assert.equal(result.controller.serialized, "did:example:controller");
+  assert.equal(Array.isArray(result.service[0].type), false);
+  assert.equal(Array.isArray(result.service[0].serviceEndpoint), false);
+  assert.equal(result.alsoKnownAs, undefined);
+  assert.equal(result.verificationMethod, undefined);
+  assert.deepEqual(result.properties, {});
+  assertDeepFrozen(result);
+  assert.equal(raw.freeCount(), 1);
+});
+
+test("rejects unsafe integer spellings without rounding and frees once", () => {
+  const markers = [
+    "9007199254740993",
+    "9007199254740993.0",
+    "9.007199254740993e15",
+  ];
+  const raws = markers.map((marker) => owned({
+    serialized: `{"id":"did:example:123","unsafe":${marker}}`,
+    id: "did:example:123",
+  }));
+  const queue = raws.map((raw) => raw.value);
+  const provider = createRustDidProvider(
+    binding({ parseDidDocument: () => queue.shift() }),
+    "node-wasm",
+  );
+
+  for (const marker of markers) {
+    assert.throws(
+      () => provider.parseDidDocument("caller-secret-document"),
+      (error) => {
+        assert.equal(error instanceof DidError, true);
+        assert.equal(error.code, "adapter.unsupported_lossy_mapping");
+        assert.equal(error.message, "DID document cannot be projected safely");
+        assert.equal(error.stack, undefined);
+        assert.equal(JSON.stringify(error).includes(marker), false);
+        return true;
+      },
+    );
+  }
+  for (const raw of raws) assert.equal(raw.freeCount(), 1);
+});
+
+test("maps a Rust document rejection with stable redaction and exact disposal", () => {
+  let freeCount = 0;
+  const rawError = {
+    kind: "parse",
+    code: "did.invalid_document",
+    free() {
+      freeCount += 1;
+    },
+  };
+  const provider = createRustDidProvider(
+    binding({ parseDidDocument: () => { throw rawError; } }),
+    "node-wasm",
+  );
+
+  assert.throws(
+    () => provider.parseDidDocument("caller-secret-document"),
+    (error) => error instanceof DidError
+      && error.code === "did.invalid_document"
+      && error.message === "DID document is invalid"
+      && error.stack === undefined
+      && !JSON.stringify(error).includes("caller-secret-document"),
+  );
+  assert.equal(freeCount, 1);
+});
+
+test("fails closed on malformed or excessive generated document wire", () => {
+  const malformed = owned({ serialized: "[]", id: "did:example:123" });
+  let nested = "true";
+  for (let index = 0; index < 66; index += 1) {
+    nested = `{"n":${nested}}`;
+  }
+  const excessive = owned({
+    serialized: `{"id":"did:example:123","deep":${nested}}`,
+    id: "did:example:123",
+  });
+  const emptyCardinality = owned({
+    serialized: "{\"id\":\"did:example:123\",\"controller\":[]}",
+    id: "did:example:123",
+  });
+  const queue = [malformed.value, excessive.value, emptyCardinality.value];
+  const provider = createRustDidProvider(
+    binding({ parseDidDocument: () => queue.shift() }),
+    "node-wasm",
+  );
+
+  for (const input of ["malformed", "excessive", "empty-cardinality"]) {
+    assert.throws(
+      () => provider.parseDidDocument(input),
+      (error) => error.name === "DidBindingError"
+        && error.message === "DID binding contract failed"
+        && error.stack === undefined,
+    );
+  }
+  assert.equal(malformed.freeCount(), 1);
+  assert.equal(excessive.freeCount(), 1);
+  assert.equal(emptyCardinality.freeCount(), 1);
+});
+
+test("contains prototype-looking extension names as frozen own data", () => {
+  const serialized = "{\"id\":\"did:example:123\",\"__proto__\":{\"polluted\":true}}";
+  const raw = owned({ serialized, id: "did:example:123" });
+  const provider = createRustDidProvider(
+    binding({ parseDidDocument: () => raw.value }),
+    "node-wasm",
+  );
+
+  const result = provider.parseDidDocument(serialized);
+
+  assert.equal(Object.hasOwn(result.properties, "__proto__"), true);
+  assert.equal(result.properties.__proto__.polluted, true);
+  assert.equal({}.polluted, undefined);
+  assertDeepFrozen(result);
+  assert.equal(raw.freeCount(), 1);
+});
+
+test("observes document projection without document data", () => {
+  const raw = owned({
+    serialized: "{\"id\":\"did:example:123\"}",
+    id: "did:example:123",
+  });
+  const observations = [];
+  const provider = createRustDidProvider(
+    binding({ parseDidDocument: () => raw.value }),
+    "browser-wasm",
+    { observer: (value) => observations.push(value) },
+    { now: (() => { const values = [3, 8]; return () => values.shift(); })() },
+  );
+
+  provider.parseDidDocument("caller-secret-document");
+
+  assert.deepEqual(observations, [{
+    operation: "did-document.parse",
+    route: "browser-wasm",
+    result: "success",
+    mappingId: "did.document.typescript.legacy-v1",
+    errorCode: undefined,
+    durationMs: 5,
+  }]);
+  assert.equal(JSON.stringify(observations).includes("caller-secret-document"), false);
 });
 
 test("validates JavaScript input before entering the binding", () => {

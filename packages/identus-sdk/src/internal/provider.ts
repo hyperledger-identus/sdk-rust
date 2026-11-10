@@ -1,5 +1,6 @@
 import {
   DidError,
+  type DidDocumentValue,
   type DidErrorCode,
   type DidMappingId,
   type DidObservation,
@@ -10,15 +11,17 @@ import {
   type DidUrlValue,
   type DidValue,
 } from "../public.js";
+import { projectDidDocument as projectDidDocumentValue } from "./document-projection.js";
 import type {
   RawDidBinding,
+  RawDidDocumentView,
   RawDidParseError,
   RawDidUrlView,
   RawDidView,
   RawOwnedValue,
 } from "./raw-binding.js";
 
-const BINDING_API_VERSION = 1;
+const BINDING_API_VERSION = 2;
 const MAX_OBSERVED_DURATION_MS = 2_147_483_647;
 
 interface ProviderInternals {
@@ -28,7 +31,13 @@ interface ProviderInternals {
 function bindingFailure(): Error {
   const error = new Error("DID binding contract failed");
   error.name = "DidBindingError";
-  return error;
+  Object.defineProperty(error, "stack", {
+    configurable: false,
+    enumerable: false,
+    value: undefined,
+    writable: false,
+  });
+  return Object.freeze(error);
 }
 
 function requireString(value: unknown): string {
@@ -81,6 +90,17 @@ function projectDidUrl(raw: RawDidUrlView): DidUrlValue {
   }
 }
 
+function projectDidDocument(raw: RawDidDocumentView): DidDocumentValue {
+  try {
+    return projectDidDocumentValue(
+      requireString(raw.serialized),
+      requireString(raw.id),
+    );
+  } finally {
+    dispose(raw);
+  }
+}
+
 function readErrorCode(raw: RawDidParseError): DidErrorCode {
   let code: unknown;
   try {
@@ -88,7 +108,12 @@ function readErrorCode(raw: RawDidParseError): DidErrorCode {
   } finally {
     dispose(raw);
   }
-  if (code === "did.invalid_did" || code === "did.invalid_did_url") {
+  if (
+    code === "did.invalid_did"
+    || code === "did.invalid_did_url"
+    || code === "did.invalid_document"
+    || code === "adapter.unsupported_lossy_mapping"
+  ) {
     return code;
   }
   throw bindingFailure();
@@ -130,15 +155,27 @@ function notify(
 }
 
 function successMapping(operation: DidOperation): DidMappingId {
-  return operation === "did.parse"
-    ? "did.value.typescript.legacy-v1"
-    : "did-url.value.typescript.legacy-v1";
+  switch (operation) {
+    case "did.parse":
+      return "did.value.typescript.legacy-v1";
+    case "did-url.parse":
+      return "did-url.value.typescript.legacy-v1";
+    case "did-document.parse":
+      return "did.document.typescript.legacy-v1";
+  }
 }
 
 function errorMapping(code: DidErrorCode): DidMappingId {
-  return code === "did.invalid_did"
-    ? "did.error.invalid-did.typescript.legacy-v1"
-    : "did.error.invalid-did-url.typescript.legacy-v1";
+  switch (code) {
+    case "did.invalid_did":
+      return "did.error.invalid-did.typescript.legacy-v1";
+    case "did.invalid_did_url":
+      return "did.error.invalid-did-url.typescript.legacy-v1";
+    case "did.invalid_document":
+      return "did.document.typescript.legacy-v1";
+    case "adapter.unsupported_lossy_mapping":
+      return "did.document.typescript.legacy-v1";
+  }
 }
 
 function requireInput(value: string): void {
@@ -198,6 +235,13 @@ export function createRustDidProvider(
     parseDidUrl(value: string): DidUrlValue {
       requireInput(value);
       return run("did-url.parse", () => projectDidUrl(binding.parseDidUrl(value)));
+    },
+    parseDidDocument(value: string): DidDocumentValue {
+      requireInput(value);
+      return run(
+        "did-document.parse",
+        () => projectDidDocument(binding.parseDidDocument(value)),
+      );
     },
   });
 }

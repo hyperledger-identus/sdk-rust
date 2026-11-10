@@ -104,6 +104,16 @@ license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 
 [[sources]]
+id             = "sdk-rust.did-document"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-rust"
+revision       = "f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8"
+path           = "crates/did/src/document"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[sources]]
 id             = "sdk-rust.crypto-secp256k1"
 kind           = "repository"
 url            = "https://github.com/hyperledger-identus/sdk-rust"
@@ -1739,6 +1749,41 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The adapter does not validate or translate draft-22 Type Metadata or integrity semantics."
+
+[[packets]]
+id             = "did.document.v1"
+capability     = "did.document"
+schema_version = 1
+path           = "docs/conformance/fixtures/did-document/v1/vectors.json"
+sha256         = "0996d78caf96277647613b2751b5d790f1ef946cf0cae21289c6bfb385f45f09"
+authorship     = "SDK-Rust clean-room DID Document boundary cases from W3C DID Core and the canonical Rust model"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript" ]
+
+[[vectors]]
+id                 = "did.document.minimal"
+packet             = "did.document.v1"
+case               = "did.document.minimal"
+capability         = "did.document"
+authority          = "normative"
+source_ids         = [ "w3c.did-core-v1", "sdk-rust.did-document" ]
+source_locator     = "W3C DID Core section 4.1 and SDK-Rust MAX_DID_DOCUMENT_BYTES canonical boundary"
+operation          = "did-document.parse"
+expected           = "success"
+profile_scope      = "Minimal generic DID Document accepted and projected without method or resolver behavior"
+boundary           = "positive"
+resource_class     = "bounded-document-parse"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "did_document::minimal_document_round_trips"
+language_selectors = [  ]
+owner_issue        = 502
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The seed proves only the minimal document shape; the implementation train expands the packet before completion."
 
 [[vectors]]
 id                 = "factory.operations.rust-1-99-compiler-floor.accepted"

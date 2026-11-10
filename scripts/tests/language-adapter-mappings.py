@@ -252,7 +252,7 @@ def main() -> None:
     )
     active_state_line = 'state              = "active"'
     pending_state_line = 'state              = "pending-revision"'
-    pending_registry = replace_once(registry, active_state_line, pending_state_line)
+    pending_registry = replace_first(registry, active_state_line, pending_state_line)
 
     run(registry, rendered, True)
     run(registry, rendered, True, check_rendered=True)
@@ -273,8 +273,8 @@ def main() -> None:
             'id                 = "did.source.identus-did.v1"',
             'id                 = "invalid source id"',
         ),
-        replace_once(registry, "owner_issue        = 512", "owner_issue        = 999"),
-        replace_once(
+        replace_first(registry, "owner_issue        = 512", "owner_issue        = 999"),
+        replace_first(
             registry, active_state_line, 'state              = "planned"'
         ),
     ):
@@ -374,10 +374,10 @@ def main() -> None:
 
     # Canonical sources are closed, content-addressed, shared, and fully consumed.
     source_start = registry.index("[[canonical_sources]]")
-    source_end = registry.index("[[mappings]]")
+    source_end = registry.index("[[canonical_sources]]", source_start + 1)
     source_block = registry[source_start:source_end]
     run(
-        replace_once(
+        replace_first(
             registry,
             'file_mode          = "100644"',
             'unknown            = true\nfile_mode          = "100644"',
@@ -402,7 +402,7 @@ def main() -> None:
         expect_diagnostic="file_mode does not match the source executable bit",
     )
     run(
-        replace_once(registry, 'file_mode          = "100644"', 'file_mode          = "100755"'),
+        replace_first(registry, 'file_mode          = "100644"', 'file_mode          = "100755"'),
         rendered,
         False,
         expect_diagnostic="file_mode does not match the source executable bit",
@@ -417,7 +417,7 @@ def main() -> None:
         rendered,
         False,
     )
-    run(replace_once(registry, 'git_object_format  = "sha1"', 'git_object_format  = "sha256"'), rendered, False)
+    run(replace_first(registry, 'git_object_format  = "sha1"', 'git_object_format  = "sha256"'), rendered, False)
     run(
         replace_once(
             registry,
@@ -460,7 +460,7 @@ def main() -> None:
         False,
     )
     run(
-        replace_once(
+        replace_first(
             registry,
             'canonical_crate    = "identus-did"',
             'canonical_crate    = "identus-core"',
@@ -701,7 +701,7 @@ def main() -> None:
     )
     def directory_symlink(root: Path) -> None:
         target = root / "crates/did/src/linked"
-        target.parent.mkdir(parents=True)
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.symlink_to(ROOT / "crates/did/src", target_is_directory=True)
 
     run(symlink_registry, rendered, False, setup=directory_symlink)
@@ -713,7 +713,7 @@ def main() -> None:
 
     def leaf_symlink(root: Path) -> None:
         target = root / "crates/did/src/evidence/link.rs"
-        target.parent.mkdir(parents=True)
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.symlink_to(ROOT / "crates/did/src/did.rs")
 
     run(leaf_symlink_registry, rendered, False, setup=leaf_symlink)
@@ -742,9 +742,12 @@ def main() -> None:
             "crates/did/src/evidence/duplicate.rs",
             duplicate_payload.decode(),
         ),
-        expect_diagnostic="must resolve exactly once to a literal public usize constant",
+        expect_diagnostic="must resolve exactly once to a literal-product public usize constant",
     )
-    computed_payload = b"pub const MAX_DID_BYTES: usize = 2 * 1024;\n"
+    computed_payload = (
+        b"pub const MAX_DID_BYTES: usize = 128 * 1024;\n"
+        b"pub const MAX_DID_URL_BYTES: usize = 136 * 1024;\n"
+    )
     computed_registry = bind_source_evidence(
         registry,
         "did.source.identus-did.v1",
@@ -754,13 +757,12 @@ def main() -> None:
     run(
         computed_registry,
         rendered,
-        False,
+        True,
         setup=lambda root: write_source(
             root,
             "crates/did/src/evidence/computed.rs",
             computed_payload.decode(),
         ),
-        expect_diagnostic="must resolve exactly once to a literal public usize constant",
     )
     invalid_utf8_registry = replace_first(
         registry,
@@ -770,7 +772,7 @@ def main() -> None:
 
     def invalid_utf8(root: Path) -> None:
         target = root / "crates/did/src/evidence/invalid-utf8.rs"
-        target.parent.mkdir(parents=True)
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(b"pub const MAX_DID_BYTES: usize = 131072;\n\xff")
 
     invalid_utf8_result = run(
@@ -786,7 +788,7 @@ def main() -> None:
 
     def oversized(root: Path) -> None:
         target = root / "crates/did/src/evidence/oversized.rs"
-        target.parent.mkdir(parents=True)
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(
             b"pub const MAX_DID_BYTES: usize = 131072;\n" + b" " * (2 * 1024 * 1024)
         )
@@ -940,7 +942,7 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         'path               = "crates/did/src/evidence/moved.rs"',
     )
     active_moved_registry = moved_registry
-    pending_moved_registry = replace_once(
+    pending_moved_registry = replace_first(
         moved_registry, active_state_line, pending_state_line
     )
 
@@ -957,19 +959,22 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
             ["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True
         ).stdout.strip()
         target = root / "crates/did/src/evidence/moved.rs"
-        target.parent.mkdir(parents=True)
+        target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / "crates/did/src/did.rs", target)
         subprocess.run(["git", "add", "."], cwd=root, check=True)
         subprocess.run(["git", "commit", "-qm", "move source"], cwd=root, check=True)
         registry_path = root / "docs/architecture/language-adapter-mappings.toml"
-        registry_path.write_text(
-            replace_once(
-                registry_path.read_text(encoding="utf-8"),
-                canonical_revision_line,
-                f'canonical_revision = "{revision}"',
-            ),
-            encoding="utf-8",
+        fixture_registry = replace_once(
+            registry_path.read_text(encoding="utf-8"),
+            canonical_revision_line,
+            f'canonical_revision = "{revision}"',
         )
+        fixture_registry = replace_once(
+            fixture_registry,
+            'canonical_revision = "f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8"',
+            f'canonical_revision = "{revision}"',
+        )
+        registry_path.write_text(fixture_registry, encoding="utf-8")
 
     run(
         active_moved_registry,

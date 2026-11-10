@@ -4,7 +4,7 @@
 
 - [x] 1.1 Freeze the DID Document Rust/WASM/TypeScript boundary, donor-test
       dispositions, number-projection deviation, exclusions, and rollback.
-- [ ] 1.2 Add the versioned adapter mapping, immutable vector packet/catalog,
+- [x] 1.2 Add the versioned adapter mapping, immutable vector packet/catalog,
       change-ledger record, and document-specific quality declaration.
 - [x] 1.3 Pass research/constraint readiness, commit planning only, and record
       the exact issue #502 preimplementation receipt.

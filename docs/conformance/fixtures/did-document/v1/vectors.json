@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "packetId": "did.document.v1",
+  "capability": "did.document",
+  "cases": [
+    {
+      "id": "did.document.minimal",
+      "operation": "did-document.parse",
+      "input": {
+        "literal": "{\"id\":\"did:example:123\"}"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "{\"id\":\"did:example:123\"}",
+          "did": "did:example:123"
+        }
+      }
+    }
+  ]
+}

@@ -17,6 +17,19 @@ sha256             = "89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94
 git_object_format  = "sha1"
 git_blob_oid       = "18132b1f388abd1cac9a0bf6fb14935604e089f6"
 
+[[canonical_sources]]
+id                 = "did-document.source.identus-did.v1"
+owner_issue        = 512
+state              = "active"
+canonical_crate    = "identus-did"
+canonical_revision = "f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8"
+path               = "crates/did/src/document.rs"
+file_mode          = "100644"
+byte_length        = 3202
+sha256             = "9dc6010e8b9ede3e5da14b78444c20f7ceaafb30ca7c1d9dadfb47adc09ed293"
+git_object_format  = "sha1"
+git_blob_oid       = "9deb6e0d769c188f87e6a1aa23a924babfd98bb2"
+
 [[mappings]]
 id = "did.value.typescript.legacy-v1"
 capability = "did.syntax"
@@ -340,3 +353,86 @@ language_class          = "CastorError.InvalidDIDString"
 language_message_stable = false
 preserve_rust_code      = true
 redact_input            = true
+
+[[mappings]]
+id = "did.document.typescript.legacy-v1"
+capability = "did.document"
+owner_issue = 505
+state = "active"
+kind = "value"
+canonical_crate = "identus-did"
+canonical_rust_path = "identus_did::DidDocument"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_source_id = "did-document.source.identus-did.v1"
+canonical_description = "Validated immutable W3C DID Document preserving cardinality, relationship, service endpoint, public verification material, and bounded extension distinctions."
+canonical_bound_symbol = "MAX_DID_DOCUMENT_BYTES"
+language = "typescript"
+language_package = "@hyperledger/identus-sdk"
+language_target = "node-and-browser"
+language_version = "8.1.4"
+language_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+language_path = "packages/shared/domain/src/models/DIDDocument.ts"
+language_license = "Apache-2.0"
+language_symbol = "DIDDocument"
+language_shape_state = "legacy"
+direction = "rust-to-language"
+compatibility_class = "additive"
+fidelity = "lossy"
+version_window = ">=8.1.4,<8.1.5"
+deprecation_phase = "none"
+version_negotiation = "npm-package-version"
+consumers = [ "sdk-ts" ]
+vector_ids = [ "did.document.minimal" ]
+rust_selectors = [ "identus_did::DidDocument", "did_document::minimal_document_round_trips" ]
+language_selectors = [ "packages/shared/domain/src/models/DIDDocument.ts" ]
+max_input_bytes = 262144
+redaction = "caller-input"
+sensitive_fields = [ "document-json", "verification-material" ]
+async_ownership = "not-applicable"
+cancellation_ownership = "not-applicable"
+migration_action = "Parse with canonical Rust first, project a frozen capability-named DTO, and preserve normalized JSON when the legacy object shape loses distinctions."
+replacement = "Private additive TypeScript DID Document value backed by identus-did validation and normalized serialization."
+observability = "Record only mapping ID, target, result class, stable error code, duration, and bounded sizes; never record document JSON or verification material."
+fallback = "No alternate parser runs after canonical Rust rejection or unsupported safe-integer projection."
+rollback = "Remove the unreleased document provider and retain the existing syntax-only canary and legacy SDK-TS provider selection."
+removal_gate = "Every supported SDK-TS consumer uses a separately accepted Rust-backed document facade and the declared migration window has elapsed."
+errors = [  ]
+
+[[mappings.fields]]
+rust      = "serialized"
+language  = "serialized"
+transform = "validated-normalized-json"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.fields]]
+rust      = "id"
+language  = "id"
+transform = "immutable-did-value"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.fields]]
+rust      = "document-fields"
+language  = "typed-fields"
+transform = "iterative-frozen-projection"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.losses]]
+id          = "did.document.legacy-shape-loss"
+distinction = "The legacy TypeScript model drops controllers, aliases, unresolved relationship references, wire cardinality, and bounded open extensions retained by Rust."
+consequence = "The donor object cannot be used as a lossless reverse representation of the canonical Rust document."
+mitigation  = "Expose normalized JSON and the new strict frozen projection; do not implement reverse conversion through the donor shape."
+
+[[mappings.losses]]
+id          = "did.document.unsafe-number-projection"
+distinction = "Canonical JSON can retain integers outside JavaScript's safe integer range while a TypeScript number cannot represent them exactly."
+consequence = "Projecting such an extension through number would silently corrupt the accepted document."
+mitigation  = "Reject typed projection with a stable unsupported-lossy-mapping error while retaining no caller data in diagnostics."
+
+[[mappings.unsupported]]
+id           = "did.document.unsafe-number-projection"
+reason       = "JavaScript number cannot exactly represent every integer accepted by bounded JSON."
+behavior     = "Reject typed projection without fallback or rounded output."
+stable_error = "adapter.unsupported_lossy_mapping"

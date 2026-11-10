@@ -2305,6 +2305,116 @@ debt_status       = "none"
 debt_issue        = 0
 rationale         = ""
 details           = [ "oracle=Draft-22 normative source plus OpenWallet Foundation 0.20.1 and K2GL 2.1.0 behavioral oracles", "oracle-revision=Draft text da2ade6128e9088e28e482866aa744f8287ac7eb6f11a5713bb2166827299124; OWF b983e03253481ab6d33e147cc7e30e4904d0813f; K2GL 7d938daf0a1e14974420651e7ce84146ed1875bb", "normalization=Closed accept/reject/not-exposed observations with exact selectors; draft-22 resolves every disagreement", "deviations=Both earlier-draft engines reject optional malformed display metadata; K2GL accepts a missing draft-20 mandatory path; Rust follows draft-22 and issue #572 remains the sole legacy adapter owner" ]
+
+[[declarations]]
+id          = "did.document.typescript-canary.quality.v1"
+capability  = "did.document"
+slice       = "Private SDK-TS generic DID Document facade canary"
+owner       = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue = 502
+risk        = "A document facade can bypass canonical Rust validation, lose wire distinctions, round extension numbers, leak public-key material or ownership, or couple target failures back into Rust core."
+targets     = [ "package:identus-did", "package:identus-wasm-did", "package:identus-typescript-sdk", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+vector_ids  = [ "did.document.minimal" ]
+limitations = "Private local generic DID Document parsing/projection only; no resolution, dereferencing, registration, method effects, networking, storage, custody, credentials, DIDComm, agent runtime, React Native, publication, support, certification, production use, or mdoc."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "required"
+risk              = "Projection, deep immutability, cardinality, extension preservation, generated ownership, redaction, and provider selection can diverge across targets."
+selectors         = [ "openspec/changes/add-sdk-ts-did-document/specs/sdk-ts-did-document/spec.md#The public document is immutable and capability-oriented" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-typescript-sdk", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Execute all document vectors plus lifecycle, exact-free, redaction, mutation, cardinality, unsafe-number, singleton, module-format, rollback, declaration, and dependency-direction properties."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue       = 502
+debt_status       = "open"
+debt_issue        = 502
+rationale         = ""
+details           = [ "invariant=Every target exposes the same frozen plain DID Document value after canonical Rust validation and frees generated ownership exactly once", "domain=Core document properties, every relationship and endpoint form, extensions, generated lifecycle, provider routing, and resource boundaries", "cases=Positive, negative, boundary, mutation, observer failure, unsafe integer, artifact mismatch, and rollback selection" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "required"
+risk              = "Arbitrary document bytes and hostile extension trees can panic, exhaust resources, bypass public-only key rules, leak diagnostics, or serialize nondeterministically."
+selectors         = [ "openspec/changes/add-sdk-ts-did-document/design.md#Fuzz, coverage, and resources" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-did.sh smoke did_document"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did", "package:identus-wasm-did", "host:linux", "sanitizer:address" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Exercise arbitrary bytes to the 262144-byte ceiling with timeout=5, rss_limit_mb=1024, deterministic accepted-input reparse, public-only material, and redacted errors."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue       = 502
+debt_status       = "open"
+debt_issue        = 502
+rationale         = ""
+details           = [ "harness=Arbitrary bounded raw JSON enters DidDocument parse and accepted values serialize and reparse deterministically", "corpus=Minimal, representative, duplicate-name, private-JWK, unsafe-number, relationship, service, extension, exact-limit, and hostile-depth documents", "seed=libFuzzer-managed reproducible failures promoted to checked-in regression cases", "bounds=max_len=262144;timeout=5;rss_limit_mb=1024;smoke=bounded-local", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "required"
+risk              = "Artifact assembly, document validation, typed projection, deep freezing, or near-limit normalized output can create disproportionate size, latency, or memory regressions."
+selectors         = [ "openspec/changes/add-sdk-ts-did-document/design.md#Fuzz, coverage, and resources" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-typescript-sdk", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Measure deterministic artifact bytes and hashes, cold/warm initialization, ordinary and near-limit document parse p50/p95, normalized output bytes, and RSS where reliable without activating support thresholds."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue       = 502
+debt_status       = "open"
+debt_issue        = 502
+rationale         = ""
+details           = [ "operation=Build and load target artifacts then parse and freeze ordinary and near-limit generic DID Documents", "fixture=Deterministic clean-room minimal, representative, extension-rich, and near-limit documents", "environment=Pinned Nix Node and Rust toolchains with wasm-pack, wasm-bindgen, Chromium, and exact npm lock", "statistic=Artifact bytes and SHA-256 plus cold/warm parse p50 and p95 with normalized output and reliable RSS", "samples=At least 101 measured parses after 21 warm-up iterations per stable target and fixture", "threshold=Measurement-only directional baseline; support budgets remain a separate protected decision" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "required"
+risk              = "The facade can appear internally consistent while diverging from W3C DID Core, canonical Rust acceptance, normalized serialization, stable codes, or applicable SDK-TS journeys."
+selectors         = [ "docs/conformance/cross-language-vector-catalog.toml#did.document.minimal", "openspec/changes/add-sdk-ts-did-document/specs/sdk-ts-did-document/spec.md#Donor tests and deviations are fully ledgered" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-did", "package:identus-typescript-sdk", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Execute every active did.document vector through canonical Rust and each applicable facade target, compare normalized values and stable outcomes, and ledger every donor disposition."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue       = 502
+debt_status       = "open"
+debt_issue        = 502
+rationale         = ""
+details           = [ "oracle=W3C DID Core 1.0 plus canonical identus-did and the immutable did.document.v1 packet; SDK-TS 8.1.4 is compatibility evidence only", "oracle-revision=W3C Recommendation 2022-07-19; SDK-Rust f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8; SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e", "normalization=Compare exact accepted normalized JSON, typed field distinctions, stable redacted outcomes, and explicit unsupported safe-integer projection rather than donor classes or messages", "deviations=The new projection retains controller, aliases, references, cardinality, endpoints, and extensions the donor loses; method, resolver, DIDComm, custody, and agent behavior remains outside this capability" ]
 [[declarations]]
 id          = "credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1"
 capability  = "credentials.sd-jwt"

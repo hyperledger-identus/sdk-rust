@@ -25,6 +25,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `security` / `security`. Target: `unreleased`. The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities.
 
+### `did.document.typescript-migration.v1`
+
+State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade validates raw generic DID Document JSON in canonical Rust and projects deterministic normalized JSON plus strict frozen capability-named TypeScript values across isolated browser, Node.js, and React web targets.
+
 ### `did.jwk.profile.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-jwk crate creates, parses and locally resolves a bounded canonical-base64url public-JWK profile with duplicate-safe JSON, validated Ed25519, X25519, P-256 and secp256k1 material, fixed #0 projection, explicit use policy and opt-in registry composition.
@@ -114,6 +118,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 `0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Prefer identus-crypto from_slice, to_public_key and encoding methods; direct tuple-field consumers update their k256 or p256 dependency and imports to 0.14 when adopting the next candidate.
+
+### `did.document.typescript-migration.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Opt in only through the private provider and retain the separately owned SDK-TS legacy route until consumer rehearsal, support, budget, publication, and default-switch decisions are accepted.
 
 ### `did.jwk.profile.v1`
 
@@ -205,6 +213,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The migration is declared on the release-candidate line before stable 0.1.0; the next candidate carries the advisory-clean type identities.
 
+### `did.document.typescript-migration.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The facade remains private, opt-in, non-default, and unpublished; no external compatibility window starts in this train.
+
 ### `did.jwk.profile.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
@@ -295,6 +307,10 @@ Fallback: Consumers retain their current SD-JWT VC implementation until they exp
 
 Fallback: Delay consumer adoption while migrating to SDK byte boundaries; do not publish a new security-current candidate that restores the rejected 0.13 closure. Rollback: Move forward to another advisory-clean curve family or SDK-owned opaque boundary; never restore the advisory-affected dependency closure as a release state. Removal gate: Not applicable; this is a security remediation and candidate source migration, not a deprecated compatibility facade.
 
+### `did.document.typescript-migration.v1`
+
+Fallback: No automatic parser fallback; canonical Rust rejection or unsupported safe-integer projection is terminal and rollback selects the legacy provider before initialization. Rollback: Remove the unreleased document provider, mapping activation, vector packet, and target assertions while preserving the merged DID/DID URL canary and unchanged external SDK-TS behavior. Removal gate: A separate consumer-visible change may retire the legacy route only after supported consumers adopt the Rust-backed facade, accepted budgets/support and rollback evidence exist, and an announced migration window elapses.
+
 ### `did.jwk.profile.v1`
 
 Fallback: Consumers retain their existing did:jwk implementation until they explicitly adopt the additive crate or a later language adapter. Rollback: Before publication remove the additive crate and evidence as one unreleased unit; generic SDK-Rust DID and crypto behavior remains unchanged. Removal gate: Not applicable.
@@ -384,6 +400,10 @@ Visibility: behavior, public-api, security, target-support, wire. Exact draft-22
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 Visibility: public-api, security. Wire values and SDK-owned methods remain compatible, but direct construction or access through the four public tuple fields is source-incompatible until the consumer adopts RustCrypto 0.14 or the SDK byte boundary.
+
+### `did.document.typescript-migration.v1`
+
+Visibility: behavior, error, public-api, runtime-requirement, target-support. Private generic document parsing/projection only; no resolution, dereferencing, registration, DID method or network effects, persistence, key custody, credentials, DIDComm, agent runtime, React Native/native binding, external adoption, support, publication, stable API, certification, production claim, or mdoc.
 
 ### `did.jwk.profile.v1`
 

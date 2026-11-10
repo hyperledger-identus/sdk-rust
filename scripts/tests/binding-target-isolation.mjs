@@ -72,8 +72,13 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "packages/identus-sdk/package-lock.json",
     "packages/identus-sdk/package.json",
     "docs/architecture/language-adapter-mappings.toml",
+    "docs/architecture/quality-evidence-declarations.toml",
     "docs/conformance/fixtures/did/v1/vectors.json",
+    "docs/conformance/fixtures/did-document/v1/vectors.json",
+    "docs/conformance/sdk-ts-did-document-quality.md",
+    "fuzz/fuzz_targets/did_document.rs",
     "openspec/changes/add-sdk-ts-did-canary/specs/sdk-ts-did-facade/spec.md",
+    "openspec/changes/add-sdk-ts-did-document/specs/sdk-ts-did-document/spec.md",
     "nix/devshells/typescript.nix",
     "scripts/assemble-sdk-ts-did-artifacts.mjs",
     "scripts/build-sdk-ts-did-artifacts.sh",
@@ -179,13 +184,14 @@ test("unselected targets must emit bounded inapplicable receipts", () => {
 });
 
 test("target failure preserves the independently green core result", () => {
-  const bindingPlan = plan(["packages/identus-sdk/src/node/loader.ts"]);
+  const bindingPlan = plan(["docs/conformance/fixtures/did-document/v1/vectors.json"]);
   const mutated = receiptsFor(bindingPlan);
-  mutated.nodejs = receipt("nodejs", "failed");
+  mutated.browser = receipt("browser", "failed");
   const result = aggregateFastTargets({ headSha, plan: bindingPlan, receipts: mutated });
   assert.equal(result.verdict, "failure");
   assert.equal(result.coreResult, "success");
-  assert.equal(result.targetResults.nodejs, "failed");
+  assert.equal(result.targetResults.browser, "failed");
+  assert.deepEqual(bindingPlan.signals, ["shared-vectors"]);
 });
 
 test("a non-success core result cannot be relabelled by green targets", () => {

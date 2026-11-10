@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 
 import { loadVectors } from "./vector-loader.mjs";
+import { loadDocumentVectors } from "./document-vector-loader.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -60,21 +61,23 @@ try {
   browser = await chromium.launch({ executablePath: browserExecutable(), headless: true });
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${address.port}/`);
-  const result = await page.evaluate(async (vectors) => {
+  const result = await page.evaluate(async ({ didVectors, documentVectors }) => {
     const { createDidProvider } = await import("/dist/browser.js");
     const { assertAllVectors } = await import("/tests/vector-assertions.mjs");
+    const { assertAllDocumentVectors } = await import("/tests/document-vector-assertions.mjs");
     const provider = await createDidProvider();
     try {
-      assertAllVectors(provider, vectors);
-      return { status: "success", count: vectors.length };
+      assertAllVectors(provider, didVectors);
+      assertAllDocumentVectors(provider, documentVectors);
+      return { status: "success", didCount: didVectors.length, documentCount: documentVectors.length };
     } catch {
-      return { status: "failure", count: vectors.length };
+      return { status: "failure", didCount: didVectors.length, documentCount: documentVectors.length };
     }
-  }, await loadVectors());
-  if (result.count !== 22 || result.status !== "success") {
-    throw new Error("browser DID vector canary failed");
+  }, { didVectors: await loadVectors(), documentVectors: await loadDocumentVectors() });
+  if (result.didCount !== 22 || result.documentCount < 1 || result.status !== "success") {
+    throw new Error("browser DID and DID Document vector canary failed");
   }
-  process.stdout.write("browser DID vectors: 22 passed\n");
+  process.stdout.write(`browser DID vectors: ${result.didCount} passed; DID Document vectors: ${result.documentCount} passed\n`);
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));

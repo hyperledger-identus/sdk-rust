@@ -53,7 +53,7 @@ for (const file of sourceFiles(sourceRoot)) {
 }
 
 const reactSource = readFileSync(path.join(sourceRoot, "react.tsx"), "utf8");
-for (const forbidden of ["./internal/", "../artifacts/", "parseDid(", "parseDidUrl("]) {
+for (const forbidden of ["./internal/", "../artifacts/", "parseDid(", "parseDidDocument(", "parseDidUrl("]) {
   if (reactSource.includes(forbidden)) fail(`React lifecycle source contains forbidden domain dependency ${forbidden}`);
 }
 

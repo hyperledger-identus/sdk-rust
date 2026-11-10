@@ -34,7 +34,7 @@
       external SDK-TS legacy provider and named consumer remain downstream.
 - [x] 3.4 Record deterministic artifact, initialization, cold/warm parse latency,
       and memory measurements as non-supporting diagnostics.
-- [ ] 3.5 Complete fresh property, fuzz, benchmark, differential, coverage, and
+- [x] 3.5 Complete fresh property, fuzz, benchmark, differential, coverage, and
       strict-type evidence and activate the canary quality declaration honestly.
 
 ## 4. Local-first target and CI isolation
@@ -54,10 +54,10 @@
 
 - [x] 5.1 Correct relevant stale evidence paths and version inventory, render
       ledger/quality views, and update only proven TS1 DID target states.
-- [ ] 5.2 Run focused Rust, WASM, package, target, registry, parity, factory,
+- [x] 5.2 Run focused Rust, WASM, package, target, registry, parity, factory,
       documentation, and `nix flake check` gates locally.
-- [ ] 5.3 Complete a distinct exact-diff review, resolve every introduced
+- [x] 5.3 Complete a distinct exact-diff review, resolve every introduced
       blocking finding, archive the change, and verify signed/DCO commits.
-- [ ] 5.4 Retain a deferred issue-linkage sidecar naming the external SDK-TS
+- [x] 5.4 Retain a deferred issue-linkage sidecar naming the external SDK-TS
       rehearsal, default switch, publication/support, accepted budgets, and
       React Native package as remaining gates; do not push or publish.

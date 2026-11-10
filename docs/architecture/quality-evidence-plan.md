@@ -4,7 +4,7 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-10-29`
+- Evidence evaluated: `2026-11-10`
 - Declaration count: `20`
 
 ## `oid4vp.redirect-response.quality.v1`
@@ -247,7 +247,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #501 |
-| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `max-age-days (8 days)` | #501 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #501 |
 | `benchmark` | `not-applicable` | `none` | `not-applicable` | `not-applicable` | #501 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #501 |
 
@@ -261,9 +261,9 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all`
-- Budget: Run each DID and DID URL fuzz target for 300 seconds with max_len=8192, timeout=5, and rss_limit_mb=1024.
-- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925`
-- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
+- Budget: Run each DID and DID URL fuzz target for 300 seconds with max_len=139264, timeout=5, and rss_limit_mb=1024.
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
 
 ### `benchmark`
 
@@ -288,42 +288,38 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
-| `property` | `required` | `focused` | `on-change` | `pending` | #492 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #492 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #492 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #492 |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #492 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #492 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #492 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #492 |
 
 ### `property`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
 - Budget: Execute all 22 canonical vectors plus lifecycle, exact-free, observer-failure, singleton, module-format, rollback, strict-type, public-name, and dependency-direction properties on every applicable local target.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #492
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all`
 - Budget: Run DID and DID URL fuzz targets for 300 seconds each with max_len=139264, timeout=5 and rss_limit_mb=1024, then bind the fresh exact-revision receipt to the canary.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #492
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
 
 ### `benchmark`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
 - Budget: Measure deterministic compressed and uncompressed artifacts, cold and warm initialization, ordinary and near-limit parse p50/p95, retained memory where reliable, and variance without activating a support threshold.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #492
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
 
 ### `differential`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
 - Budget: Execute every active did.syntax.v1 case through canonical Rust and each applicable facade target, compare normalized exact values/components/stable codes, and separately label donor-only rollback mechanics.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #492
+- Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
+- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
 
 ## `did.prism.quality.v1`
 
@@ -385,7 +381,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #522 |
-| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `max-age-days (8 days)` | #522 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #522 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #522 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #522 |
 
@@ -400,8 +396,9 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-prism-vdr-indexer.sh soak all`
 - Budget: Run each target for 300 seconds with 139264-byte inputs, five seconds per case and 1024 MiB RSS; promote failures into checked-in regression seeds.
-- Receipt: `https://github.com/hyperledger-identus/sdk-rust/actions/runs/40463418925`
-- Evidence revision: `fd808b1df5e25923d60eea5f8d276e6c7a00ac27`
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #522
 
 ### `benchmark`
 

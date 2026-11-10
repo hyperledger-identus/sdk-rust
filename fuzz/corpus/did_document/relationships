@@ -1,0 +1,1 @@
+{"id":"did:example:123","authentication":[{"id":"did:example:123#auth","type":"Multikey","controller":"did:example:123","publicKeyMultibase":"z6MkiTBz1y"}],"assertionMethod":["did:example:123#assert"],"keyAgreement":["did:example:123#agreement"],"capabilityInvocation":["did:example:123#invoke"],"capabilityDelegation":["did:example:123#delegate"]}

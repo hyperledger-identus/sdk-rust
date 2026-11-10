@@ -2,6 +2,27 @@
 /* eslint-disable */
 
 /**
+ * Owned JavaScript view of a validated DID Document.
+ *
+ * `serialized` is deterministic normalized JSON produced from the validated
+ * Rust model. It preserves JSON cardinality and semantic values, but does not
+ * claim original whitespace, object member order, or RFC 8785 canonical JSON.
+ */
+export class DidDocumentView {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * Exact validated DID subject.
+     */
+    readonly id: string;
+    /**
+     * Deterministic normalized JSON for the validated DID Document.
+     */
+    readonly serialized: string;
+}
+
+/**
  * Closed JavaScript failure carrying only a stable SDK-owned code.
  */
 export class DidParseError {
@@ -83,6 +104,16 @@ export function bindingApiVersion(): number;
 export function parseDid(value: string): DidView;
 
 /**
+ * Parse a bounded DID Document into an owned JavaScript view.
+ *
+ * Rust validates the raw JSON before any TypeScript projection. Documents
+ * containing an integer outside JavaScript's exact safe range are valid Rust
+ * domain values but cannot cross this typed adapter without corruption, so
+ * they fail with an explicit unsupported-mapping code.
+ */
+export function parseDidDocument(value: string): DidDocumentView;
+
+/**
  * Parse a bounded DID URL into an owned JavaScript view.
  */
 export function parseDidUrl(value: string): DidUrlView;
@@ -91,10 +122,13 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly __wbg_diddocumentview_free: (a: number, b: number) => void;
     readonly __wbg_didparseerror_free: (a: number, b: number) => void;
     readonly __wbg_didurlview_free: (a: number, b: number) => void;
     readonly __wbg_didview_free: (a: number, b: number) => void;
     readonly bindingApiVersion: () => number;
+    readonly diddocumentview_id: (a: number) => [number, number];
+    readonly diddocumentview_serialized: (a: number) => [number, number];
     readonly didparseerror_code: (a: number) => [number, number];
     readonly didurlview_did: (a: number) => [number, number];
     readonly didurlview_fragment: (a: number) => [number, number];
@@ -107,6 +141,7 @@ export interface InitOutput {
     readonly didview_methodSpecificId: (a: number) => [number, number];
     readonly didview_value: (a: number) => [number, number];
     readonly parseDid: (a: number, b: number) => [number, number, number];
+    readonly parseDidDocument: (a: number, b: number) => [number, number, number];
     readonly parseDidUrl: (a: number, b: number) => [number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;

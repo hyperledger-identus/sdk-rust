@@ -1,0 +1,1 @@
+{"id":"did:example:123","verificationMethod":[{"id":"did:example:123#key-1","type":"JsonWebKey2020","controller":"did:example:123","publicKeyJwk":{"kty":"OKP","crv":"Ed25519","x":"public","d":"private"}}]}

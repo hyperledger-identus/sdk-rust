@@ -1,0 +1,1 @@
+{"id":"did:example:123","service":[{"id":"did:example:123#messages","type":["DIDCommMessaging","ExampleInbox"],"serviceEndpoint":["https://example.com/inbox",{"uri":"https://backup.example.com/inbox","accept":["didcomm/v2"]}]}]}

@@ -1,0 +1,1 @@
+{"id":"did:example:123","example":{"null":null,"boolean":true,"number":9007199254740992,"array":[1,"two",false],"object":{"nested":"value"}}}

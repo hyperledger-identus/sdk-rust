@@ -42,7 +42,7 @@
       routing, target receipts, and isolation mutation tests for documents.
 - [x] 5.2 Run focused Rust/WASM/package/target/fuzz/evidence/factory gates and
       complete `nix flake check` locally.
-- [ ] 5.3 Complete a distinct exact-diff review, resolve blocking findings,
+- [x] 5.3 Complete a distinct exact-diff review, resolve blocking findings,
       archive the change, and verify signed/DCO commits without pushing.
 - [x] 5.4 Update only proven TS1 `did.document` state and retain external
       adoption, support, publication, React Native, and mdoc as explicit gaps.

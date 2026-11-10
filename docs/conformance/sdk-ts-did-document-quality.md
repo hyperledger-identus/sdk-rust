@@ -10,9 +10,11 @@ publication, support, external SDK-TS adoption, production readiness, or mdoc.
 
 The implementation target receipts are bound to committed source
 `6ce12c88cc45d189efef9aa5d55f9dadfbf45dd7`. The later integration validation
-at `9c419a51a5503c6436ffbb74934639390e868e69` adds only harness hardening,
-fixture-source inclusion, and text-policy normalization. Evidence is not
-silently relabeled between those revisions.
+is bound to source tree
+`d1562968c8d34f26dbe07f6ad208a3a29a292be6`, committed after a signature-only
+history repair as `ddafbbb5ccc5df7a8be2d5671967e8e40caedfa0`; it adds only harness
+hardening, fixture-source inclusion, and text-policy normalization. Evidence is
+not silently relabeled between those revisions.
 
 - packet: `did.document.v1`, 12 cases, SHA-256
   `dcf62523885b42f780a4d57b1c6de7084a95ad12c77ed5be65ddd97d7ebc1ebb`

@@ -1,0 +1,58 @@
+{
+  "name": "@hyperledger/identus-sdk",
+  "version": "0.0.0-private",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.js",
+      "require": "./cjs/node.cjs"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    }
+  },
+  "files": [
+    "artifacts",
+    "cjs",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "sync-artifacts": "node scripts/sync-artifacts.mjs",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser-runtime.mjs",
+    "test:measurements": "node tests/measurements.mjs",
+    "test:node": "node --test tests/node-runtime.test.mjs",
+    "test:react": "node --test tests/react-runtime.test.mjs && node tests/react-browser-runtime.mjs",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "playwright-core": "1.65.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.7"
+  },
+  "peerDependencies": {
+    "react": "19.3.1"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "license": "Apache-2.0"
+}

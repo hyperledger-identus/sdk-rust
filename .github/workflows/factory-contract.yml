@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  fast:
-    name: fast
+  core-rust:
+    name: core-rust
     runs-on: ubuntu-latest
     cache-mode: read
     timeout-minutes: 20
@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Record immutable target plan
+      - name: Record immutable production target plan
         if: github.event_name == 'pull_request'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -97,3 +97,189 @@ jobs:
             .#checks.x86_64-linux.rust-build \
             .#checks.x86_64-linux.rust-clippy \
             .#checks.x86_64-linux.rust-test
+
+      - name: Record immutable Rust-core result
+        if: always()
+        env:
+          HEAD_SHA: ${{ github.sha }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/core-receipt"
+          if [[ "$JOB_STATUS" == "success" ]]; then
+            artifact_sha="$(printf 'core-rust:%s' "$HEAD_SHA" | sha256sum | awk '{print $1}')"
+            status=success
+          else
+            artifact_sha=none
+            status=failed
+          fi
+          node scripts/ci/write-target-receipt.mjs \
+            --head "$HEAD_SHA" \
+            --target core-rust \
+            --applicability selected \
+            --status "$status" \
+            --artifact-sha256 "$artifact_sha" \
+            --duration-seconds 0 \
+            --output "$RUNNER_TEMP/core-receipt/core-rust.json"
+
+      - name: Upload Rust-core receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: core-rust-receipt
+          path: ${{ runner.temp }}/core-receipt/core-rust.json
+          if-no-files-found: error
+
+  binding-impact-plan:
+    name: binding-impact-plan
+    needs: core-rust
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      runnable-targets: ${{ steps.plan.outputs.runnable-targets }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Record fail-closed binding impact
+        id: plan
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          if [[ -z "$BASE_SHA" || "$BASE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+            BASE_SHA="$(git rev-parse "$HEAD_SHA^")"
+          fi
+          mkdir -p "$RUNNER_TEMP/binding-plan"
+          node scripts/ci/binding-impact-plan.mjs \
+            --base "$BASE_SHA" \
+            --head "$HEAD_SHA" \
+            --output "$RUNNER_TEMP/binding-plan/plan.json"
+          runnable="$(jq -c '[.targets | to_entries[] | select(.value.expectation == "success") | .key]' "$RUNNER_TEMP/binding-plan/plan.json")"
+          echo "runnable-targets=$runnable" >> "$GITHUB_OUTPUT"
+          {
+            printf '### Binding target plan\n\n```json\n'
+            jq '{baseSha, headSha, signals, unknownImpact, targets}' "$RUNNER_TEMP/binding-plan/plan.json"
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload binding impact plan
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: binding-impact-plan
+          path: ${{ runner.temp }}/binding-plan/plan.json
+          if-no-files-found: error
+
+  binding-target:
+    name: target-${{ matrix.target }}
+    needs: binding-impact-plan
+    if: needs.binding-impact-plan.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - package-types
+          - browser
+          - nodejs
+          - react-web
+          - react-native
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Record inapplicable target without installing its toolchain
+        if: ${{ !contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/binding-receipts"
+          node scripts/ci/write-target-receipt.mjs \
+            --head "$HEAD_SHA" \
+            --target "${{ matrix.target }}" \
+            --applicability inapplicable \
+            --status inapplicable \
+            --artifact-sha256 none \
+            --duration-seconds 0 \
+            --output "$RUNNER_TEMP/binding-receipts/${{ matrix.target }}.json"
+
+      - name: Install Nix for selected target
+        if: ${{ contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      - name: Run selected target in isolation
+        if: ${{ contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
+        env:
+          SDK_TS_DID_HEAD_SHA: ${{ github.sha }}
+          SDK_TS_DID_RECEIPT_DIR: ${{ runner.temp }}/binding-receipts
+        run: >-
+          nix develop .#typescript --command
+          ./scripts/check-sdk-ts-did-target.sh "${{ matrix.target }}"
+
+      - name: Record selected target failure
+        if: ${{ failure() && contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/binding-receipts"
+          node scripts/ci/write-target-receipt.mjs \
+            --head "$HEAD_SHA" \
+            --target "${{ matrix.target }}" \
+            --applicability selected \
+            --status failed \
+            --artifact-sha256 none \
+            --duration-seconds 0 \
+            --output "$RUNNER_TEMP/binding-receipts/${{ matrix.target }}.json"
+
+      - name: Upload isolated target receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: binding-receipt-${{ matrix.target }}
+          path: ${{ runner.temp }}/binding-receipts/${{ matrix.target }}.json
+          if-no-files-found: ignore
+
+  fast:
+    name: fast
+    needs:
+      - core-rust
+      - binding-impact-plan
+      - binding-target
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Download exact-head evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: ${{ runner.temp }}/fast-evidence
+          merge-multiple: true
+
+      - name: Aggregate protected verdict without rewriting core evidence
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          node scripts/ci/aggregate-fast-targets.mjs \
+            --head "$HEAD_SHA" \
+            --plan "$RUNNER_TEMP/fast-evidence/plan.json" \
+            --core "$RUNNER_TEMP/fast-evidence/core-rust.json" \
+            --receipt package-types="$RUNNER_TEMP/fast-evidence/package-types.json" \
+            --receipt browser="$RUNNER_TEMP/fast-evidence/browser.json" \
+            --receipt nodejs="$RUNNER_TEMP/fast-evidence/nodejs.json" \
+            --receipt react-web="$RUNNER_TEMP/fast-evidence/react-web.json" \
+            --receipt react-native="$RUNNER_TEMP/fast-evidence/react-native.json" \
+            --output "$RUNNER_TEMP/fast-evidence/verdict.json"
+          {
+            printf '### Fast aggregation\n\n```json\n'
+            cat "$RUNNER_TEMP/fast-evidence/verdict.json"
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"

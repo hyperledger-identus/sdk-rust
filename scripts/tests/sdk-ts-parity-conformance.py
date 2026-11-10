@@ -99,32 +99,41 @@ def main() -> None:
     report = REPORT.read_text(encoding="utf-8")
     run(matrix, inventory, report, True)
     run(replace_regex_once(matrix, r"^schema_version\s*=\s*2$", "schema_version = 1"), inventory, report, False)
-    run(replace_once(matrix, 'id = "crypto.key-operations"', 'id = "crypto.unknown"'), inventory, report, False)
     run(
-        replace_once(
+        replace_regex_once(
             matrix,
-            'id = "crypto.key-operations"\nrelation = "compatible-adapter"',
-            'id = "crypto.key-operations"\nrelation = "same-api"',
+            r'(?m)^id\s*=\s*"crypto\.key-operations"$',
+            'id = "crypto.unknown"',
         ),
         inventory,
         report,
         False,
     )
     run(
-        replace_once(
+        replace_regex_once(
             matrix,
-            'id = "crypto.key-operations"\nrelation = "compatible-adapter"\nstate = "partial"',
-            'id = "crypto.key-operations"\nrelation = "compatible-adapter"\nstate = "delivered"',
+            r'(?m)^(id\s*=\s*"crypto\.key-operations"\nrelation\s*=\s*)"compatible-adapter"$',
+            r'\1"same-api"',
         ),
         inventory,
         report,
         False,
     )
     run(
-        replace_once(
+        replace_regex_once(
             matrix,
-            'id = "wallet.storage-browser"\nrelation = "platform-owned"',
-            'id = "wallet.storage-browser"\nrelation = "semantic-equivalent"',
+            r'(?m)^(id\s*=\s*"crypto\.key-operations"\nrelation\s*=\s*"compatible-adapter"\nstate\s*=\s*)"partial"$',
+            r'\1"delivered"',
+        ),
+        inventory,
+        report,
+        False,
+    )
+    run(
+        replace_regex_once(
+            matrix,
+            r'(?m)^(id\s*=\s*"wallet\.storage-browser"\nrelation\s*=\s*)"platform-owned"$',
+            r'\1"semantic-equivalent"',
         ),
         inventory,
         report,
@@ -138,21 +147,29 @@ def main() -> None:
     )
     run(remove_table(matrix, "target", "browser"), inventory, report, False)
     run(
-        replace_once(matrix, 'protected_status = "fast"', 'protected_status = "typescript-bindings"'),
-        inventory,
-        report,
-        False,
-    )
-    run(
-        replace_once(matrix, 'unknown_impact = "select-all-target-jobs"', 'unknown_impact = "select-no-target-jobs"'),
-        inventory,
-        report,
-        False,
-    )
-    run(
-        replace_once(
+        replace_regex_once(
             matrix,
-            'selected_terminal = "only-success-satisfies-selected-job; failure-cancelled-skipped-timed-out-or-missing-blocks"',
+            r'(?m)^protected_status\s*=\s*"fast"$',
+            'protected_status = "typescript-bindings"',
+        ),
+        inventory,
+        report,
+        False,
+    )
+    run(
+        replace_regex_once(
+            matrix,
+            r'(?m)^unknown_impact\s*=\s*"select-all-target-jobs"$',
+            'unknown_impact = "select-no-target-jobs"',
+        ),
+        inventory,
+        report,
+        False,
+    )
+    run(
+        replace_regex_once(
+            matrix,
+            r'(?m)^selected_terminal\s*=\s*"only-success-satisfies-selected-job; failure-cancelled-skipped-timed-out-or-missing-blocks"$',
             'selected_terminal = "skipped-selected-jobs-are-acceptable"',
         ),
         inventory,
@@ -160,9 +177,9 @@ def main() -> None:
         False,
     )
     run(
-        replace_once(
+        replace_regex_once(
             matrix,
-            'legacy_public_names = [ "apollo", "castor", "mercury", "pluto", "pollux", "edge-agent" ]',
+            r'(?m)^legacy_public_names\s*=\s*\[ "apollo", "castor", "mercury", "pluto", "pollux", "edge-agent" \]$',
             'legacy_public_names = [ "apollo", "castor", "mercury", "pluto", "pollux" ]',
         ),
         inventory,
@@ -181,9 +198,9 @@ def main() -> None:
     )
     run(remove_table(matrix, "success_criterion", "SC-09"), inventory, report, False)
     run(
-        replace_once(
+        replace_regex_once(
             matrix,
-            'title = "Rust-core-first isolated CI"',
+            r'(?m)^title\s*=\s*"Rust-core-first isolated CI"$',
             'title = ""',
         ),
         inventory,
@@ -231,9 +248,9 @@ def main() -> None:
         False,
     )
     run(
-        replace_once(
+        replace_regex_once(
             matrix,
-            'known_deviations = [ "dc+sd-jwt is canonical; vc+sd-jwt is only a named-consumer-gated compatibility adapter." ]',
+            r'(?m)^known_deviations\s*=\s*\[ "dc\+sd-jwt is canonical; vc\+sd-jwt is only a named-consumer-gated compatibility adapter\." \]$',
             "known_deviations = []",
         ),
         inventory,
@@ -258,10 +275,10 @@ def main() -> None:
     run(complete, inventory, complete_report, False)
     receiptless_complete, receiptless_complete_report = complete_without_receipts(matrix, report)
     run(receiptless_complete, inventory, receiptless_complete_report, False)
-    excluded = replace_once(
+    excluded = replace_regex_once(
         active,
-        'id = "crypto.key-operations"\nrelation = "compatible-adapter"\nstate = "partial"',
-        'id = "crypto.key-operations"\nrelation = "compatible-adapter"\nstate = "excluded"',
+        r'(?m)^(id\s*=\s*"crypto\.key-operations"\nrelation\s*=\s*"compatible-adapter"\nstate\s*=\s*)"partial"$',
+        r'\1"excluded"',
     )
     excluded_report = replace_once(active_report, "| `partial` | 14 | `crypto.key-operations`, ", "| `partial` | 13 | ")
     excluded_report = replace_once(excluded_report, "| `excluded` | 0 | none |", "| `excluded` | 1 | `crypto.key-operations` |")

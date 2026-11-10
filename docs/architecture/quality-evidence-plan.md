@@ -831,7 +831,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Owner: SDK-Rust DID and TypeScript binding maintainers (issue #502)
 - Risk: A document facade can bypass canonical Rust validation, lose wire distinctions, round extension numbers, leak public-key material or ownership, or couple target failures back into Rust core.
 - Targets: `package:identus-did`, `package:identus-wasm-did`, `package:identus-typescript-sdk`, `consumer:sdk-ts`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
-- Vector IDs: `1` local catalog entries
+- Vector IDs: `12` local catalog entries
 - Limitations: Private local generic DID Document parsing/projection only; no resolution, dereferencing, registration, method effects, networking, storage, custody, credentials, DIDComm, agent runtime, React Native, publication, support, certification, production use, or mdoc.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |

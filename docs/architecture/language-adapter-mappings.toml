@@ -382,9 +382,14 @@ version_window = ">=8.1.4,<8.1.5"
 deprecation_phase = "none"
 version_negotiation = "npm-package-version"
 consumers = [ "sdk-ts" ]
-vector_ids = [ "did.document.minimal" ]
-rust_selectors = [ "identus_did::DidDocument", "did_document::minimal_document_round_trips" ]
-language_selectors = [ "packages/shared/domain/src/models/DIDDocument.ts" ]
+vector_ids = [
+  "did.document.minimal",
+  "did.document.representative",
+  "did.document.controller.scalar",
+  "did.document.service.object-endpoint",
+]
+rust_selectors = [ "identus_did::DidDocument", "portable_did_document_packet_matches_identus_did" ]
+language_selectors = [ "packages/identus-sdk/src/internal/document-projection.ts", "packages/identus-sdk/tests/document-vector-assertions.mjs" ]
 max_input_bytes = 262144
 redaction = "caller-input"
 sensitive_fields = [ "document-json", "verification-material" ]

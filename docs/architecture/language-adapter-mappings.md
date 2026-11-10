@@ -199,9 +199,9 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Fallback: No alternate parser runs after canonical Rust rejection or unsupported safe-integer projection.
 - Rollback: Remove the unreleased document provider and retain the existing syntax-only canary and legacy SDK-TS provider selection.
 - Removal gate: Every supported SDK-TS consumer uses a separately accepted Rust-backed document facade and the declared migration window has elapsed.
-- Vectors: `did.document.minimal`.
-- Rust selectors: `identus_did::DidDocument`, `did_document::minimal_document_round_trips`.
-- Language selectors: `packages/shared/domain/src/models/DIDDocument.ts`.
+- Vectors: `did.document.minimal`, `did.document.representative`, `did.document.controller.scalar`, `did.document.service.object-endpoint`.
+- Rust selectors: `identus_did::DidDocument`, `portable_did_document_packet_matches_identus_did`.
+- Language selectors: `packages/identus-sdk/src/internal/document-projection.ts`, `packages/identus-sdk/tests/document-vector-assertions.mjs`.
 
 ### Fields
 

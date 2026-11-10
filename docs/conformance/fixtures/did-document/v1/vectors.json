@@ -6,18 +6,103 @@
     {
       "id": "did.document.minimal",
       "operation": "did-document.parse",
+      "input": { "literal": "{\"id\":\"did:example:123\"}" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": { "serialized": "{\"id\":\"did:example:123\"}", "did": "did:example:123" }
+      }
+    },
+    {
+      "id": "did.document.representative",
+      "operation": "did-document.parse",
       "input": {
-        "literal": "{\"id\":\"did:example:123\"}"
+        "literal": "{\"@context\":[\"https://www.w3.org/ns/did/v1\",{\"example\":\"https://example.com/ns#\"}],\"id\":\"did:example:123\",\"controller\":[\"did:example:123\",\"did:example:controller\"],\"alsoKnownAs\":[\"https://example.com/profile\"],\"verificationMethod\":[{\"id\":\"did:example:123#key-1\",\"type\":\"JsonWebKey2020\",\"controller\":\"did:example:123\",\"publicKeyJwk\":{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"x\":\"11qYAYdk9JTuG6urO8YUNELcD9q4G2O_TW9LtUo9G2M\"},\"expires\":\"2030-01-01T00:00:00Z\"}],\"authentication\":[\"did:example:123#key-1\",{\"id\":\"did:example:123#key-2\",\"type\":\"Multikey\",\"controller\":\"did:example:123\",\"publicKeyMultibase\":\"z6MkiTBz1y\"}],\"service\":[{\"id\":\"did:example:123#linked-domain\",\"type\":\"LinkedDomains\",\"serviceEndpoint\":\"https://example.com\"},{\"id\":\"did:example:123#messages\",\"type\":[\"DIDCommMessaging\",\"ExampleInbox\"],\"serviceEndpoint\":[\"https://inbox.example/123\",{\"uri\":\"https://backup.example/123\",\"accept\":[\"didcomm/v2\"]}]}],\"example:profile\":{\"locale\":\"en\",\"features\":[\"identity\"]}}"
       },
       "expected": {
         "kind": "success",
         "errorCode": null,
         "redacted": null,
-        "fields": {
-          "serialized": "{\"id\":\"did:example:123\"}",
-          "did": "did:example:123"
-        }
+        "fields": { "did": "did:example:123" }
       }
+    },
+    {
+      "id": "did.document.controller.scalar",
+      "operation": "did-document.parse",
+      "input": { "literal": "{\"id\":\"did:example:123\",\"controller\":\"did:example:controller\"}" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": { "did": "did:example:123" }
+      }
+    },
+    {
+      "id": "did.document.service.object-endpoint",
+      "operation": "did-document.parse",
+      "input": { "literal": "{\"id\":\"did:example:123\",\"service\":[{\"id\":\"did:example:123#profile\",\"type\":\"Profile\",\"serviceEndpoint\":{\"origins\":[\"https://example.com\"]},\"priority\":1}]}" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": { "did": "did:example:123" }
+      }
+    },
+    {
+      "id": "did.document.invalid.root",
+      "operation": "did-document.parse",
+      "input": { "literal": "[\"did:example:123\"]" },
+      "expected": { "kind": "error", "errorCode": "did.invalid_document", "redacted": true, "fields": {} }
+    },
+    {
+      "id": "did.document.invalid.missing-id",
+      "operation": "did-document.parse",
+      "input": { "literal": "{\"controller\":\"did:example:controller\"}" },
+      "expected": { "kind": "error", "errorCode": "did.invalid_document", "redacted": true, "fields": {} }
+    },
+    {
+      "id": "did.document.invalid.empty-cardinality",
+      "operation": "did-document.parse",
+      "input": { "literal": "{\"id\":\"did:example:123\",\"controller\":[]}" },
+      "expected": { "kind": "error", "errorCode": "did.invalid_document", "redacted": true, "fields": {} }
+    },
+    {
+      "id": "did.document.invalid.private-jwk",
+      "operation": "did-document.parse",
+      "input": { "literal": "{\"id\":\"did:example:123\",\"verificationMethod\":[{\"id\":\"did:example:123#key-1\",\"type\":\"JsonWebKey2020\",\"controller\":\"did:example:123\",\"publicKeyJwk\":{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"x\":\"public\",\"d\":\"caller-secret-marker\"}}]}" },
+      "expected": { "kind": "error", "errorCode": "did.invalid_document", "redacted": true, "fields": {} }
+    },
+    {
+      "id": "did.document.invalid.multiple-material",
+      "operation": "did-document.parse",
+      "input": { "literal": "{\"id\":\"did:example:123\",\"verificationMethod\":[{\"id\":\"did:example:123#key-1\",\"type\":\"ExampleKey\",\"controller\":\"did:example:123\",\"publicKeyJwk\":{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"x\":\"public\"},\"publicKeyMultibase\":\"z6MkiTBz1y\"}]}" },
+      "expected": { "kind": "error", "errorCode": "did.invalid_document", "redacted": true, "fields": {} }
+    },
+    {
+      "id": "did.document.invalid.duplicate-member",
+      "operation": "did-document.parse",
+      "input": { "literal": "{\"id\":\"did:example:123\",\"id\":\"did:example:shadow\"}" },
+      "expected": { "kind": "error", "errorCode": "did.invalid_document", "redacted": true, "fields": {} }
+    },
+    {
+      "id": "did.document.invalid.duplicate-resource",
+      "operation": "did-document.parse",
+      "input": { "literal": "{\"id\":\"did:example:123\",\"verificationMethod\":[{\"id\":\"did:example:123#key-1\",\"type\":\"Multikey\",\"controller\":\"did:example:123\",\"publicKeyMultibase\":\"z6MkiTBz1y\"},{\"id\":\"did:example:123#key-1\",\"type\":\"Multikey\",\"controller\":\"did:example:123\",\"publicKeyMultibase\":\"z6MkiTBz1y\"}]}" },
+      "expected": { "kind": "error", "errorCode": "did.invalid_document", "redacted": true, "fields": {} }
+    },
+    {
+      "id": "did.document.invalid.too-large",
+      "operation": "did-document.parse",
+      "input": {
+        "generated": {
+          "prefix": "{\"id\":\"did:example:123\",\"large\":\"",
+          "repeat": "x",
+          "count": 262144,
+          "suffix": "\"}"
+        }
+      },
+      "expected": { "kind": "error", "errorCode": "did.invalid_document", "redacted": true, "fields": {} }
     }
   ]
 }

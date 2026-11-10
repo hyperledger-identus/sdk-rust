@@ -1,4 +1,4 @@
-use identus_did::{Did, DidUrl};
+use identus_did::{Did, DidDocument, DidUrl};
 use serde::Deserialize;
 use serde_json::{Map, Value};
 
@@ -166,6 +166,55 @@ fn portable_did_packet_matches_identus_did() {
                 assert_eq!(
                     error.code().as_str(),
                     case.expected.error_code.as_deref().expect("error code")
+                );
+                assert_eq!(case.expected.redacted, Some(true));
+                assert!(!error.to_string().contains(&input));
+            }
+            (operation, kind) => panic!("{} has unsupported {operation}/{kind}", case.id),
+        }
+    }
+}
+
+#[test]
+fn portable_did_document_packet_matches_identus_did() {
+    let packet: Packet = serde_json::from_str(include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../docs/conformance/fixtures/did-document/v1/vectors.json"
+    )))
+    .expect("checked-in DID Document vector packet must deserialize");
+
+    assert_eq!(packet.schema_version, 1);
+    assert_eq!(packet.packet_id, "did.document.v1");
+    assert_eq!(packet.capability, "did.document");
+    assert_eq!(packet.cases.len(), 12);
+
+    for case in packet.cases {
+        let input = case.input.materialize();
+        match (case.operation.as_str(), case.expected.kind.as_str()) {
+            ("did-document.parse", "success") => {
+                let document = DidDocument::from_json_str(&input)
+                    .unwrap_or_else(|error| panic!("{} unexpectedly failed: {error}", case.id));
+                if let Some(expected) = expected_text(&case.expected.fields, "did") {
+                    assert_eq!(Some(document.id().as_str()), expected, "{}", case.id);
+                }
+                if let Some(expected) = expected_text(&case.expected.fields, "serialized") {
+                    let serialized = serde_json::to_string(&document)
+                        .expect("validated DID Document must serialize");
+                    assert_eq!(Some(serialized.as_str()), expected, "{}", case.id);
+                }
+                assert!(case.expected.error_code.is_none());
+                assert!(case.expected.redacted.is_none());
+            }
+            ("did-document.parse", "error") => {
+                let local_error = DidDocument::from_json_str(&input).unwrap_err();
+                assert!(!local_error.to_string().contains(&input));
+                assert!(!format!("{local_error:?}").contains(&input));
+                let error = local_error.to_identus_error();
+                assert_eq!(
+                    error.code().as_str(),
+                    case.expected.error_code.as_deref().expect("error code"),
+                    "{}",
+                    case.id
                 );
                 assert_eq!(case.expected.redacted, Some(true));
                 assert!(!error.to_string().contains(&input));

@@ -141,4 +141,3 @@ stable API, support, certification, production use, or mdoc work.
 - **WHEN** browser, Node.js, and React Web evidence is complete
 - **THEN** the capability remains partial until separately authorized consumer,
   support, budget, publication, and native-target decisions are accepted
-

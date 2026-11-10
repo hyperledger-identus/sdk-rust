@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 492,
+  "change": "add-sdk-ts-did-canary",
+  "branch": "codex/feat/issue-492",
+  "baseRef": "origin/develop",
+  "baseSha": "f07719d606ade1f0387854535ca9ac029811cd3a",
+  "contractHeadSha": "fa6d309bc89dee0db4e8602298ac674e48f2f3ab",
+  "createdAt": "2026-11-10T15:31:06.667Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

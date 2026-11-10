@@ -7,7 +7,7 @@
 - [x] 1.2 Add ADR 0199, the proposed `did.syntax.typescript-migration.v1`
       consumer record, and `did.syntax.typescript-canary.quality.v1` with exact
       dependencies, mappings, vectors, non-claims, and rollback.
-- [ ] 1.3 Pass strict research/constraint readiness, commit planning only, and
+- [x] 1.3 Pass strict research/constraint readiness, commit planning only, and
       record the exact issue #492 preimplementation receipt.
 
 ## 2. Strict TypeScript facade and target artifacts

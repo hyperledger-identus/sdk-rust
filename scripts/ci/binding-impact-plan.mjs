@@ -128,8 +128,8 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
       addSignal(signals, targetSignals, "document-quality-evidence");
     }
     if (relative.startsWith("openspec/specs/sdk-ts-parity-conformance/")
+        || relative.startsWith("openspec/specs/sdk-ts-did-document/")
         || relative.startsWith("openspec/changes/add-sdk-ts-did-canary/")
-        || relative.startsWith("openspec/changes/add-sdk-ts-did-document/")
         || relative === "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md") {
       addSignal(signals, targetSignals, "target-contract");
     }

@@ -78,7 +78,7 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "docs/conformance/sdk-ts-did-document-quality.md",
     "fuzz/fuzz_targets/did_document.rs",
     "openspec/changes/add-sdk-ts-did-canary/specs/sdk-ts-did-facade/spec.md",
-    "openspec/changes/add-sdk-ts-did-document/specs/sdk-ts-did-document/spec.md",
+    "openspec/specs/sdk-ts-did-document/spec.md",
     "nix/devshells/typescript.nix",
     "scripts/assemble-sdk-ts-did-artifacts.mjs",
     "scripts/build-sdk-ts-did-artifacts.sh",

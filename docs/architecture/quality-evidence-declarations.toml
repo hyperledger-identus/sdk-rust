@@ -2324,7 +2324,7 @@ replaced_by = ""
 class             = "property"
 disposition       = "required"
 risk              = "Projection, deep immutability, cardinality, extension preservation, generated ownership, redaction, and provider selection can diverge across targets."
-selectors         = [ "openspec/changes/add-sdk-ts-did-document/specs/sdk-ts-did-document/spec.md#The public document is immutable and capability-oriented" ]
+selectors         = [ "openspec/specs/sdk-ts-did-document/spec.md#The public document is immutable and capability-oriented" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all"
 lane              = "focused"
 cadence           = "on-change"
@@ -2348,7 +2348,7 @@ details           = [ "invariant=Every target exposes the same frozen plain DID 
 class             = "fuzz"
 disposition       = "required"
 risk              = "Arbitrary document bytes and hostile extension trees can panic, exhaust resources, bypass public-only key rules, leak diagnostics, or serialize nondeterministically."
-selectors         = [ "openspec/changes/add-sdk-ts-did-document/design.md#Fuzz, coverage, and resources" ]
+selectors         = [ "openspec/changes/archive/2026-11-10-add-sdk-ts-did-document/design.md#Fuzz, coverage, and resources" ]
 command           = "nix develop .#fuzz --command ./scripts/fuzz-did.sh smoke did_document"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -2372,7 +2372,7 @@ details           = [ "harness=Arbitrary bounded raw JSON enters DidDocument par
 class             = "benchmark"
 disposition       = "required"
 risk              = "Artifact assembly, document validation, typed projection, deep freezing, or near-limit normalized output can create disproportionate size, latency, or memory regressions."
-selectors         = [ "openspec/changes/add-sdk-ts-did-document/design.md#Fuzz, coverage, and resources" ]
+selectors         = [ "openspec/changes/archive/2026-11-10-add-sdk-ts-did-document/design.md#Fuzz, coverage, and resources" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -2396,7 +2396,7 @@ details           = [ "operation=Build and load target artifacts then parse and 
 class             = "differential"
 disposition       = "required"
 risk              = "The facade can appear internally consistent while diverging from W3C DID Core, canonical Rust acceptance, normalized serialization, stable codes, or applicable SDK-TS journeys."
-selectors         = [ "docs/conformance/cross-language-vector-catalog.toml#did.document.minimal", "openspec/changes/add-sdk-ts-did-document/specs/sdk-ts-did-document/spec.md#Donor tests and deviations are fully ledgered" ]
+selectors         = [ "docs/conformance/cross-language-vector-catalog.toml#did.document.minimal", "openspec/specs/sdk-ts-did-document/spec.md#Donor tests and deviations are fully ledgered" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential"
 lane              = "fast"
 cadence           = "per-pull-request"

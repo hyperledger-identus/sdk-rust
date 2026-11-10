@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 502,
+  "change": "add-sdk-ts-did-document",
+  "branch": "codex/feat/issue-502",
+  "baseRef": "origin/develop",
+  "baseSha": "f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8",
+  "contractHeadSha": "1b44ab8c47335263b06d1f4bab4db8aae9a7c4bf",
+  "createdAt": "2026-11-10T22:35:11.020Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

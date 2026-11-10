@@ -6,7 +6,7 @@
       dispositions, number-projection deviation, exclusions, and rollback.
 - [ ] 1.2 Add the versioned adapter mapping, immutable vector packet/catalog,
       change-ledger record, and document-specific quality declaration.
-- [ ] 1.3 Pass research/constraint readiness, commit planning only, and record
+- [x] 1.3 Pass research/constraint readiness, commit planning only, and record
       the exact issue #502 preimplementation receipt.
 
 ## 2. Rust/WASM document boundary

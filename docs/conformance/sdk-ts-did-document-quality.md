@@ -3,7 +3,7 @@
 ## Scope
 
 This record belongs to `did.document.typescript-canary.quality.v1` and issue
-#502. It covers only the private repository-local DID Document facade over the
+502. It covers only the private repository-local DID Document facade over the
 canonical Rust parser for browser, Node.js, and React Web. It does not claim
 resolution, dereferencing, registration, method effects, React Native,
 publication, support, external SDK-TS adoption, production readiness, or mdoc.

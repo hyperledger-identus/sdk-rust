@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-10-29`
-- Declaration count: `19`
+- Declaration count: `20`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -275,6 +275,55 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Evaluate all 22 immutable DID syntax packet cases without network access or an unpublished consumer dependency.
 - Receipt: `source:crates/conformance/tests/cross_language_did_vectors.rs`
 - Evidence revision: `a2683961fb07305d12e96fbcabdb07bb7c0cbab8`
+
+## `did.syntax.typescript-canary.quality.v1`
+
+- Capability: `did.syntax`
+- Slice: Private SDK-TS DID and DID URL facade canary
+- Owner: SDK-Rust TypeScript binding maintainers (issue #492)
+- Risk: A TypeScript facade can drift from canonical DID syntax, leak WASM ownership or caller input, select the wrong runtime artifact, duplicate portable semantics, or hide target-specific failures.
+- Targets: `package:identus-typescript-sdk`, `package:identus-wasm-did`, `consumer:sdk-ts`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
+- Vector IDs: `22` local catalog entries
+- Limitations: Private additive facade and local browser, Node.js, and React web evidence only; no external SDK-TS mutation, default switch, npm publication, target support, accepted performance budget, React Native package, or production certification.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #492 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #492 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #492 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #492 |
+
+### `property`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
+- Budget: Execute all 22 canonical vectors plus lifecycle, exact-free, observer-failure, singleton, module-format, rollback, strict-type, public-name, and dependency-direction properties on every applicable local target.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #492
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all`
+- Budget: Run DID and DID URL fuzz targets for 300 seconds each with max_len=139264, timeout=5 and rss_limit_mb=1024, then bind the fresh exact-revision receipt to the canary.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #492
+
+### `benchmark`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
+- Budget: Measure deterministic compressed and uncompressed artifacts, cold and warm initialization, ordinary and near-limit parse p50/p95, retained memory where reliable, and variance without activating a support threshold.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #492
+
+### `differential`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
+- Budget: Execute every active did.syntax.v1 case through canonical Rust and each applicable facade target, compare normalized exact values/components/stable codes, and separately label donor-only rollback mechanics.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #492
 
 ## `did.prism.quality.v1`
 

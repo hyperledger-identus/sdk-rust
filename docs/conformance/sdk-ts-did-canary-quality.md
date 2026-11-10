@@ -1,6 +1,6 @@
 # SDK-TS DID canary quality receipt
 
-- Candidate revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
+- Candidate revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
 - Recorded: `2026-11-10`
 - Host: `aarch64-darwin`
 - Scope: private DID and DID URL TypeScript facade over `identus-wasm-did`

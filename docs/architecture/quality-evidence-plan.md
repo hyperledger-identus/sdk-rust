@@ -263,7 +263,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all`
 - Budget: Run each DID and DID URL fuzz target for 300 seconds with max_len=139264, timeout=5, and rss_limit_mb=1024.
 - Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
-- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
+- Evidence revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
 
 ### `benchmark`
 
@@ -298,28 +298,28 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
 - Budget: Execute all 22 canonical vectors plus lifecycle, exact-free, observer-failure, singleton, module-format, rollback, strict-type, public-name, and dependency-direction properties on every applicable local target.
 - Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
-- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
+- Evidence revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh soak all`
 - Budget: Run DID and DID URL fuzz targets for 300 seconds each with max_len=139264, timeout=5 and rss_limit_mb=1024, then bind the fresh exact-revision receipt to the canary.
 - Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
-- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
+- Evidence revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
 
 ### `benchmark`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
 - Budget: Measure deterministic compressed and uncompressed artifacts, cold and warm initialization, ordinary and near-limit parse p50/p95, retained memory where reliable, and variance without activating a support threshold.
 - Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
-- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
+- Evidence revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
 
 ### `differential`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
 - Budget: Execute every active did.syntax.v1 case through canonical Rust and each applicable facade target, compare normalized exact values/components/stable codes, and separately label donor-only rollback mechanics.
 - Receipt: `source:docs/conformance/sdk-ts-did-canary-quality.md`
-- Evidence revision: `c37a35d7344c312211d0395c18f2866875ac9b7f`
+- Evidence revision: `7fec337ee8a0a02847ddf86a1057c459711b86c2`
 
 ## `did.prism.quality.v1`
 

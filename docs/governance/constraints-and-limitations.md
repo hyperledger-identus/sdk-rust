@@ -126,14 +126,14 @@ An expired or scope-less exception is a blocker, not tacit permission.
 
 ## Compiler-floor example
 
-- `SDK-COMPAT-002` is effective: Rust 1.89.0 is the fixed MSRV for the
-  experimental `0.1.x` release line, enforced by Cargo, Nix and the
+- `SDK-COMPAT-002` is effective: Rust 1.99.1 is the fixed MSRV for the
+  experimental unpublished `0.2.x` source line, enforced by Cargo, Nix and the
   support-policy checker.
 - `SDK-COMPAT-003` is effective: the release-candidate compiler, profile and
-  compile-target matrix selected by ADR 0133 is required evidence.
-- `SDK-COMPAT-004` is effective: Rust 1.98.1 is the independently pinned
+  compile-target matrix selected by ADR 0200 is required evidence.
+- `SDK-COMPAT-004` is effective: Rust 1.99.1 is the independently pinned
   primary stable validation and candidate-preparation compiler.
-- `SDK-COMPAT-005` is effective: Rust 1.98.1 remains the compatibility etalon;
+- `SDK-COMPAT-005` is effective: Rust 1.99.1 remains the compatibility etalon;
   nightly is isolated to sanitizer tooling and is not a support promise.
 - Future MSRV changes require a reviewed ADR, named consumer and dependency
   evidence, green old/new compiler lanes, and a SemVer-aware migration notice.
@@ -178,7 +178,7 @@ misrepresenting outer allocation or delegated work as a typed SDK guarantee.
   compile-fail probes across supported authored first-party Cargo targets. ADR
   0088 additionally makes `identus-derive` reject enumerated unsafe constructs
   and attributes in its completed direct item output before emission.
-- `SDK-LIM-008` remains as a narrow compiler limitation: Rust 1.98.1 skips the
+- `SDK-LIM-008` remains as a narrow compiler limitation: Rust 1.99.1 skips the
   `unsafe_code` lint for procedural-macro expansion spans that allow internal
   unsafe. Direct `identus-derive` item syntax is guarded, but external macros
   and syntax created later by nested macro expansion remain outside that check.

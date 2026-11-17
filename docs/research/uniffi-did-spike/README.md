@@ -5,7 +5,7 @@ the SDK workspace or changing `identus-bindings`. It exposes only owned public
 identifier records and a closed redacted error enum. `identus-did` remains
 binding-framework-free.
 
-Run on an Apple Silicon macOS host with Rust 1.98.1, Swift 6.3, an arm64 JDK 17
+Run on an Apple Silicon macOS host with Rust 1.99.1, Swift 6.3, an arm64 JDK 17
 and Gradle 8.12.1:
 
 ```bash

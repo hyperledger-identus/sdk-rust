@@ -1,15 +1,15 @@
 schema_version  = 1
-policy_revision = "2026-09-17"
+policy_revision = "2026-11-17"
 
 [toolchains]
-msrv                         = "1.89.0"
-primary                      = "1.98.1"
-etalon                       = "1.98.1"
+msrv                         = "1.99.1"
+primary                      = "1.99.1"
+etalon                       = "1.99.1"
 fuzz                         = "nightly-2026-03-18"
 neoprism_revision            = "8becb225132efb1d9302b2c5f6ed4d87b84e8685"
 nixpkgs_revision             = "c27cdad491a991b11ed731760aa2ef8db0cb0410"
 rust_overlay_revision        = "f17186f52e82ec5cf40920b58eac63b78692ac7c"
-stable_rust_overlay_revision = "ca7f624be3935a5bc46d2c240515491ab8675503"
+stable_rust_overlay_revision = "ec07af44be2e0ce4e1a17e00a97d44232607c1ec"
 nix_version                  = "2.34.8"
 
 [ci]
@@ -39,17 +39,17 @@ review_by                    = "2027-03-17"
 release_candidate_eligible   = true
 
 [release_candidate]
-version              = "0.1.0-rc.1"
+version              = "0.2.0-rc.1"
 packages             = [ "identus-derive", "identus-core", "identus-crypto" ]
-msrv                 = "1.89.0"
-primary              = "1.98.1"
+msrv                 = "1.99.1"
+primary              = "1.99.1"
 hosts                = [ "x86_64-unknown-linux-gnu", "aarch64-apple-darwin" ]
 compile_targets      = [ "wasm32-unknown-unknown", "aarch64-linux-android", "aarch64-apple-ios" ]
 profiles             = [ "default", "all-features", "no-default-features", "kmp-compat", "hash-only" ]
 msrv_profile_gates   = [ "rust-msrv", "rust-msrv-crypto-all-features", "rust-msrv-crypto-minimal", "rust-msrv-crypto-kmp-compat", "rust-msrv-crypto-hash-only" ]
 primary_target_gates = [ "rust-build-wasm32", "rust-build-android-aarch64", "rust-build-ios-aarch64" ]
 msrv_target_gates    = [ "rust-msrv-release-wasm32", "rust-msrv-release-android-aarch64", "rust-msrv-release-ios-aarch64" ]
-msrv_release_line    = "0.1.x"
+msrv_release_line    = "0.2.x"
 review_by            = "2027-03-17"
 
 [gate_operations]

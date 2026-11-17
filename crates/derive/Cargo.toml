@@ -1,6 +1,6 @@
 [package]
 name                   = "identus-derive"
-version                = "0.1.0-rc.1"
+version                = "0.2.0-rc.1"
 edition.workspace      = true
 rust-version.workspace = true
 license.workspace      = true
@@ -8,7 +8,7 @@ publish                = [ "crates-io" ]
 description            = "Derive macros for validated Hyperledger Identus Rust SDK domain types."
 repository             = "https://github.com/hyperledger-identus/sdk-rust"
 homepage               = "https://hyperledger-identus.github.io/sdk-rust/"
-documentation          = "https://docs.rs/identus-derive/0.1.0-rc.1"
+documentation          = "https://docs.rs/identus-derive/0.2.0-rc.1"
 readme                 = "README.md"
 keywords               = [ "identity", "ssi", "derive" ]
 categories             = [ "development-tools::procedural-macro-helpers" ]

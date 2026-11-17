@@ -8,7 +8,7 @@
     let
       # Apple packaging is local/external slow evidence. Keep its Simulator component
       # out of the primary toolchain so the fast Linux line does not pay for it.
-      bindingsToolchain = stablePkgs.rust-bin.stable."1.98.1".default.override {
+      bindingsToolchain = stablePkgs.rust-bin.stable."1.99.1".default.override {
         extensions = [ "llvm-tools-preview" ];
         targets = [
           "aarch64-linux-android"

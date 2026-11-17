@@ -5,8 +5,8 @@ repo_root="$(git rev-parse --show-toplevel)"
 manifest="$repo_root/docs/research/siros-dcql-spike/Cargo.toml"
 lockfile="$repo_root/docs/research/siros-dcql-spike/Cargo.lock"
 
-if [[ "$(rustc --version)" != rustc\ 1.98.1\ * ]]; then
-  echo "siros-dcql-spike: expected Rust 1.98.1" >&2
+if [[ "$(rustc --version)" != rustc\ 1.99.1\ * ]]; then
+  echo "siros-dcql-spike: expected Rust 1.99.1" >&2
   exit 1
 fi
 

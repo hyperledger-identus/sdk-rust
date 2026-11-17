@@ -57,7 +57,7 @@ durable shape; direct positional input is currently marked deprecated upstream.
 
 | Input | Exact value | Role |
 | --- | --- | --- |
-| Rust | 1.98.1 | workspace compiler and etalon |
+| Rust | 1.99.1 | workspace compiler and etalon |
 | wasm-bindgen | 0.2.121 runtime and Nix CLI | runtime/generator schema; MIT OR Apache-2.0; declared Rust 1.77 |
 | wasm-bindgen-test | 0.3.71 | dev-only official browser harness; MIT OR Apache-2.0; declared Rust 1.77 |
 | wasm-pack | 0.15.0 from `flake.lock` | slow-line package/test tool |

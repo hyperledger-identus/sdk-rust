@@ -965,7 +965,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         'nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";',
         'devshell.url = "github:numtide/devshell";',
         'rust-overlay.url = "github:oxalica/rust-overlay";',
-        'stable-rust-overlay.url = "github:oxalica/rust-overlay/ca7f624be3935a5bc46d2c240515491ab8675503";',
+        'stable-rust-overlay.url = "github:oxalica/rust-overlay/ec07af44be2e0ce4e1a17e00a97d44232607c1ec";',
         'crane.url = "github:ipetkov/crane";',
         compact_statement(
             """advisory-db = {
@@ -993,7 +993,7 @@ def validate_gate_wiring(root: Path, failures: list[str]) -> None:
         "stable-rust-overlay": {
             "owner": "oxalica",
             "repo": "rust-overlay",
-            "rev": "ca7f624be3935a5bc46d2c240515491ab8675503",
+            "rev": "ec07af44be2e0ce4e1a17e00a97d44232607c1ec",
         },
         "crane": {"owner": "ipetkov", "repo": "crane"},
         "advisory-db": {"owner": "rustsec", "repo": "advisory-db"},
@@ -2109,14 +2109,14 @@ def validate_toolchains(
 ) -> None:
     toolchains = require_table(policy, "toolchains", failures)
     expected = {
-        "msrv": "1.89.0",
-        "primary": "1.98.1",
-        "etalon": "1.98.1",
+        "msrv": "1.99.1",
+        "primary": "1.99.1",
+        "etalon": "1.99.1",
         "fuzz": "nightly-2026-03-18",
         "neoprism_revision": "8becb225132efb1d9302b2c5f6ed4d87b84e8685",
         "nixpkgs_revision": "c27cdad491a991b11ed731760aa2ef8db0cb0410",
         "rust_overlay_revision": "f17186f52e82ec5cf40920b58eac63b78692ac7c",
-        "stable_rust_overlay_revision": "ca7f624be3935a5bc46d2c240515491ab8675503",
+        "stable_rust_overlay_revision": "ec07af44be2e0ce4e1a17e00a97d44232607c1ec",
         "nix_version": "2.34.8",
     }
     for field, expected_value in expected.items():
@@ -3294,10 +3294,10 @@ def validate_release_candidate(
 ) -> None:
     release = require_table(policy, "release_candidate", failures)
     expected_scalars = {
-        "version": "0.1.0-rc.1",
+        "version": "0.2.0-rc.1",
         "msrv": toolchains.get("msrv"),
         "primary": toolchains.get("primary"),
-        "msrv_release_line": "0.1.x",
+        "msrv_release_line": "0.2.x",
         "review_by": "2027-03-17",
     }
     for field, expected in expected_scalars.items():

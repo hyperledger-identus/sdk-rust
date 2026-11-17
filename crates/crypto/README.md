@@ -12,6 +12,8 @@ Version `0.1.0-rc.1` is the release-activated first cryptography train. It is
 experimental and carries no production, certification, or long-term
 compatibility promise. Verify the immutable release receipt before depending on
 the crates.io package; merging package metadata alone does not prove upload.
+The repository source has advanced to unpublished `0.2.0-rc.1` and Rust 1.99.1;
+that source identity is not another registry release.
 Secret-bearing SDK types redact diagnostics; consumers still own custody,
 storage, policy, and platform hardening.
 

@@ -228,18 +228,18 @@ The exact graph can become narrower. A new upward or sideways dependency needs
 an ADR and dependency-cone evidence.
 
 The support matrix deliberately separates host-tested Rust behavior from
-compile-only browser/mobile evidence and planned targets. Rust `1.89.0` is the
-MSRV for the `0.1.x` release line; Rust `1.98.1` is the primary development
-compiler and compatibility etalon. The complete target and feature matrix runs
+compile-only browser/mobile evidence and planned targets. Rust `1.99.1` is the
+MSRV, primary development compiler, and compatibility etalon for the
+unpublished `0.2.x` source line. The complete target and feature matrix runs
 natively each week from protected default `develop` and remains manually or
 locally reproducible; a pinned nightly is used only for sanitizer tooling.
 There is no supported FFI during bootstrap, and binary size/build time remain
 measurement-only until a candidate release defines reproducible artifacts and
 budgets.
 
-ADR 0133 selects the first release compiler and evidence matrix through
-2027-03-17. The fast lane remains one Linux Rust 1.98.1 build; the independent
-MSRV and complete release profile/target matrix remain slow/release evidence.
+ADR 0200 selects the current source compiler and evidence matrix through
+2027-03-17. The fast lane remains one Linux Rust 1.99.1 build; the separately
+named MSRV and complete release profile/target matrix remain slow/release evidence.
 
 ## 6. Delivery program
 
@@ -892,14 +892,14 @@ it is never part of the upstream implementation issue.
 
 ### Per-PR fast lane
 
-- one Ubuntu `fast` status on Rust 1.98.1;
+- one Ubuntu `fast` status on Rust 1.99.1;
 - factory/repository structure and Nix/TOML/text lint;
 - workspace formatting, build, strict Clippy and normal tests.
 
 ### Local/external slow command
 
 - full workspace and target matrix;
-- independent Rust 1.89.0 MSRV plus Rust 1.98.1 primary/etalon gates;
+- separately named Rust 1.99.1 MSRV, primary, and etalon gates;
 - WASM/mobile compile for eligible crates;
 - fuzz/property/negative tests for parsers and crypto boundaries;
 - cross-implementation conformance;

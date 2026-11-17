@@ -18,6 +18,7 @@ TOOLCHAIN_ADR = Path("docs/adr/0121-generate-candidate-rustdoc-json-before-api-r
 RELEASE_ADR = Path("docs/adr/0134-activate-protected-crates-io-release-trains.md")
 RUNNER = Path("scripts/prepare-crypto-candidate.py")
 VERSION = "0.1.0-rc.1"
+SOURCE_VERSION = "0.2.0-rc.1"
 BASELINE = "8110277c24714206436ae4a3fe678bdc58a84736"
 PACKAGE_ORDER = ("identus-derive", "identus-core", "identus-crypto")
 PACKAGE_PATHS = {
@@ -132,8 +133,8 @@ def validate(root: Path) -> list[str]:
         errors.append("canonical workspace version must remain 0.0.0")
     if package_policy.get("publish") is not False:
         errors.append("canonical workspace publish must remain false")
-    if package_policy.get("rust-version") != "1.89.0":
-        errors.append("canonical Rust version must remain the selected 1.89.0 MSRV")
+    if package_policy.get("rust-version") != "1.99.1":
+        errors.append("current source Rust version must be the selected 1.99.1 MSRV")
 
     for name, package_path in PACKAGE_PATHS.items():
         manifest = load_toml(root / package_path / "Cargo.toml", errors)
@@ -153,12 +154,12 @@ def validate(root: Path) -> list[str]:
             errors.append(f"{name}: descriptor package metadata is missing")
             continue
         expected_metadata = {
-            "version": VERSION,
+            "version": SOURCE_VERSION,
             "publish": ["crates-io"],
             "description": row.get("description"),
             "repository": descriptor.get("repository"),
             "homepage": descriptor.get("homepage"),
-            "documentation": row.get("documentation"),
+            "documentation": f"https://docs.rs/{name}/{SOURCE_VERSION}",
             "readme": row.get("readme"),
             "keywords": row.get("keywords"),
             "categories": row.get("categories"),
@@ -169,6 +170,7 @@ def validate(root: Path) -> list[str]:
         readme = read(root / package_path / "README.md", errors)
         for phrase in (
             "0.1.0-rc.1",
+            "0.2.0-rc.1",
             "experimental",
             "immutable release receipt",
             "merging package metadata alone does not prove upload",

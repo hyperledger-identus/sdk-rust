@@ -3,7 +3,7 @@
 The repository denies Rust and Clippy warnings. Required fast CI evaluates the
 default workspace surface. The native weekly/manual slow workflow from
 protected default `develop` evaluates every Cargo target with every feature
-enabled. Reproduce that complete surface locally on the pinned Rust 1.98.1
+enabled. Reproduce that complete surface locally on the pinned Rust 1.99.1
 toolchain with either command:
 
 ```bash

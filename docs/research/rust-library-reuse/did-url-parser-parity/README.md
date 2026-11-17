@@ -4,7 +4,7 @@ This isolated, unpublished Cargo workspace compares the SDK parser with exact
 `did_url_parser 0.3.0`. It is not part of the SDK workspace or dependency
 graph. Its lockfile makes the research replay deterministic.
 
-Run from this directory with the repository Rust 1.98.1 toolchain:
+Run from this directory with the repository Rust 1.99.1 toolchain:
 
 ```sh
 cargo run --locked --release

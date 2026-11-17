@@ -27,7 +27,7 @@
 
 - [x] 4.1 Run focused support, constraint, candidate, source, factory, Cargo,
       and supply-chain gates.
-- [ ] 4.2 Run the complete compatible-host `nix flake check` and record every
+- [x] 4.2 Run the complete compatible-host `nix flake check` and record every
       unrun or host-incompatible lane.
 - [ ] 4.3 Complete a distinct exact-diff/security/compatibility review, resolve
       blockers, archive the change, and verify signed/DCO commits.

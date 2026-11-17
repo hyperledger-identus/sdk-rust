@@ -2434,7 +2434,7 @@ replaced_by = ""
 class             = "property"
 disposition       = "satisfied"
 risk              = "Structured options, correlation, closed result branches, projection, immutability, redaction, singleton routing, and exact-once generated ownership can diverge across targets."
-selectors         = [ "openspec/changes/add-sdk-ts-did-resolution/design.md#Dependency and effect direction" ]
+selectors         = [ "openspec/changes/archive/2026-11-17-add-sdk-ts-did-resolution/design.md#Dependency and effect direction" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh package-types"
 lane              = "focused"
 cadence           = "on-change"
@@ -2458,7 +2458,7 @@ details           = [ "invariant=One injected host promise is composed between s
 class             = "fuzz"
 disposition       = "satisfied"
 risk              = "Arbitrary result bytes, duplicate names, contradictory branches, and hostile metadata/content trees can panic, exhaust resources, bypass correlation, leak diagnostics, or serialize nondeterministically."
-selectors         = [ "openspec/changes/add-sdk-ts-did-resolution/design.md#Property, fuzz, differential, and resource evidence" ]
+selectors         = [ "openspec/changes/archive/2026-11-17-add-sdk-ts-did-resolution/design.md#Property, fuzz, differential, and resource evidence" ]
 command           = "nix develop .#fuzz --command ./scripts/fuzz-did.sh smoke did_resolution"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -2482,7 +2482,7 @@ details           = [ "harness=Arbitrary bounded raw JSON enters resolution and 
 class             = "benchmark"
 disposition       = "satisfied"
 risk              = "Artifact assembly, request preparation, result validation, typed projection, deep freezing, or near-limit JSON can create disproportionate size, latency, or memory regressions."
-selectors         = [ "openspec/changes/add-sdk-ts-did-resolution/design.md#Property, fuzz, differential, and resource evidence" ]
+selectors         = [ "openspec/changes/archive/2026-11-17-add-sdk-ts-did-resolution/design.md#Property, fuzz, differential, and resource evidence" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements"
 lane              = "slow"
 cadence           = "weekly-or-manual"

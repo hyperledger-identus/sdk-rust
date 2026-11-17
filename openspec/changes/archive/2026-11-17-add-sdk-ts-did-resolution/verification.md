@@ -62,6 +62,13 @@ accepted.
 - `git diff --check`: passed.
 - All ten commits in `origin/develop..d1ae72d7` have valid GPG signatures and
   DCO trailers.
+- `./scripts/factory ready add-sdk-ts-did-resolution`: passed.
+- The pre-archive factory receipt binds branch `codex/feat/issue-599`, head
+  `42f2a1296aa12c38e567d2f7c5b1dc4c72ad0ef8`, and develop merge base
+  `6c0fb15a1a91dbcb7e08c0b471d7c5c1aa0624dd`.
+- The guarded archive synchronized the canonical specifications into
+  `openspec/changes/archive/2026-11-17-add-sdk-ts-did-resolution`; archive-path
+  selectors were rebound and the full 127-item factory contract passed.
 
 ## Reproducible target closure
 

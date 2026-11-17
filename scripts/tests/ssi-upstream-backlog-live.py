@@ -3,6 +3,7 @@
 import csv
 import json
 import os
+import runpy
 import subprocess
 import sys
 import tempfile
@@ -15,6 +16,7 @@ CHECKER = REPOSITORY_ROOT / "scripts/check-ssi-upstream-backlog-live.py"
 BACKLOG = REPOSITORY_ROOT / "docs/roadmap/ssi-upstream-dependency-backlog.csv"
 CONFORMANCE_MATRIX = REPOSITORY_ROOT / "docs/conformance/oid4vci-final-wallet-core.csv"
 REPOSITORY = "hyperledger-identus/sdk-rust"
+AUDIT_ROWS = runpy.run_path(str(CHECKER))["audit_rows"]
 
 
 class LiveBacklogContractTests(unittest.TestCase):
@@ -82,16 +84,14 @@ class LiveBacklogContractTests(unittest.TestCase):
         self.assertIn("unrecognized arguments", result.stderr)
 
     def test_closed_in_progress_owner_fails(self) -> None:
-        active_issue = int(
-            next(
-                row["issue"]
-                for row in self.rows
-                if row["delivery_status"] == "in_progress"
-            ).removeprefix("#")
+        row = dict(self.rows[0])
+        row["delivery_status"] = "in_progress"
+        active_issue = int(row["issue"].removeprefix("#"))
+        failures = AUDIT_ROWS([row], {active_issue: "CLOSED"})
+        self.assertEqual(
+            failures,
+            [f"{row['id']}: in_progress owner #{active_issue} is CLOSED"],
         )
-        result = self.run_snapshot(self.snapshot({active_issue: "CLOSED"}))
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn(f"in_progress owner #{active_issue} is CLOSED", result.stderr)
 
     def test_closed_specified_and_delivered_evidence_passes(self) -> None:
         active = {

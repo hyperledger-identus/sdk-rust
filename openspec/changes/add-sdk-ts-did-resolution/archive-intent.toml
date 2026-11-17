@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "did-core"
+requirement      = "Bounded extensible DID resolution options"
+canonical_sha256 = "9b4125cbc0027edc3e7aa79b011fa69771c0da1c3e2da5886a189ee3b6fa13fe"
+reason           = "Issue #599 corrects specification drift by listing the already implemented and separately specified optional noCache boolean among the common ResolutionOptions members; it preserves every existing scenario, validator, wire form, and runtime behavior."

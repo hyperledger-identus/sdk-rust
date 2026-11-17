@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 599
+disposition    = "behavior-neutral"
+scope          = "documentation"
+rationale      = "This preimplementation contract commit records planning only and changes no consumer behavior; implementation will switch this declaration to consumer-visible together with the complete issue-owned mapping, vector, quality, and change-ledger records."
+ledger_ids     = [  ]

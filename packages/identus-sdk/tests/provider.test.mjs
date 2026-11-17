@@ -3,7 +3,10 @@ import { test } from "node:test";
 
 import { DidError } from "../dist/public.js";
 import { retryableSingleton } from "../dist/internal/initialization.js";
-import { createRustDidProvider } from "../dist/internal/provider.js";
+import {
+  createRustDidProvider,
+  createRustDidQueryProvider,
+} from "../dist/internal/provider.js";
 
 function owned(fields) {
   let freeCount = 0;
@@ -22,7 +25,7 @@ function owned(fields) {
 
 function binding(overrides = {}) {
   return {
-    bindingApiVersion: () => 2,
+    bindingApiVersion: () => 3,
     isParseError: (error) => error?.kind === "parse",
     parseDid: () => {
       throw new Error("parseDid mock is missing");
@@ -32,6 +35,18 @@ function binding(overrides = {}) {
     },
     parseDidDocument: () => {
       throw new Error("parseDidDocument mock is missing");
+    },
+    prepareDidResolution: () => {
+      throw new Error("prepareDidResolution mock is missing");
+    },
+    prepareDidDereferencing: () => {
+      throw new Error("prepareDidDereferencing mock is missing");
+    },
+    parseDidResolutionResult: () => {
+      throw new Error("parseDidResolutionResult mock is missing");
+    },
+    parseDidDereferencingResult: () => {
+      throw new Error("parseDidDereferencingResult mock is missing");
     },
     ...overrides,
   };
@@ -556,4 +571,279 @@ test("explicit rollback selection never falls through after Rust rejection", () 
   assert.equal(legacyCalls, 0);
   assert.equal(select("legacy").parseDid("legacy-value").method, "legacy");
   assert.equal(legacyCalls, 1);
+});
+
+test("resolves through one injected host after closing request ownership", async () => {
+  const request = owned({
+    did: "did:example:123",
+    method: "example",
+    methodSpecificId: "123",
+    options: JSON.stringify({ noCache: false, example: 1 }),
+  });
+  const serialized = JSON.stringify({
+    didResolutionMetadata: {},
+    didDocument: { id: "did:example:123" },
+    didDocumentMetadata: {},
+  });
+  const result = owned({ serialized, kind: "success" });
+  let hostCalls = 0;
+  const provider = createRustDidQueryProvider(
+    binding({
+      prepareDidResolution(did, options) {
+        assert.equal(did, "did:example:123");
+        assert.deepEqual(JSON.parse(options), { noCache: false, example: 1 });
+        return request.value;
+      },
+      parseDidResolutionResult(did, raw) {
+        assert.equal(did, "did:example:123");
+        assert.equal(raw, serialized);
+        return result.value;
+      },
+    }),
+    "node-wasm",
+    {
+      resolver: {
+        async resolve(value) {
+          hostCalls += 1;
+          assert.equal(request.freeCount(), 1);
+          assert.equal(Object.isFrozen(value), true);
+          assert.equal(Object.isFrozen(value.did), true);
+          assert.equal(Object.isFrozen(value.options), true);
+          assert.equal(value.options.noCache, false);
+          assert.equal(value.options.properties.example, 1);
+          return serialized;
+        },
+      },
+    },
+  );
+
+  const resolved = await provider.resolveDid("did:example:123", {
+    noCache: false,
+    properties: { example: 1 },
+  });
+
+  assert.equal(resolved.kind, "success");
+  assert.equal(resolved.document.id.serialized, "did:example:123");
+  assert.equal(Object.isFrozen(resolved), true);
+  assert.equal(hostCalls, 1);
+  assert.equal(request.freeCount(), 1);
+  assert.equal(result.freeCount(), 1);
+});
+
+test("rejects inherited and prototype-looking resolution options before binding or host effects", async () => {
+  let bindingCalls = 0;
+  let hostCalls = 0;
+  const provider = createRustDidQueryProvider(
+    binding({
+      prepareDidResolution() {
+        bindingCalls += 1;
+      },
+    }),
+    "node-wasm",
+    {
+      resolver: {
+        async resolve() {
+          hostCalls += 1;
+          return "{}";
+        },
+      },
+    },
+  );
+
+  const inherited = Object.create({ noCache: true });
+  const forbidden = JSON.parse('{"properties":{"__proto__":{"polluted":true}}}');
+  for (const options of [inherited, forbidden]) {
+    await assert.rejects(
+      provider.resolveDid("did:example:123", options),
+      (error) => error instanceof DidError
+        && error.code === "adapter.binding_contract"
+        && error.stack === undefined,
+    );
+  }
+  assert.equal(bindingCalls, 0);
+  assert.equal(hostCalls, 0);
+  assert.equal({}.polluted, undefined);
+});
+
+test("preserves a W3C problem as result data instead of throwing", async () => {
+  const request = owned({
+    did: "did:example:missing",
+    method: "example",
+    methodSpecificId: "missing",
+    options: "{}",
+  });
+  const serialized = JSON.stringify({
+    didResolutionMetadata: {
+      error: {
+        type: "https://www.w3.org/ns/did#NOT_FOUND",
+        title: "Not found",
+      },
+    },
+    didDocument: null,
+    didDocumentMetadata: {},
+  });
+  const result = owned({ serialized, kind: "error" });
+  const provider = createRustDidQueryProvider(
+    binding({
+      prepareDidResolution: () => request.value,
+      parseDidResolutionResult: () => result.value,
+    }),
+    "browser-wasm",
+    { resolver: { resolve: async () => serialized } },
+  );
+
+  const resolved = await provider.resolveDid("did:example:missing");
+
+  assert.equal(resolved.kind, "failure");
+  assert.equal(resolved.document, null);
+  assert.equal(resolved.resolutionMetadata.error.standardKind, "notFound");
+  assert.equal(resolved.resolutionMetadata.error.title, "Not found");
+  assert.equal(result.freeCount(), 1);
+});
+
+test("dereferences bounded JSON through the independent host effect", async () => {
+  const request = owned({
+    didUrl: "did:example:123#key-1",
+    did: "did:example:123",
+    method: "example",
+    methodSpecificId: "123",
+    path: "",
+    query: undefined,
+    fragment: "key-1",
+    options: JSON.stringify({ verificationRelationship: "authentication" }),
+  });
+  const serialized = JSON.stringify({
+    didUrlDereferencingMetadata: { contentType: "application/did+json" },
+    content: { id: "did:example:123#key-1", type: "Multikey" },
+    contentMetadata: { source: "fixture" },
+  });
+  const result = owned({ serialized, kind: "success" });
+  const provider = createRustDidQueryProvider(
+    binding({
+      prepareDidDereferencing: () => request.value,
+      parseDidDereferencingResult: () => result.value,
+    }),
+    "node-wasm",
+    { dereferencer: { dereference: async () => serialized } },
+  );
+
+  const dereferenced = await provider.dereferenceDidUrl(
+    "did:example:123#key-1",
+    { verificationRelationship: "authentication" },
+  );
+
+  assert.equal(dereferenced.kind, "success");
+  assert.equal(dereferenced.content.id, "did:example:123#key-1");
+  assert.equal(dereferenced.contentMetadata.properties.source, "fixture");
+  assert.equal(request.freeCount(), 1);
+  assert.equal(result.freeCount(), 1);
+});
+
+test("host rejection is redacted, terminal, and observed once", async () => {
+  const request = owned({
+    did: "did:example:123",
+    method: "example",
+    methodSpecificId: "123",
+    options: "{}",
+  });
+  let calls = 0;
+  const observations = [];
+  const provider = createRustDidQueryProvider(
+    binding({ prepareDidResolution: () => request.value }),
+    "node-wasm",
+    {
+      resolver: {
+        async resolve() {
+          calls += 1;
+          throw new Error("https://secret.example/did:example:123");
+        },
+      },
+    },
+    { observer: (event) => observations.push(event) },
+  );
+
+  await assert.rejects(
+    provider.resolveDid("did:example:123"),
+    (error) => error instanceof DidError
+      && error.code === "did.resolution_host_failure"
+      && error.stack === undefined
+      && !error.message.includes("secret"),
+  );
+  assert.equal(calls, 1);
+  assert.equal(request.freeCount(), 1);
+  assert.deepEqual(observations.map((event) => event.errorCode), [
+    "did.resolution_host_failure",
+  ]);
+  assert.equal(JSON.stringify(observations).includes("did:example:123"), false);
+});
+
+test("already-aborted operations never allocate or invoke the host", async () => {
+  const controller = new AbortController();
+  controller.abort();
+  let bindingCalls = 0;
+  let hostCalls = 0;
+  const provider = createRustDidQueryProvider(
+    binding({
+      prepareDidResolution() {
+        bindingCalls += 1;
+      },
+    }),
+    "node-wasm",
+    {
+      resolver: {
+        async resolve() {
+          hostCalls += 1;
+          return "{}";
+        },
+      },
+    },
+  );
+
+  await assert.rejects(
+    provider.resolveDid("did:example:123", undefined, {
+      signal: controller.signal,
+    }),
+    (error) => error instanceof DidError && error.code === "did.operation_aborted",
+  );
+  assert.equal(bindingCalls, 0);
+  assert.equal(hostCalls, 0);
+});
+
+test("query observer failure is terminal after result ownership closes", async () => {
+  const request = owned({
+    did: "did:example:123",
+    method: "example",
+    methodSpecificId: "123",
+    options: "{}",
+  });
+  const serialized = JSON.stringify({
+    didResolutionMetadata: {},
+    didDocument: { id: "did:example:123" },
+    didDocumentMetadata: {},
+  });
+  const result = owned({ serialized, kind: "success" });
+  let observerCalls = 0;
+  const provider = createRustDidQueryProvider(
+    binding({
+      prepareDidResolution: () => request.value,
+      parseDidResolutionResult: () => result.value,
+    }),
+    "node-wasm",
+    { resolver: { resolve: async () => serialized } },
+    {
+      observer() {
+        observerCalls += 1;
+        assert.equal(result.freeCount(), 1);
+        throw new Error("observer detail");
+      },
+    },
+  );
+
+  await assert.rejects(
+    provider.resolveDid("did:example:123"),
+    (error) => error instanceof DidError && error.code === "did.observer_failure",
+  );
+  assert.equal(observerCalls, 1);
+  assert.equal(request.freeCount(), 1);
+  assert.equal(result.freeCount(), 1);
 });

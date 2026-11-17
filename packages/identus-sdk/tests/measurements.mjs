@@ -6,7 +6,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createDidProvider } from "../dist/node.js";
+import { createDidProvider, createDidQueryProvider } from "../dist/node.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const output = path.resolve(process.env.SDK_TS_DID_MEASUREMENTS ?? path.join(root, "../../target/sdk-ts-did-measurements.json"));
@@ -24,6 +24,22 @@ function measure(operation) {
   for (let index = 0; index < samples; index += 1) {
     const start = performance.now();
     operation();
+    durations.push(performance.now() - start);
+  }
+  return Object.freeze({
+    samples,
+    warmup,
+    p50Milliseconds: percentile(durations, 0.5),
+    p95Milliseconds: percentile(durations, 0.95),
+  });
+}
+
+async function measureAsync(operation) {
+  for (let index = 0; index < warmup; index += 1) await operation();
+  const durations = [];
+  for (let index = 0; index < samples; index += 1) {
+    const start = performance.now();
+    await operation();
     durations.push(performance.now() - start);
   }
   return Object.freeze({
@@ -52,6 +68,38 @@ const nearLimitDocumentValue = JSON.stringify({
 const nearLimitDocument = measure(() => provider.parseDidDocument(nearLimitDocumentValue));
 const ordinaryDocumentOutputBytes = Buffer.byteLength(provider.parseDidDocument(ordinaryDocumentValue).serialized);
 const nearLimitDocumentOutputBytes = Buffer.byteLength(provider.parseDidDocument(nearLimitDocumentValue).serialized);
+const resolutionDid = "did:example:measurement";
+const ordinaryResolutionValue = JSON.stringify({
+  didResolutionMetadata: { contentType: "application/did+json" },
+  didDocument: { id: resolutionDid },
+  didDocumentMetadata: { versionId: "ordinary" },
+});
+const nearLimitResolutionValue = JSON.stringify({
+  didResolutionMetadata: {
+    contentType: "application/did+json",
+    // Exercise the bounded open-extension path immediately below the
+    // canonical 64 KiB per-string ceiling.
+    measurementPadding: "a".repeat((64 * 1_024) - 64),
+  },
+  didDocument: { id: resolutionDid },
+  didDocumentMetadata: { versionId: "near-limit" },
+});
+const ordinaryQueryProvider = await createDidQueryProvider({
+  resolver: { resolve: async () => ordinaryResolutionValue },
+});
+const nearLimitQueryProvider = await createDidQueryProvider({
+  resolver: { resolve: async () => nearLimitResolutionValue },
+});
+const ordinaryResolution = await measureAsync(() =>
+  ordinaryQueryProvider.resolveDid(resolutionDid));
+const nearLimitResolution = await measureAsync(() =>
+  nearLimitQueryProvider.resolveDid(resolutionDid));
+const ordinaryResolutionOutputBytes = Buffer.byteLength(
+  (await ordinaryQueryProvider.resolveDid(resolutionDid)).serialized,
+);
+const nearLimitResolutionOutputBytes = Buffer.byteLength(
+  (await nearLimitQueryProvider.resolveDid(resolutionDid)).serialized,
+);
 const manifest = JSON.parse(await readFile(new URL("../artifacts/manifest.json", import.meta.url), "utf8"));
 
 const report = Object.freeze({
@@ -80,6 +128,18 @@ const report = Object.freeze({
       ...nearLimitDocument,
       inputBytes: Buffer.byteLength(nearLimitDocumentValue),
       outputBytes: nearLimitDocumentOutputBytes,
+    }),
+  }),
+  resolution: Object.freeze({
+    ordinary: Object.freeze({
+      ...ordinaryResolution,
+      inputBytes: Buffer.byteLength(ordinaryResolutionValue),
+      outputBytes: ordinaryResolutionOutputBytes,
+    }),
+    nearLimit: Object.freeze({
+      ...nearLimitResolution,
+      inputBytes: Buffer.byteLength(nearLimitResolutionValue),
+      outputBytes: nearLimitResolutionOutputBytes,
     }),
   }),
   rssBytes: process.memoryUsage().rss,

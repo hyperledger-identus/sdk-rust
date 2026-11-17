@@ -17,7 +17,7 @@ import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseJsonWithoutDuplicates } from "./factory-tools/strict-json.mjs";
 
-const bindingApiVersion = 2;
+const bindingApiVersion = 3;
 const artifactBase = "identus_wasm_did";
 const artifactFiles = Object.freeze([
   `${artifactBase}.d.ts`,
@@ -29,13 +29,21 @@ const artifactFiles = Object.freeze([
 const generatedFiles = Object.freeze([".gitignore", ...artifactFiles].sort());
 const requiredBindingSymbols = Object.freeze([
   "DidDocumentView",
+  "DidDereferencingRequestView",
+  "DidDereferencingResultView",
   "DidParseError",
+  "DidResolutionRequestView",
+  "DidResolutionResultView",
   "DidUrlView",
   "DidView",
   "bindingApiVersion",
   "parseDid",
   "parseDidDocument",
+  "parseDidDereferencingResult",
+  "parseDidResolutionResult",
   "parseDidUrl",
+  "prepareDidDereferencing",
+  "prepareDidResolution",
 ]);
 const legacyNames = /apollo|castor|mercury|pluto|pollux|edge[ _-]?agent/iu;
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -200,6 +208,47 @@ async function verifyRuntime(output) {
   } finally {
     webDocument.free();
   }
+  const webResolutionRequest = webModule.prepareDidResolution(
+    "did:example:artifact-check",
+    '{"noCache":false}',
+  );
+  try {
+    if (webResolutionRequest.did !== "did:example:artifact-check"
+      || webResolutionRequest.options !== '{"noCache":false}') {
+      fail("web resolution request runtime projection mismatch");
+    }
+  } finally {
+    webResolutionRequest.free();
+  }
+  const webResolutionResult = webModule.parseDidResolutionResult(
+    "did:example:artifact-check",
+    '{"didResolutionMetadata":{},"didDocument":{"id":"did:example:artifact-check"},"didDocumentMetadata":{}}',
+  );
+  try {
+    if (webResolutionResult.kind !== "success") fail("web resolution result runtime projection mismatch");
+  } finally {
+    webResolutionResult.free();
+  }
+  const webDereferencingRequest = webModule.prepareDidDereferencing(
+    "did:example:artifact-check#key-1",
+    "{}",
+  );
+  try {
+    if (webDereferencingRequest.didUrl !== "did:example:artifact-check#key-1"
+      || webDereferencingRequest.fragment !== "key-1") {
+      fail("web dereferencing request runtime projection mismatch");
+    }
+  } finally {
+    webDereferencingRequest.free();
+  }
+  const webDereferencingResult = webModule.parseDidDereferencingResult(
+    '{"didUrlDereferencingMetadata":{},"content":{"id":"did:example:artifact-check"},"contentMetadata":{}}',
+  );
+  try {
+    if (webDereferencingResult.kind !== "success") fail("web dereferencing result runtime projection mismatch");
+  } finally {
+    webDereferencingResult.free();
+  }
 
   const nodeDirectory = path.join(output, "nodejs");
   const require = createRequire(import.meta.url);
@@ -219,6 +268,47 @@ async function verifyRuntime(output) {
     }
   } finally {
     nodeDocument.free();
+  }
+  const nodeResolutionRequest = nodeModule.prepareDidResolution(
+    "did:example:artifact-check",
+    '{"noCache":false}',
+  );
+  try {
+    if (nodeResolutionRequest.did !== "did:example:artifact-check"
+      || nodeResolutionRequest.options !== '{"noCache":false}') {
+      fail("nodejs resolution request runtime projection mismatch");
+    }
+  } finally {
+    nodeResolutionRequest.free();
+  }
+  const nodeResolutionResult = nodeModule.parseDidResolutionResult(
+    "did:example:artifact-check",
+    '{"didResolutionMetadata":{},"didDocument":{"id":"did:example:artifact-check"},"didDocumentMetadata":{}}',
+  );
+  try {
+    if (nodeResolutionResult.kind !== "success") fail("nodejs resolution result runtime projection mismatch");
+  } finally {
+    nodeResolutionResult.free();
+  }
+  const nodeDereferencingRequest = nodeModule.prepareDidDereferencing(
+    "did:example:artifact-check#key-1",
+    "{}",
+  );
+  try {
+    if (nodeDereferencingRequest.didUrl !== "did:example:artifact-check#key-1"
+      || nodeDereferencingRequest.fragment !== "key-1") {
+      fail("nodejs dereferencing request runtime projection mismatch");
+    }
+  } finally {
+    nodeDereferencingRequest.free();
+  }
+  const nodeDereferencingResult = nodeModule.parseDidDereferencingResult(
+    '{"didUrlDereferencingMetadata":{},"content":{"id":"did:example:artifact-check"},"contentMetadata":{}}',
+  );
+  try {
+    if (nodeDereferencingResult.kind !== "success") fail("nodejs dereferencing result runtime projection mismatch");
+  } finally {
+    nodeDereferencingResult.free();
   }
 }
 

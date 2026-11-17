@@ -43,7 +43,7 @@ interface ProjectionFrame {
   readonly depth: number;
 }
 
-function bindingFailure(): Error {
+export function bindingFailure(): Error {
   const error = new Error("DID binding contract failed");
   error.name = "DidBindingError";
   Object.defineProperty(error, "stack", {
@@ -105,7 +105,7 @@ function emptyContainer(value: unknown): MutableJsonContainer {
   throw bindingFailure();
 }
 
-function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
+export function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
   const primitive = primitiveValue(value);
   if (primitive !== undefined || value === null) {
     return primitive ?? null;
@@ -167,21 +167,21 @@ function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
   return root as DidDocumentExtensionValue;
 }
 
-function requireMap(value: DidDocumentExtensionValue): DidDocumentExtensionMapValue {
+export function requireMap(value: DidDocumentExtensionValue): DidDocumentExtensionMapValue {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     throw bindingFailure();
   }
   return value as DidDocumentExtensionMapValue;
 }
 
-function requireString(value: DidDocumentExtensionValue | undefined): string {
+export function requireString(value: DidDocumentExtensionValue | undefined): string {
   if (typeof value !== "string") {
     throw bindingFailure();
   }
   return value;
 }
 
-function requireArray(
+export function requireArray(
   value: DidDocumentExtensionValue | undefined,
 ): readonly DidDocumentExtensionValue[] {
   if (!Array.isArray(value)) {
@@ -190,7 +190,7 @@ function requireArray(
   return value;
 }
 
-function requireNonEmptyArray(
+export function requireNonEmptyArray(
   value: DidDocumentExtensionValue | undefined,
 ): readonly DidDocumentExtensionValue[] {
   const values = requireArray(value);
@@ -200,18 +200,18 @@ function requireNonEmptyArray(
   return values;
 }
 
-function has(map: DidDocumentExtensionMapValue, property: string): boolean {
+export function has(map: DidDocumentExtensionMapValue, property: string): boolean {
   return Object.hasOwn(map, property);
 }
 
-function optional(
+export function optional(
   map: DidDocumentExtensionMapValue,
   property: string,
 ): DidDocumentExtensionValue | undefined {
   return has(map, property) ? map[property] : undefined;
 }
 
-function didValue(serialized: string): DidValue {
+export function didValue(serialized: string): DidValue {
   if (!serialized.startsWith("did:")) {
     throw bindingFailure();
   }
@@ -226,7 +226,7 @@ function didValue(serialized: string): DidValue {
   });
 }
 
-function extensionProperties(
+export function extensionProperties(
   map: DidDocumentExtensionMapValue,
   reserved: ReadonlySet<string>,
 ): DidDocumentExtensionMapValue {

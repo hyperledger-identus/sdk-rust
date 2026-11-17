@@ -1,10 +1,11 @@
 import { createElement, useEffect } from "react";
 import { hydrateRoot } from "react-dom/client";
 
-import { createDidProvider } from "../dist/browser.js";
+import { createDidProvider, createDidQueryProvider } from "../dist/browser.js";
 import { DidProviderBoundary, useDidProvider } from "../dist/react.js";
 import { assertAllVectors } from "./vector-assertions.mjs";
 import { assertAllDocumentVectors } from "./document-vector-assertions.mjs";
+import { assertAllResolutionVectors } from "./resolution-vector-assertions.mjs";
 
 declare global {
   interface Window {
@@ -14,6 +15,7 @@ declare global {
     }>;
     __identusDidVectors?: readonly unknown[];
     __identusDidDocumentVectors?: readonly unknown[];
+    __identusDidResolutionVectors?: readonly unknown[];
   }
 }
 
@@ -33,8 +35,10 @@ try {
   const provider = await createDidProvider();
   const vectors = window.__identusDidVectors;
   const documentVectors = window.__identusDidDocumentVectors;
+  const resolutionVectors = window.__identusDidResolutionVectors;
   if (vectors === undefined) throw new Error("vectors missing");
   if (documentVectors === undefined) throw new Error("document vectors missing");
+  if (resolutionVectors === undefined) throw new Error("resolution vectors missing");
   const root = document.getElementById("root");
   if (root === null) throw new Error("root missing");
   const recoverable: string[] = [];
@@ -53,6 +57,7 @@ try {
   await hydrated;
   assertAllVectors(provider, vectors);
   assertAllDocumentVectors(provider, documentVectors);
+  await assertAllResolutionVectors(createDidQueryProvider, resolutionVectors);
   const text = root.textContent ?? "";
   if (text !== '{"id":"did:example:react-hydration"}' || recoverable.length !== 0) {
     throw new Error("hydration mismatch");

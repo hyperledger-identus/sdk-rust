@@ -3,12 +3,14 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { test } from "node:test";
 
-import { createDidProvider } from "../dist/node.js";
+import { createDidProvider, createDidQueryProvider } from "../dist/node.js";
 import { DidProviderBoundary, useDidProvider } from "../dist/react.js";
 import { assertAllVectors } from "./vector-assertions.mjs";
 import { loadVectors } from "./vector-loader.mjs";
 import { assertAllDocumentVectors } from "./document-vector-assertions.mjs";
 import { loadDocumentVectors } from "./document-vector-loader.mjs";
+import { assertAllResolutionVectors } from "./resolution-vector-assertions.mjs";
+import { loadResolutionVectors } from "./resolution-vector-loader.mjs";
 
 const reactDocument = '{"id":"did:example:react-ssr"}';
 
@@ -27,6 +29,7 @@ test("React SSR crosses the Node provider without duplicated DID logic", async (
   const provider = await createDidProvider();
   assertAllVectors(provider, await loadVectors());
   assertAllDocumentVectors(provider, await loadDocumentVectors());
+  await assertAllResolutionVectors(createDidQueryProvider, await loadResolutionVectors());
   const factory = async () => {
     throw new Error("SSR must use the explicit initial provider");
   };

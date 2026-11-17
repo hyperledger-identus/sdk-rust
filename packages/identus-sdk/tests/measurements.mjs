@@ -40,6 +40,18 @@ const initializationMilliseconds = performance.now() - coldStart;
 const ordinary = measure(() => provider.parseDid("did:example:measurement"));
 const nearLimitValue = `did:example:${"a".repeat(131_000)}`;
 const nearLimit = measure(() => provider.parseDid(nearLimitValue));
+const ordinaryDocumentValue = '{"id":"did:example:measurement","profile":{"enabled":true}}';
+const ordinaryDocument = measure(() => provider.parseDidDocument(ordinaryDocumentValue));
+const nearLimitDocumentValue = JSON.stringify({
+  id: "did:example:measurement-near-limit",
+  ...Object.fromEntries(Array.from({ length: 60 }, (_, index) => [
+    `extension-${index.toString().padStart(2, "0")}`,
+    "a".repeat(4_000),
+  ])),
+});
+const nearLimitDocument = measure(() => provider.parseDidDocument(nearLimitDocumentValue));
+const ordinaryDocumentOutputBytes = Buffer.byteLength(provider.parseDidDocument(ordinaryDocumentValue).serialized);
+const nearLimitDocumentOutputBytes = Buffer.byteLength(provider.parseDidDocument(nearLimitDocumentValue).serialized);
 const manifest = JSON.parse(await readFile(new URL("../artifacts/manifest.json", import.meta.url), "utf8"));
 
 const report = Object.freeze({
@@ -58,6 +70,18 @@ const report = Object.freeze({
   initializationMilliseconds,
   ordinary,
   nearLimit,
+  document: Object.freeze({
+    ordinary: Object.freeze({
+      ...ordinaryDocument,
+      inputBytes: Buffer.byteLength(ordinaryDocumentValue),
+      outputBytes: ordinaryDocumentOutputBytes,
+    }),
+    nearLimit: Object.freeze({
+      ...nearLimitDocument,
+      inputBytes: Buffer.byteLength(nearLimitDocumentValue),
+      outputBytes: nearLimitDocumentOutputBytes,
+    }),
+  }),
   rssBytes: process.memoryUsage().rss,
   limitations: "Directional local measurement only; no accepted support or regression budget.",
 });

@@ -7,7 +7,7 @@ mode=${1:-smoke}
 selection=${2:-all}
 
 usage() {
-  printf 'Usage: %s {replay|smoke|soak} {did|did_url|all}\n' "$0" >&2
+  printf 'Usage: %s {replay|smoke|soak} {did|did_url|did_document|all}\n' "$0" >&2
 }
 
 case "$mode" in
@@ -21,7 +21,8 @@ esac
 case "$selection" in
   did) targets=(did) ;;
   did_url) targets=(did_url) ;;
-  all) targets=(did did_url) ;;
+  did_document) targets=(did_document) ;;
+  all) targets=(did did_url did_document) ;;
   *)
     usage
     exit 2
@@ -37,7 +38,7 @@ if ! cargo fuzz --version >/dev/null 2>&1; then
     printf 'fuzz-did: cargo-fuzz is unavailable; enter the Nix shell\n' >&2
     exit 1
   fi
-  exec "$nix_cmd" develop "$repo_root" --command "$repo_root/scripts/fuzz-did.sh" "$mode" "$selection"
+  exec "$nix_cmd" develop "$repo_root#fuzz" --command "$repo_root/scripts/fuzz-did.sh" "$mode" "$selection"
 fi
 
 runner_version=$(cargo fuzz --version)
@@ -57,8 +58,20 @@ for target in "${targets[@]}"; do
   cp -R "$source_corpus" "$run_corpus"
   mkdir -p "$artifact_dir"
 
-  common=(
-    -max_len=139264
+  if [[ "$target" == did_document ]]; then
+    exact_seed="$run_corpus/exact-limit"
+    exact_prefix='{"id":"did:example:123"}'
+    padding_bytes=$((262144 - ${#exact_prefix}))
+    printf '%s' "$exact_prefix" >"$exact_seed"
+    dd if=/dev/zero bs="$padding_bytes" count=1 2>/dev/null | LC_ALL=C tr '\000' ' ' >>"$exact_seed"
+  fi
+
+  common=(-max_len=139264)
+  if [[ "$target" == did_document ]]; then
+    common=(-max_len=262144)
+  fi
+
+  common+=(
     -timeout=5
     -rss_limit_mb=1024
     -reload=0

@@ -60,6 +60,13 @@ doc   = false
 bench = false
 
 [[bin]]
+name  = "did_document"
+path  = "fuzz_targets/did_document.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
 name  = "did_key"
 path  = "fuzz_targets/did_key.rs"
 test  = false

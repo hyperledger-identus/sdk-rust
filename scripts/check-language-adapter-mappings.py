@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import math
 import re
 import stat
 import subprocess
@@ -236,15 +237,18 @@ def canonical_bound(
         errors.append(f"{identifier}.canonical source bytes are not valid UTF-8")
         return None
     pattern = re.compile(
-        rf"(?m)^pub const {re.escape(symbol_value)}\s*:\s*usize\s*=\s*([0-9][0-9_]*)\s*;"
+        rf"(?m)^pub const {re.escape(symbol_value)}\s*:\s*usize\s*=\s*"
+        rf"([0-9][0-9_]*(?:\s*\*\s*[0-9][0-9_]*)*)\s*;"
     )
     matches = pattern.findall(content)
     if len(matches) != 1:
         errors.append(
-            f"{identifier}.canonical_bound_symbol must resolve exactly once to a literal public usize constant"
+            f"{identifier}.canonical_bound_symbol must resolve exactly once to a literal-product public usize constant"
         )
         return None
-    return int(matches[0].replace("_", ""))
+    return math.prod(
+        int(factor.strip().replace("_", "")) for factor in matches[0].split("*")
+    )
 
 
 def validate_git_provenance(

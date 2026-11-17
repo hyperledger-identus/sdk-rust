@@ -113,10 +113,22 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
     }
     if (bindingPackage.test(relative) && /(?:^|\/)package\.json$/u.test(relative)) addSignal(signals, targetSignals, "package-metadata");
     if (relative === "docs/architecture/language-adapter-mappings.toml") addSignal(signals, targetSignals, "language-mapping");
-    if (relative === "docs/conformance/cross-language-vector-catalog.toml" || relative.startsWith("docs/conformance/fixtures/did/")) {
+    if (relative === "docs/conformance/cross-language-vector-catalog.toml"
+        || relative.startsWith("docs/conformance/fixtures/did/")
+        || relative.startsWith("docs/conformance/fixtures/did-document/")) {
       addSignal(signals, targetSignals, "shared-vectors");
     }
+    if (relative === "docs/architecture/quality-evidence-declarations.toml"
+        || relative === "docs/architecture/quality-evidence-plan.md"
+        || relative === "docs/conformance/sdk-ts-did-document-quality.md"
+        || relative === "fuzz/fuzz_targets/did_document.rs"
+        || relative.startsWith("fuzz/corpus/did_document/")
+        || relative === "fuzz/dictionaries/did_document.dict"
+        || relative === "scripts/fuzz-did.sh") {
+      addSignal(signals, targetSignals, "document-quality-evidence");
+    }
     if (relative.startsWith("openspec/specs/sdk-ts-parity-conformance/")
+        || relative.startsWith("openspec/specs/sdk-ts-did-document/")
         || relative.startsWith("openspec/changes/add-sdk-ts-did-canary/")
         || relative === "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md") {
       addSignal(signals, targetSignals, "target-contract");

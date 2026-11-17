@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-11-17`
-- Declaration count: `21`
+- Declaration count: `22`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -823,6 +823,55 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Execute every exposed normative packet result through the public Rust API, assert exact negative error stages, retain absent metadata ingestion as not-exposed, and preserve exactly two immutable independent observations per case without donor runtimes in normal CI.
 - Receipt: `source:crates/sd-jwt-vc/tests/differential.rs`
 - Evidence revision: `dc10222d7786d5ccafd6f16c89070916454c2538`
+
+## `did.document.typescript-canary.quality.v1`
+
+- Capability: `did.document`
+- Slice: Private SDK-TS generic DID Document facade canary
+- Owner: SDK-Rust DID and TypeScript binding maintainers (issue #502)
+- Risk: A document facade can bypass canonical Rust validation, lose wire distinctions, round extension numbers, leak public-key material or ownership, or couple target failures back into Rust core.
+- Targets: `package:identus-did`, `package:identus-wasm-did`, `package:identus-typescript-sdk`, `consumer:sdk-ts`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
+- Vector IDs: `12` local catalog entries
+- Limitations: Private local generic DID Document parsing/projection only; no resolution, dereferencing, registration, method effects, networking, storage, custody, credentials, DIDComm, agent runtime, React Native, publication, support, certification, production use, or mdoc.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #502 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #502 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #502 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #502 |
+
+### `property`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
+- Budget: Execute all document vectors plus lifecycle, exact-free, redaction, mutation, cardinality, unsafe-number, singleton, module-format, rollback, declaration, and dependency-direction properties.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #502
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh smoke did_document`
+- Budget: Exercise arbitrary bytes to the 262144-byte ceiling with timeout=5, rss_limit_mb=1024, deterministic accepted-input reparse, public-only material, and redacted errors.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #502
+
+### `benchmark`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
+- Budget: Measure deterministic artifact bytes and hashes, cold/warm initialization, ordinary and near-limit document parse p50/p95, normalized output bytes, and RSS where reliable without activating support thresholds.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #502
+
+### `differential`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
+- Budget: Execute every active did.document vector through canonical Rust and each applicable facade target, compare normalized values and stable outcomes, and ledger every donor disposition.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #502
 
 ## `credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1`
 

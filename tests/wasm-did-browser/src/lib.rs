@@ -1,7 +1,7 @@
 #![cfg(target_arch = "wasm32")]
 
 use identus_did::{MAX_DID_BYTES, MAX_DID_URL_BYTES};
-use identus_wasm_did::{binding_api_version, parse_did, parse_did_url};
+use identus_wasm_did::{binding_api_version, parse_did, parse_did_document, parse_did_url};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
@@ -11,6 +11,14 @@ wasm_bindgen_test_configure!(run_in_browser);
     export function consumeDid(value) {
         try {
             return `${value.value}|${value.method}|${value.methodSpecificId}`;
+        } finally {
+            value.free();
+        }
+    }
+
+    export function consumeDocument(value) {
+        try {
+            return `${value.id}|${value.serialized}`;
         } finally {
             value.free();
         }
@@ -28,13 +36,16 @@ extern "C" {
     #[wasm_bindgen(js_name = consumeDid)]
     fn consume_did(value: JsValue) -> String;
 
+    #[wasm_bindgen(js_name = consumeDocument)]
+    fn consume_document(value: JsValue) -> String;
+
     #[wasm_bindgen(js_name = consumeError)]
     fn consume_error(error: JsValue) -> String;
 }
 
 #[wasm_bindgen_test]
 fn browser_executes_version_and_component_contract() {
-    assert_eq!(binding_api_version(), 1);
+    assert_eq!(binding_api_version(), 2);
     let did = parse_did("did:example:browser").unwrap();
     assert_eq!(did.value(), "did:example:browser");
     assert_eq!(did.method(), "example");
@@ -51,6 +62,23 @@ fn browser_executes_version_and_component_contract() {
     assert_eq!(url.path(), "/path");
     assert_eq!(url.query().as_deref(), Some("service=agent"));
     assert_eq!(url.fragment().as_deref(), Some("key-1"));
+}
+
+#[wasm_bindgen_test]
+fn browser_executes_document_ownership_contract() {
+    let document = parse_did_document(
+        r#"{
+            "id":"did:example:browser-document",
+            "controller":"did:example:controller",
+            "profile":{"enabled":true}
+        }"#,
+    )
+    .unwrap();
+    assert_eq!(document.id(), "did:example:browser-document");
+    assert_eq!(
+        consume_document(JsValue::from(document)),
+        "did:example:browser-document|{\"id\":\"did:example:browser-document\",\"controller\":\"did:example:controller\",\"profile\":{\"enabled\":true}}"
+    );
 }
 
 #[wasm_bindgen_test]
@@ -77,4 +105,24 @@ fn browser_rejects_bounded_input_without_reflection() {
         parse_did_url(&oversized_url).unwrap_err().code(),
         "did.invalid_did_url"
     );
+
+    let invalid_document = parse_did_document(&format!(
+        r#"{{"id":"did:example:browser","profile":{{"secret":"{canary}"}},"id":"did:example:shadow"}}"#
+    ))
+    .unwrap_err();
+    assert_eq!(invalid_document.code(), "did.invalid_document");
+    assert!(!invalid_document.code().contains(canary));
+
+    let invalid_document_for_js =
+        parse_did_document(r#"{"id":"did:example:browser","id":"did:example:shadow"}"#)
+            .unwrap_err();
+    assert_eq!(
+        consume_error(JsValue::from(invalid_document_for_js)),
+        "DidParseError|did.invalid_document"
+    );
+
+    let unsupported =
+        parse_did_document(r#"{"id":"did:example:browser","unsafe":9007199254740992}"#)
+            .unwrap_err();
+    assert_eq!(unsupported.code(), "adapter.unsupported_lossy_mapping");
 }

@@ -42,6 +42,7 @@
           || pkgs.lib.hasSuffix "/crates/oid4vci/tests/fixtures/oid4vci-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/crates/oid4vp/tests/fixtures/oid4vp-error-contract-v1.csv" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did/v1/vectors.json" sourcePath
+          || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-document/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-key/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-web/v1/vectors.json" sourcePath
           || pkgs.lib.hasSuffix "/docs/conformance/fixtures/did-jwk/v1/vectors.json" sourcePath
@@ -105,6 +106,8 @@
           test -f "$src/docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vectors.json"
           test -f "$src/docs/conformance/fixtures/did/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/did/v1" -type f | wc -l)" -eq 1
+          test -f "$src/docs/conformance/fixtures/did-document/v1/vectors.json"
+          test "$(find "$src/docs/conformance/fixtures/did-document/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/did-key/v1/vectors.json"
           test "$(find "$src/docs/conformance/fixtures/did-key/v1" -type f | wc -l)" -eq 1
           test -f "$src/docs/conformance/fixtures/did-web/v1/vectors.json"

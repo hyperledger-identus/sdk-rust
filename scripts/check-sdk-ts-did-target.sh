@@ -35,6 +35,19 @@ hash_stdin() {
   fi
 }
 
+target_contract_digest() {
+  local label="$1"
+  shift
+  {
+    printf '%s\0%s\0' "$label" "$assembly_sha"
+    for file in "$@"; do
+      printf '%s\0' "$file"
+      cat "$root/$file"
+      printf '\0'
+    done
+  } | hash_stdin
+}
+
 write_receipt() {
   local target="$1"
   local applicability="$2"
@@ -104,21 +117,38 @@ run_package_types() {
 run_browser() {
   (cd "$package_root" && npm run test:browser)
   local digest
-  digest="$(printf 'browser:%s' "$assembly_sha" | hash_stdin)"
+  digest="$(target_contract_digest browser \
+    docs/conformance/fixtures/did/v1/vectors.json \
+    docs/conformance/fixtures/did-document/v1/vectors.json \
+    packages/identus-sdk/tests/vector-assertions.mjs \
+    packages/identus-sdk/tests/document-vector-assertions.mjs \
+    packages/identus-sdk/tests/browser-runtime.mjs)"
   write_receipt browser selected success "$digest"
 }
 
 run_nodejs() {
   (cd "$package_root" && npm run test:node)
   local digest
-  digest="$(printf 'nodejs:%s' "$assembly_sha" | hash_stdin)"
+  digest="$(target_contract_digest nodejs \
+    docs/conformance/fixtures/did/v1/vectors.json \
+    docs/conformance/fixtures/did-document/v1/vectors.json \
+    packages/identus-sdk/tests/vector-assertions.mjs \
+    packages/identus-sdk/tests/document-vector-assertions.mjs \
+    packages/identus-sdk/tests/node-runtime.test.mjs)"
   write_receipt nodejs selected success "$digest"
 }
 
 run_react_web() {
   (cd "$package_root" && npm run test:react)
   local digest
-  digest="$(printf 'react-web:%s' "$assembly_sha" | hash_stdin)"
+  digest="$(target_contract_digest react-web \
+    docs/conformance/fixtures/did/v1/vectors.json \
+    docs/conformance/fixtures/did-document/v1/vectors.json \
+    packages/identus-sdk/tests/vector-assertions.mjs \
+    packages/identus-sdk/tests/document-vector-assertions.mjs \
+    packages/identus-sdk/tests/react-runtime.test.mjs \
+    packages/identus-sdk/tests/react-browser-fixture.tsx \
+    packages/identus-sdk/tests/react-browser-runtime.mjs)"
   write_receipt react-web selected success "$digest"
 }
 

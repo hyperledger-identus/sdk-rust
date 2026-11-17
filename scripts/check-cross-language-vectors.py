@@ -48,6 +48,7 @@ TARGETS = {"rust", "typescript", "swift", "kotlin"}
 OPERATIONS = {
     "did.parse",
     "did-url.parse",
+    "did-document.parse",
     "did-prism.envelope.parse",
     "did-prism-indexer.transition.digest",
     "did-prism.signed-create.verify",
@@ -238,6 +239,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
         else:
             if operation == "did.parse":
                 allowed_fields = {"serialized", "method", "methodSpecificId"}
+            elif operation == "did-document.parse":
+                allowed_fields = {"serialized", "did"}
             elif operation == "did-url.parse":
                 allowed_fields = {
                     "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment"
@@ -288,6 +291,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
             required_code: str | set[str] = {
                 "did.parse": "did.invalid_did",
                 "did-url.parse": "did.invalid_did_url",
+                "did-document.parse": "did.invalid_document",
                 "did-prism.envelope.parse": "did-prism.invalid_wire",
                 "did-prism-indexer.transition.digest": "did-prism-indexer.invalid_transition",
                 "did-prism.signed-create.verify": "did-prism.invalid_operation",

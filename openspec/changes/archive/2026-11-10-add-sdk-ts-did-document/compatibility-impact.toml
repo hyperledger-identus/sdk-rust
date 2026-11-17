@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 502
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The change adds a private additive DID Document TypeScript projection over the existing Rust model while preserving Rust APIs, external SDK-TS behavior, default routing, support state, and publication state."
+ledger_ids     = [ "did.document.typescript-migration.v1" ]

@@ -17,7 +17,7 @@ import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseJsonWithoutDuplicates } from "./factory-tools/strict-json.mjs";
 
-const bindingApiVersion = 1;
+const bindingApiVersion = 2;
 const artifactBase = "identus_wasm_did";
 const artifactFiles = Object.freeze([
   `${artifactBase}.d.ts`,
@@ -27,6 +27,16 @@ const artifactFiles = Object.freeze([
   "package.json",
 ]);
 const generatedFiles = Object.freeze([".gitignore", ...artifactFiles].sort());
+const requiredBindingSymbols = Object.freeze([
+  "DidDocumentView",
+  "DidParseError",
+  "DidUrlView",
+  "DidView",
+  "bindingApiVersion",
+  "parseDid",
+  "parseDidDocument",
+  "parseDidUrl",
+]);
 const legacyNames = /apollo|castor|mercury|pluto|pollux|edge[ _-]?agent/iu;
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -105,14 +115,7 @@ async function inspectTarget(source, target) {
   if (legacyNames.test(declaration) || legacyNames.test(javaScript)) {
     fail(`${target} artifact contains a forbidden legacy public name`);
   }
-  for (const symbol of [
-    "DidParseError",
-    "DidUrlView",
-    "DidView",
-    "bindingApiVersion",
-    "parseDid",
-    "parseDidUrl",
-  ]) {
+  for (const symbol of requiredBindingSymbols) {
     if (!declaration.includes(symbol)) fail(`${target} declaration is missing ${symbol}`);
   }
   if (!javaScript.includes(`${artifactBase}_bg.wasm`)) {
@@ -188,6 +191,15 @@ async function verifyRuntime(output) {
   } finally {
     webValue.free();
   }
+  const webDocument = webModule.parseDidDocument('{"id":"did:example:artifact-check"}');
+  try {
+    if (webDocument.id !== "did:example:artifact-check"
+      || webDocument.serialized !== '{"id":"did:example:artifact-check"}') {
+      fail("web document runtime projection mismatch");
+    }
+  } finally {
+    webDocument.free();
+  }
 
   const nodeDirectory = path.join(output, "nodejs");
   const require = createRequire(import.meta.url);
@@ -198,6 +210,15 @@ async function verifyRuntime(output) {
     if (nodeValue.value !== "did:example:artifact-check") fail("nodejs runtime projection mismatch");
   } finally {
     nodeValue.free();
+  }
+  const nodeDocument = nodeModule.parseDidDocument('{"id":"did:example:artifact-check"}');
+  try {
+    if (nodeDocument.id !== "did:example:artifact-check"
+      || nodeDocument.serialized !== '{"id":"did:example:artifact-check"}') {
+      fail("nodejs document runtime projection mismatch");
+    }
+  } finally {
+    nodeDocument.free();
   }
 }
 
@@ -259,7 +280,7 @@ async function verifyAssembly(output) {
       maximumNodes: 128,
     });
     if (legacyNames.test(declaration) || legacyNames.test(javaScript)) fail(`${target} artifact contains a forbidden legacy public name`);
-    for (const symbol of ["DidParseError", "DidUrlView", "DidView", "bindingApiVersion", "parseDid", "parseDidUrl"]) {
+    for (const symbol of requiredBindingSymbols) {
       if (!declaration.includes(symbol)) fail(`${target} assembled declaration is missing ${symbol}`);
     }
     if (packageDocument.name !== "identus-wasm-did" || packageDocument.types !== `${artifactBase}.d.ts`) {

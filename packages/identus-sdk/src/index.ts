@@ -1,5 +1,11 @@
 export {
   DidError,
+  type DidDocumentContextEntryValue,
+  type DidDocumentContextValue,
+  type DidDocumentControllerValue,
+  type DidDocumentExtensionMapValue,
+  type DidDocumentExtensionValue,
+  type DidDocumentValue,
   type DidErrorCode,
   type DidMappingId,
   type DidObservation,
@@ -9,6 +15,11 @@ export {
   type DidProviderFactory,
   type DidProviderOptions,
   type DidProviderRoute,
+  type DidServiceEndpointEntryValue,
+  type DidServiceEndpointValue,
+  type DidServiceValue,
   type DidUrlValue,
   type DidValue,
+  type DidVerificationMethodValue,
+  type DidVerificationRelationshipValue,
 } from "./public.js";

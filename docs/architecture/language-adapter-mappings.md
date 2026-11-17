@@ -13,6 +13,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | Source | State | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |
 | --- | --- | --- | --- | --- | ---: | --- | --- |
 | `did.source.identus-did.v1` | `active` | `identus-did` | `4612053cef68dd68a26a6940aa10fd41f3fb14e0` | `crates/did/src/did.rs` | 13161 | `89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753` | `sha1:18132b1f388abd1cac9a0bf6fb14935604e089f6` |
+| `did-document.source.identus-did.v1` | `active` | `identus-did` | `f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8` | `crates/did/src/document.rs` | 3202 | `9dc6010e8b9ede3e5da14b78444c20f7ceaafb30ca7c1d9dadfb47adc09ed293` | `sha1:9deb6e0d769c188f87e6a1aa23a924babfd98bb2` |
 
 ## Mappings
 
@@ -22,6 +23,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `did-url.value.typescript.legacy-v1` | value | `@hyperledger/identus-sdk` `DIDUrl` | rust-to-language | lossy | transitional |
 | `did.error.invalid-did.typescript.legacy-v1` | error | `@hyperledger/identus-sdk` `CastorError.InvalidDIDString` | rust-to-language | lossy | transitional |
 | `did.error.invalid-did-url.typescript.legacy-v1` | error | `@hyperledger/identus-sdk` `CastorError.InvalidDIDString` | rust-to-language | lossy | transitional |
+| `did.document.typescript.legacy-v1` | value | `@hyperledger/identus-sdk` `DIDDocument` | rust-to-language | lossy | none |
 
 ## `did.value.typescript.legacy-v1`
 
@@ -176,3 +178,48 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | ID | Lost distinction | Consequence | Mitigation |
 | --- | --- | --- | --- |
 | `did-url.error.legacy-class-coalescing` | Canonical DID and DID URL failures share the legacy InvalidDIDString class. | Legacy class matching cannot distinguish did.invalid_did_url from did.invalid_did. | Preserve the stable Rust error code beside the redacted legacy class. |
+
+## `did.document.typescript.legacy-v1`
+
+- Record: capability `did.document`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
+- Cargo package: `identus-did`.
+- Rust API: `identus_did::DidDocument` from source `did-document.source.identus-did.v1` at `f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8` (unreleased-workspace-0.0.0).
+- Canonical semantics: Validated immutable W3C DID Document preserving cardinality, relationship, service endpoint, public verification material, and bounded extension distinctions.
+- Canonical bound: `MAX_DID_DOCUMENT_BYTES` in `crates/did/src/document.rs`.
+- Language source: `typescript` package `@hyperledger/identus-sdk`, target `node-and-browser`, symbol `DIDDocument`, version `8.1.4` at `4bf86ebf69d5e96616a148e4c973f831f95fa38e`, path `packages/shared/domain/src/models/DIDDocument.ts`.
+- Language evidence: license `Apache-2.0`; shape state `legacy`.
+- Compatibility: additive, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `none`.
+- Version negotiation: npm-package-version
+- Consumers: `sdk-ts`.
+- Resource policy: at most 262144 bytes; redaction `caller-input`; sensitive fields: `document-json`, `verification-material`.
+- Ownership: async `not-applicable`; cancellation `not-applicable`.
+- Migration: Parse with canonical Rust first, project a frozen capability-named DTO, and preserve normalized JSON when the legacy object shape loses distinctions.
+- Replacement: Private additive TypeScript DID Document value backed by identus-did validation and normalized serialization.
+- Observability: Record only mapping ID, target, result class, stable error code, duration, and bounded sizes; never record document JSON or verification material.
+- Fallback: No alternate parser runs after canonical Rust rejection or unsupported safe-integer projection.
+- Rollback: Remove the unreleased document provider and retain the existing syntax-only canary and legacy SDK-TS provider selection.
+- Removal gate: Every supported SDK-TS consumer uses a separately accepted Rust-backed document facade and the declared migration window has elapsed.
+- Vectors: `did.document.minimal`, `did.document.representative`, `did.document.controller.scalar`, `did.document.service.object-endpoint`.
+- Rust selectors: `identus_did::DidDocument`, `portable_did_document_packet_matches_identus_did`.
+- Language selectors: `packages/identus-sdk/src/internal/document-projection.ts`, `packages/identus-sdk/tests/document-vector-assertions.mjs`.
+
+### Fields
+
+| Rust | Language | Transform | Direction | Required |
+| --- | --- | --- | --- | --- |
+| `serialized` | `serialized` | validated-normalized-json | rust-to-language | true |
+| `id` | `id` | immutable-did-value | rust-to-language | true |
+| `document-fields` | `typed-fields` | iterative-frozen-projection | rust-to-language | true |
+
+### Losses
+
+| ID | Lost distinction | Consequence | Mitigation |
+| --- | --- | --- | --- |
+| `did.document.legacy-shape-loss` | The legacy TypeScript model drops controllers, aliases, unresolved relationship references, wire cardinality, and bounded open extensions retained by Rust. | The donor object cannot be used as a lossless reverse representation of the canonical Rust document. | Expose normalized JSON and the new strict frozen projection; do not implement reverse conversion through the donor shape. |
+| `did.document.unsafe-number-projection` | Canonical JSON can retain integers outside JavaScript's safe integer range while a TypeScript number cannot represent them exactly. | Projecting such an extension through number would silently corrupt the accepted document. | Reject typed projection with a stable unsupported-lossy-mapping error while retaining no caller data in diagnostics. |
+
+### Unsupported legacy round trips
+
+| Case | Reason | Required behavior | Stable adapter error |
+| --- | --- | --- | --- |
+| `did.document.unsafe-number-projection` | JavaScript number cannot exactly represent every integer accepted by bounded JSON. | Reject typed projection without fallback or rounded output. | `adapter.unsupported_lossy_mapping` |

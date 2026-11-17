@@ -159,7 +159,7 @@ jobs:
           runnable="$(jq -c '[.targets | to_entries[] | select(.value.expectation == "success") | .key]' "$RUNNER_TEMP/binding-plan/plan.json")"
           echo "runnable-targets=$runnable" >> "$GITHUB_OUTPUT"
           {
-            printf '### Binding target plan\n\n```json\n'
+            printf '### DID syntax and document binding target plan\n\n```json\n'
             jq '{baseSha, headSha, signals, unknownImpact, targets}' "$RUNNER_TEMP/binding-plan/plan.json"
             printf '```\n'
           } >> "$GITHUB_STEP_SUMMARY"
@@ -214,7 +214,7 @@ jobs:
         if: ${{ contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
 
-      - name: Run selected target in isolation
+      - name: Run selected DID facade target in isolation
         if: ${{ contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
         env:
           SDK_TS_DID_HEAD_SHA: ${{ github.sha }}

@@ -7,9 +7,9 @@
       ...
     }:
     let
-      # Primary development and validation compiler. Pin the corrected point
-      # release rather than the affected Rust 1.98.0 compiler.
-      toolchain = stablePkgs.rust-bin.stable."1.98.1".default.override {
+      # Primary development, compatibility, and declared-floor compiler.
+      # Rust 1.99.1 is the corrected point release selected by ADR 0200.
+      toolchain = stablePkgs.rust-bin.stable."1.99.1".default.override {
         extensions = [
           "llvm-tools-preview"
           "rust-src"
@@ -21,10 +21,11 @@
           "wasm32-unknown-unknown"
         ];
       };
-      # Primary and etalon intentionally share one stable compiler. The
-      # release MSRV is independent, but runs only in slow/release evidence.
+      # Primary, etalon, and MSRV intentionally share one exact stable
+      # compiler for the 0.2 source line. Keep separately named providers so
+      # policy drift remains observable.
       etalonToolchain = toolchain;
-      msrvToolchain = stablePkgs.rust-bin.stable."1.89.0".minimal.override {
+      msrvToolchain = stablePkgs.rust-bin.stable."1.99.1".minimal.override {
         targets = [
           "aarch64-apple-ios"
           "aarch64-linux-android"

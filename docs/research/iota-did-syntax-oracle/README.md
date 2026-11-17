@@ -4,7 +4,7 @@ This isolated unpublished Cargo workspace compares the SDK's bounded DID and
 DID URL parser with exact `identity_did 1.5.1`. It is oracle evidence only and
 is not part of the SDK workspace, dependency graph or public model.
 
-Run from the repository root with Rust 1.98.1:
+Run from the repository root with Rust 1.99.1:
 
 ```sh
 ./scripts/check-iota-did-syntax-oracle.sh

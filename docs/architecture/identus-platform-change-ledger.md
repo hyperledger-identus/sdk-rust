@@ -57,6 +57,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. A private ad
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-web crate parses a strict bounded profile, derives exact HTTPS requests, retrieves through a caller-injected port, and binds bounded DID documents to the exact requested identifier.
 
+### `factory.operations.rust-1-99-compiler-floor.v1`
+
+State: `active`. Class: `breaking` / `changed`. Target: `0.2.0-rc.1`. The unpublished 0.2.0-rc.1 source line requires exact Rust 1.99.1 for package MSRV, primary, candidate-preparation, and etalon evidence.
+
 ### `oid4vp.direct-post-response.encrypted.v1`
 
 State: `active`. Class: `breaking` / `changed`. Target: `unreleased`. The pre-release SDK adds a non-exhaustive DirectPostJwt mode, validates one bounded P-256 ECDH-ES verifier recipient and A128GCM policy, returns metadata-specific validation categories, makes the plain constructor reject protected mode, invokes an SDK-owned JWE port once, validates opaque compact output and emits a response-only form.
@@ -142,6 +146,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `did.web.profile.v1`
 
 `unreleased` → `unreleased` for sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
+
+### `factory.operations.rust-1-99-compiler-floor.v1`
+
+`0.1.0-rc.1` → `0.2.0-rc.1` for neoprism, sdk-rust-adopters. Install exact Rust 1.99.1 before adopting the 0.2.x source line and update all three release packages together; otherwise remain on the published 0.1.0-rc.1 artifacts.
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 
@@ -229,6 +237,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
+### `factory.operations.rust-1-99-compiler-floor.v1`
+
+Compatibility: `runtime-requirement-break`. First compatible: `0.2.0-rc.1`. Last compatible: `0.1.0-rc.1`. Published 0.1.0-rc.1 artifacts retain their Rust 1.89.0 contract indefinitely; the unpublished 0.2.x line requires migration before source adoption.
+
 ### `oid4vp.direct-post-response.encrypted.v1`
 
 Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `unreleased`. The source break is declared before the first published identus-oid4vp release; no stable consumer compatibility window has started.
@@ -315,6 +327,10 @@ Fallback: No automatic parser fallback; rollback selects the legacy provider bef
 
 Fallback: Consumers retain their existing did:web implementation until they explicitly adopt the crate and provide an approved fetch adapter. Rollback: Before publication remove the additive crate and evidence; generic SDK-Rust DID behavior remains unchanged. Removal gate: Not applicable.
 
+### `factory.operations.rust-1-99-compiler-floor.v1`
+
+Fallback: Consumers unable to install Rust 1.99.1 remain on the published 0.1.0-rc.1 artifacts or their existing exact SDK revision. Rollback: Before any 0.2 publication, revert the source policy, candidate identity, overlay and lock changes together; published 0.1 evidence remains untouched. Removal gate: Not applicable.
+
 ### `oid4vp.direct-post-response.encrypted.v1`
 
 Fallback: Consumers retain plain direct_post or their existing protected-response implementation until a separately qualified JWE engine adapter is available. Rollback: Remove the additive mode, metadata types, port transition and evidence before publication; existing plain direct_post behavior and storage remain unchanged. Removal gate: Not applicable.
@@ -400,6 +416,10 @@ Visibility: behavior, error, public-api, runtime-requirement, target-support. Pr
 ### `did.web.profile.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. No concrete HTTP, DNS, TLS, redirect, proxy, cache, retry, executor, timer, SSRF policy, IP/IDNA profile, registration, persistence, bindings, consumer mutation, publication, or trust claim is included.
+
+### `factory.operations.rust-1-99-compiler-floor.v1`
+
+Visibility: runtime-requirement, target-support. No crate publication, release, tag, stable API, runtime certification, Windows/WASI support, downstream source mutation, or historical 0.1 evidence relabeling is included.
 
 ### `oid4vp.direct-post-response.encrypted.v1`
 

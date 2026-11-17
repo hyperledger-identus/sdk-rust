@@ -1,15 +1,20 @@
 # Source and prerelease distribution
 
 Rust consumers may evaluate all implemented packages from the public source
-repository. The protected `0.1.0-rc.1` train additionally activates
-`identus-derive`, `identus-core`, and `identus-crypto` for crates.io; an
-immutable registry receipt proves whether that external publication completed.
+repository. The published `0.1.0-rc.1` train activated `identus-derive`,
+`identus-core`, and `identus-crypto` for crates.io; the current tree advances
+those sources to unpublished `0.2.0-rc.1` without authorizing another release.
+The immutable registry receipt remains the truth for the completed external
+publication.
+
+The version boundary is explicit: published `0.1.0-rc.1` and unpublished `0.2.0-rc.1`
+are distinct source and release identities.
 
 | Cargo package | Path | Default features | Current status |
 | --- | --- | --- | --- |
-| `identus-core` | `crates/core` | none | experimental `0.1.0-rc.1` train |
-| `identus-derive` | `crates/derive` | none | experimental `0.1.0-rc.1` train |
-| `identus-crypto` | `crates/crypto` | crypto suite | experimental `0.1.0-rc.1` train |
+| `identus-core` | `crates/core` | none | unpublished experimental `0.2.0-rc.1` source after published `0.1.0-rc.1` |
+| `identus-derive` | `crates/derive` | none | unpublished experimental `0.2.0-rc.1` source after published `0.1.0-rc.1` |
+| `identus-crypto` | `crates/crypto` | crypto suite | unpublished experimental `0.2.0-rc.1` source after published `0.1.0-rc.1` |
 | `identus-did` | `crates/did` | none | experimental `0.1.0-rc.1` candidate; source-only |
 | `identus-did-resolver-http` | `crates/did-resolver-http` | none | experimental `0.1.0-rc.1` candidate; source-only |
 
@@ -79,7 +84,8 @@ support-lifetime, binary, Nix package, FFI package,
 certification, or production-release promise. Candidate-only and other
 workspace packages retain version `0.0.0` and `publish = false`. An exact Git
 commit is still the only supported evaluation identity for those source-only
-packages. The current consumer compiler floor is Rust 1.89.0.
+packages. The current `0.2.x` source consumer compiler floor is Rust 1.99.1;
+the published `0.1.0-rc.1` artifacts retain their original Rust 1.89.0 floor.
 
 NeoPRISM's `identus-apollo` is a downstream compatibility facade over
 `identus-crypto`; it is not another name for an SDK package. Registry release

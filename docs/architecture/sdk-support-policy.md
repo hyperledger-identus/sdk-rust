@@ -30,24 +30,28 @@ promise.
 
 ## Rust versions
 
-Rust `1.89.0` is the minimum supported Rust version (MSRV) for the `0.1.x`
-release line. Rust `1.98.1` is the reproducible primary development compiler
-and compatibility etalon. The Nix MSRV provider is independent; primary and
-etalon intentionally share the exact corrected stable toolchain.
+Rust `1.99.1` is the minimum supported Rust version (MSRV), reproducible
+primary development compiler, and compatibility etalon for the unpublished
+`0.2.x` source line. Nix retains separately named MSRV, primary, and etalon
+providers even though all three resolve to the same exact corrected toolchain.
+The published `0.1.0-rc.1` artifacts retain their historical Rust 1.89.0 floor.
 
 Nightly `2026-03-18` is retained only as the explicitly named sanitizer fuzz
 toolchain. It is not a supported SDK compiler or compatibility etalon.
 
-[ADR 0133](../adr/0133-select-rc1-compiler-support-matrix.md) selects the
-release compiler matrix and supersedes ADR 0081's temporary release
-prohibition. The decision is reviewed no later than 2027-03-17. Rust 1.89.0
-stays fixed for `0.1.x`; raising it requires a new ADR and pre-1.0 minor line.
+[ADR 0200](../adr/0200-raise-sdk-msrv-to-rust-199.md) selects the current
+compiler matrix and prospectively supersedes ADR 0133 for the `0.2.x` source
+line. The decision is reviewed no later than 2027-03-17. Historical `0.1.x`
+receipts remain immutable and no publication is authorized by this migration.
+Consumer actions and rollback are documented in the
+[Rust 1.99 source migration](../release/rust-1.99-migration.md).
 
 ## Feature surfaces
 
 Workspace defaults, crypto without default features, KMP compatibility and the
 entropy adapter empty/deterministic/system-random combinations are isolated
-build or test surfaces on primary Rust 1.98.1 and MSRV Rust 1.89.0. Minimal
+build or test surfaces on exact Rust 1.99.1 through separately named primary
+and MSRV providers. Minimal
 crypto and hash-only crypto have independent Clippy, test and MSRV build
 evidence, so optional integration
 targets cannot rely on unrelated workspace feature unification. The structural
@@ -74,7 +78,7 @@ the browser/mobile target gates without activating crypto algorithms itself.
 The staged DID `0.1.0-rc.1` candidate adds a narrower release receipt on top of
 that repository-wide policy. Its descriptor runs every declared profile for
 `identus-did` and `identus-did-resolver-http` on Linux and macOS, using tests on
-primary Rust 1.98.1 and compile checks on MSRV 1.89.0. Only `identus-did` is
+its historical primary Rust 1.98.1 and MSRV 1.89.0 receipt. Only `identus-did` is
 compile-checked for browser WASM, Android ARM64, and iOS ARM64 in that receipt.
 The Axum-based `identus-did-resolver-http` adapter is explicitly host-only; an
 incidental cross-target build is not a support claim. See [ADR

@@ -1,0 +1,35 @@
+[[modified_requirement]]
+capability       = "sdk-support-policy"
+requirement      = "Release-candidate compiler and CI lanes"
+canonical_sha256 = "7d082647c11174c368daf0a86a9575eefeb5b72c28fe0138d7fb539866b432fb"
+reason           = "Replace the 0.1/Rust 1.89/1.98.1 contract with the sponsor-directed 0.2/Rust 1.99.1 contract while preserving the current target/profile/CI boundaries and immutable historical evidence."
+
+[[modified_requirement]]
+capability       = "dependency-research-readiness"
+requirement      = "Compiler-floor selection is phase-appropriate and measurable"
+canonical_sha256 = "8ce2abab713296585c753b3a07b477ee93e2292876ce6a0690c1682d8543c8dd"
+reason           = "Replace the published 0.1 compiler decision with the explicit historical 0.1 and active unpublished 0.2/Rust 1.99.1 research contract."
+
+[[modified_requirement]]
+capability       = "nix-tooling"
+requirement      = "Checks use the pinned NeoPRISM-aligned toolchain"
+canonical_sha256 = "9faa4ec98827681e035f90e2826ec559a09aa5ebe48a46ed5ff215334e04660c"
+reason           = "Replace the obsolete ordinary nightly pin with the exact stable Rust 1.99.1 provider while retaining sanitizer-only nightly evidence."
+
+[[modified_requirement]]
+capability       = "nix-tooling"
+requirement      = "Complete Clippy surface is slow evidence"
+canonical_sha256 = "6aa898d57f5e94034fae4792ba832f98efb2675a2c59ba9cfe71138f5e468e4e"
+reason           = "Move complete Clippy evidence from the retired Rust 1.98.1 primary compiler to exact Rust 1.99.1 without changing its slow-lane placement."
+
+[[modified_requirement]]
+capability       = "sd-jwt-engine-selection"
+requirement      = "Dependency adoption is private and all-gates"
+canonical_sha256 = "1a2d549a283f58dedb8b75b1ddffcd4c032d0f57ce8e85cbe85c44a0a69d80a0"
+reason           = "Evaluate future SD-JWT engine candidates against the active Rust 1.99.1 source floor instead of the retired 0.1 compiler pair."
+
+[[modified_requirement]]
+capability       = "sdk-support-policy"
+requirement      = "Supported feature surfaces are isolated"
+canonical_sha256 = "f38768f674abac559d2da9a1fc422030d1e95d2a35ee979e7ab72f50af536f59"
+reason           = "Move exhaustive feature evidence to exact Rust 1.99.1 while retaining isolated profiles and the native slow-lane boundary."

@@ -50,8 +50,8 @@ Feature branches and pull requests target `develop`.
 ### Prerequisite
 
 - [Nix](https://nixos.org/) with flakes enabled for the reproducible toolchain;
-  the flake pins primary stable Rust 1.98.1 and the independent Rust 1.89.0
-  release MSRV while retaining the established Nix baseline. The pinned
+  the flake pins exact stable Rust 1.99.1 for primary, etalon, and separately
+  named MSRV evidence while retaining the established Nix baseline. The pinned
   nightly is available only in the explicit sanitizer-fuzz shell.
 
 ```bash

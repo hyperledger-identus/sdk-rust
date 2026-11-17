@@ -5,7 +5,7 @@ resolver = "3"
 name         = "identus-oauth2-oid4vci-spike"
 version      = "0.0.0"
 edition      = "2024"
-rust-version = "1.98.1"
+rust-version = "1.99.1"
 license      = "Apache-2.0"
 publish      = false
 

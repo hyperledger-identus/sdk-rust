@@ -11,7 +11,7 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
     # Current stable validation is independent from NeoPRISM's historical
     # nightly overlay pin. Keep both inputs explicit and lock-reviewed.
-    stable-rust-overlay.url = "github:oxalica/rust-overlay/ca7f624be3935a5bc46d2c240515491ab8675503";
+    stable-rust-overlay.url = "github:oxalica/rust-overlay/ec07af44be2e0ce4e1a17e00a97d44232607c1ec";
     crane.url = "github:ipetkov/crane";
     advisory-db = {
       url = "github:rustsec/advisory-db";

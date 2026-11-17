@@ -13,7 +13,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 TOOL_VERSION = "cargo-llvm-cov 0.9.0"
-RUST_VERSION_PREFIX = "rustc 1.98.1 "
+RUST_VERSION_PREFIX = "rustc 1.99.1 "
 THRESHOLD_BASIS_POINTS = 7482
 PROFILES = [
     {"id": "default", "cargo_arguments": ["--package", "identus-crypto"]},
@@ -148,7 +148,7 @@ def normalize(
     if not SHA.fullmatch(revision):
         raise CoverageError("revision must be a full lowercase Git SHA")
     if not rust_version.startswith(RUST_VERSION_PREFIX):
-        raise CoverageError("rust version must be the pinned Rust 1.98.1 compiler")
+        raise CoverageError("rust version must be the pinned Rust 1.99.1 compiler")
     if tool_version != TOOL_VERSION:
         raise CoverageError(f"coverage tool must be exactly {TOOL_VERSION}")
     files = load_files(raw_path, repository_root)

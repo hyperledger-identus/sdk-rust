@@ -426,8 +426,10 @@ def validate(root: Path, data: dict[str, Any]) -> list[str]:
     if set(policy_targets) != PORTABLE_TARGET_IDS:
         check.fail("target_evidence: support policy lacks the exact portable targets")
     toolchains = policy.get("toolchains", {})
-    if not isinstance(toolchains, dict) or target_evidence.get("toolchain") != toolchains.get("primary"):
-        check.fail("target_evidence: toolchain differs from support-policy primary")
+    if not isinstance(toolchains, dict):
+        check.fail("target_evidence: support policy toolchains must be a table")
+    if target_evidence.get("toolchain") != "1.98.1":
+        check.fail("target_evidence: historical receipt toolchain must remain Rust 1.98.1")
     portable_shapes = {
         (
             tuple(row.get("packages", [])),

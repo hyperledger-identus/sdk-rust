@@ -34,6 +34,9 @@ SD_JWT_VC_PACKET = ROOT / "docs/conformance/fixtures/sd-jwt-vc-draft22/v1/vector
 SD_JWT_VC_LEGACY_PACKET = (
     ROOT / "docs/conformance/fixtures/sd-jwt-vc-draft03-adapter/v1/vectors.json"
 )
+COMPILER_FLOOR_PACKET = (
+    ROOT / "docs/conformance/fixtures/sdk-rust-compiler-floor/v1/vectors.json"
+)
 
 
 def replace_once(text: str, before: str, after: str) -> str:
@@ -109,6 +112,11 @@ def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | No
         )
         sd_jwt_vc_legacy_target.parent.mkdir(parents=True)
         shutil.copy2(SD_JWT_VC_LEGACY_PACKET, sd_jwt_vc_legacy_target)
+        compiler_floor_target = (
+            root / "docs/conformance/fixtures/sdk-rust-compiler-floor/v1/vectors.json"
+        )
+        compiler_floor_target.parent.mkdir(parents=True)
+        shutil.copy2(COMPILER_FLOOR_PACKET, compiler_floor_target)
         result = subprocess.run([str(CHECKER), str(root)], capture_output=True, text=True, check=False)
         if (result.returncode == 0) != should_pass:
             raise AssertionError(

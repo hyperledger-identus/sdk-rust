@@ -61,7 +61,7 @@ class CryptoCoverageContract(unittest.TestCase):
             "--revision",
             overrides.get("revision", "a" * 40),
             "--rust-version",
-            overrides.get("rust_version", "rustc 1.98.1 (fixture)"),
+            overrides.get("rust_version", "rustc 1.99.1 (fixture)"),
             "--tool-version",
             overrides.get("tool_version", "cargo-llvm-cov 0.9.0"),
         ]
@@ -92,7 +92,7 @@ class CryptoCoverageContract(unittest.TestCase):
         self.assertIn("full lowercase Git SHA", self.run_checker(self.raw(), revision="develop").stderr)
 
     def test_wrong_rust_version_fails(self) -> None:
-        self.assertIn("pinned Rust 1.98.1", self.run_checker(self.raw(), rust_version="rustc 1.99.0").stderr)
+        self.assertIn("pinned Rust 1.99.1", self.run_checker(self.raw(), rust_version="rustc 1.99.0").stderr)
 
     def test_wrong_tool_version_fails(self) -> None:
         self.assertIn("exactly cargo-llvm-cov 0.9.0", self.run_checker(self.raw(), tool_version="cargo-llvm-cov 0.9.1").stderr)

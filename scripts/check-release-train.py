@@ -11,6 +11,7 @@ from typing import Any
 
 
 VERSION = "0.1.0-rc.1"
+SOURCE_VERSION = "0.2.0-rc.1"
 PACKAGE_ORDER = ("identus-derive", "identus-core", "identus-crypto")
 PACKAGE_PATHS = {
     "identus-derive": Path("crates/derive"),
@@ -55,8 +56,8 @@ def validate(root: Path) -> list[str]:
     dependencies = workspace.get("workspace", {}).get("dependencies", {})
     for name in PACKAGE_ORDER:
         dependency = dependencies.get(name)
-        if not isinstance(dependency, dict) or dependency.get("version") != f"={VERSION}":
-            errors.append(f"workspace dependency must use exact release version: {name}")
+        if not isinstance(dependency, dict) or dependency.get("version") != f"={SOURCE_VERSION}":
+            errors.append(f"workspace dependency must use exact next source version: {name}")
         expected_path = PACKAGE_PATHS[name].as_posix()
         if not isinstance(dependency, dict) or dependency.get("path") != expected_path:
             errors.append(f"workspace dependency path differs: {name}")
@@ -71,8 +72,8 @@ def validate(root: Path) -> list[str]:
             if name not in PACKAGE_ORDER:
                 errors.append(f"selected package identity differs: {path}")
                 continue
-            if package.get("version") != VERSION:
-                errors.append(f"selected package version differs: {name}")
+            if package.get("version") != SOURCE_VERSION:
+                errors.append(f"selected package next source version differs: {name}")
             if package.get("publish") != ["crates-io"]:
                 errors.append(f"selected package registry permission differs: {name}")
             for field in (

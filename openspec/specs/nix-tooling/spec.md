@@ -378,27 +378,28 @@ The repository SHALL include a root `.editorconfig-checker.json` that excludes `
 
 ### Requirement: Checks use the pinned NeoPRISM-aligned toolchain
 
-All crane-based Rust checks SHALL use Rust nightly `2026-03-18` from the locked
-rust-overlay revision. This includes `rust-fmt`, `rust-clippy`, `rust-test`,
-`rust-deny`, `rust-audit`, and `rust-doc`. The pin SHALL NOT authorize
-nightly-only Rust features or change the workspace's declared MSRV.
+All ordinary crane-based Rust checks SHALL use exact stable Rust 1.99.1 from
+the locked rust-overlay revision. This includes `rust-fmt`, `rust-clippy`,
+`rust-test`, `rust-deny`, `rust-audit`, and `rust-doc`. The separately pinned
+nightly SHALL remain limited to sanitizer tooling and SHALL NOT authorize
+nightly-only SDK features or become compatibility evidence.
 
 #### Scenario: Checks build with the immutable Rust pin
 
 - **WHEN** `nix flake check` is run
-- **THEN** every crane-based Rust check SHALL compile with Rust nightly
-  `2026-03-18`
+- **THEN** every ordinary crane-based Rust check compiles with exact stable
+  Rust 1.99.1 and sanitizer-only derivations retain their separate nightly
 
 #### Scenario: Toolchain updates are explicit
 
-- **WHEN** NeoPRISM advances its Rust or Nix baseline
+- **WHEN** the SDK or NeoPRISM advances its Rust or Nix baseline
 - **THEN** the SDK SHALL retain its recorded pins until a reviewed dependency
-  update records both the old and new immutable NeoPRISM revisions
+  update records the old and new immutable revisions and consumer impact
 
 ### Requirement: Complete Clippy surface is slow evidence
 
 The checks module SHALL provide a generated
-`rust-clippy-all-targets-all-features` check on primary Rust 1.98.1 which runs
+`rust-clippy-all-targets-all-features` check on primary Rust 1.99.1 which runs
 Clippy with workspace, all-target, all-feature, and warnings-denied selection.
 Both host-tested systems SHALL execute that named check through the active
 native weekly/manual slow workflow or its exact local reproduction. The

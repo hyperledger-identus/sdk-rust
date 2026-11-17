@@ -79,7 +79,7 @@ Implementation issues must state:
 
 ## Development rules
 
-- Use the repository's Nix-pinned Rust 1.98.1 toolchain for ordinary work and
+- Use the repository's Nix-pinned Rust 1.99.1 toolchain for ordinary work and
   do not introduce nightly-only features. The separate fuzz shell is a
   sanitizer-tooling exception, not a supported compiler.
 - Do not make a target MSRV, platform, feature, public contract, certification

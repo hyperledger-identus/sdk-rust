@@ -203,6 +203,16 @@ authorship     = "OpenID Foundation AB/Connect Working Group"
 license        = "OpenID-Document-License"
 redistribution = "derived-cases-allowed"
 
+[[sources]]
+id             = "sdk-rust.support-policy"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-rust"
+revision       = "8cb46391c01840ec4092dae0a62b0e4d0367fb12"
+path           = "docs/architecture/sdk-support-policy.toml"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
 [[packets]]
 id             = "did.peer.profiles.v1"
 capability     = "did.peer.profiles"
@@ -322,6 +332,18 @@ license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 public_data    = true
 targets        = [ "rust", "typescript", "swift", "kotlin" ]
+
+[[packets]]
+id             = "factory.operations.rust-1-99-compiler-floor.v1"
+capability     = "factory.operations"
+schema_version = 1
+path           = "docs/conformance/fixtures/sdk-rust-compiler-floor/v1/vectors.json"
+sha256         = "66677cf7716fa0862b612b6ba096e9be687ad6668777fe7ab3d75d32811d1fac"
+authorship     = "SDK-Rust clean-room curation from the sponsor-directed Rust 1.99.1 support policy"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust" ]
 
 [[vectors]]
 id                 = "did.peer.numalgo4.reference-minimal"
@@ -1717,3 +1739,49 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "The adapter does not validate or translate draft-22 Type Metadata or integrity semantics."
+
+[[vectors]]
+id                 = "factory.operations.rust-1-99-compiler-floor.accepted"
+packet             = "factory.operations.rust-1-99-compiler-floor.v1"
+case               = "factory.operations.rust-1-99-compiler-floor.accepted"
+capability         = "factory.operations"
+authority          = "identus-contract"
+source_ids         = [ "sdk-rust.support-policy" ]
+source_locator     = "sdk-support-policy.toml rust.msrv, rust.primary and rust.etalon"
+operation          = "sdk.compiler-floor.evaluate"
+expected           = "success"
+profile_scope      = "Unpublished 0.2.x Rust source and candidate line"
+boundary           = "positive"
+resource_class     = "exact-compiler-version"
+targets            = [ "rust" ]
+rust_selector      = "scripts/tests/support-policy.py:main"
+language_selectors = [  ]
+owner_issue        = 596
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "The vector proves the exact Rust compiler floor only; it does not publish crates or claim runtime, target, API, wire, or certification support."
+
+[[vectors]]
+id                 = "factory.operations.rust-1-98-compiler-floor.rejected"
+packet             = "factory.operations.rust-1-99-compiler-floor.v1"
+case               = "factory.operations.rust-1-98-compiler-floor.rejected"
+capability         = "factory.operations"
+authority          = "identus-contract"
+source_ids         = [ "sdk-rust.support-policy" ]
+source_locator     = "sdk-support-policy.toml rust.msrv, rust.primary and rust.etalon"
+operation          = "sdk.compiler-floor.evaluate"
+expected           = "sdk.unsupported_rust_version"
+profile_scope      = "Unpublished 0.2.x Rust source and candidate line"
+boundary           = "negative"
+resource_class     = "first-retired-compiler-line"
+targets            = [ "rust" ]
+rust_selector      = "scripts/tests/support-policy.py:main"
+language_selectors = [  ]
+owner_issue        = 596
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [  ]
+limitations        = "Published 0.1.0-rc.1 artifacts retain their historical Rust 1.89 floor; this rejection applies only to adopting the unpublished 0.2.x source line."

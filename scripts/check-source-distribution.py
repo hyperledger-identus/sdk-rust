@@ -50,8 +50,8 @@ def validate(root: Path) -> list[str]:
         errors.append("workspace version must remain 0.0.0 for source-only alpha")
     if package_policy.get("publish") is not False:
         errors.append("workspace publish must remain false")
-    if package_policy.get("rust-version") != "1.89.0":
-        errors.append("consumer compiler floor must remain Rust 1.89.0")
+    if package_policy.get("rust-version") != "1.99.1":
+        errors.append("consumer compiler floor must be Rust 1.99.1")
 
     for expected_name, relative in PACKAGES.items():
         manifest = load_toml(root / relative, errors)
@@ -62,8 +62,8 @@ def validate(root: Path) -> list[str]:
         version = package.get("version")
         publish = package.get("publish")
         if expected_name in RELEASE_PACKAGES:
-            if version != "0.1.0-rc.1":
-                errors.append(f"{expected_name}: release version must be 0.1.0-rc.1")
+            if version != "0.2.0-rc.1":
+                errors.append(f"{expected_name}: next source version must be 0.2.0-rc.1")
             if publish != ["crates-io"]:
                 errors.append(f"{expected_name}: release registry must be crates-io")
         else:
@@ -83,9 +83,9 @@ def validate(root: Path) -> list[str]:
         "Cargo.lock",
         "flake.lock",
         "publish = false",
-        "Rust 1.89.0",
+        "Rust 1.99.1",
         "no stable SemVer compatibility",
-        "protected `0.1.0-rc.1`",
+        "published `0.1.0-rc.1` and unpublished `0.2.0-rc.1`",
         "identus-apollo",
     )
     for phrase in required_phrases:

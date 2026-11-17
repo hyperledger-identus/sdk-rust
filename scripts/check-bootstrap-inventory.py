@@ -234,8 +234,8 @@ def workspace_packages(root: Path, failures: list[str]) -> dict[str, Path]:
         packages[name] = member_dir.relative_to(root.resolve())
 
         if name in RELEASE_PACKAGES:
-            if package.get("version") != "0.1.0-rc.1":
-                failures.append(f"{name}: activated release version must be 0.1.0-rc.1")
+            if package.get("version") != "0.2.0-rc.1":
+                failures.append(f"{name}: next source version must be 0.2.0-rc.1")
             if package.get("publish") != ["crates-io"]:
                 failures.append(f"{name}: activated registry must be crates-io")
         elif package.get("publish") != {"workspace": True}:

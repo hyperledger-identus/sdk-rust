@@ -1,6 +1,6 @@
 [package]
 name                   = "identus-core"
-version                = "0.1.0-rc.1"
+version                = "0.2.0-rc.1"
 edition.workspace      = true
 rust-version.workspace = true
 license.workspace      = true
@@ -8,7 +8,7 @@ publish                = [ "crates-io" ]
 description            = "Chain-neutral core types and ports for the Hyperledger Identus Rust SDK."
 repository             = "https://github.com/hyperledger-identus/sdk-rust"
 homepage               = "https://hyperledger-identus.github.io/sdk-rust/"
-documentation          = "https://docs.rs/identus-core/0.1.0-rc.1"
+documentation          = "https://docs.rs/identus-core/0.2.0-rc.1"
 readme                 = "README.md"
 keywords               = [ "identity", "ssi", "did" ]
 categories             = [ "data-structures" ]

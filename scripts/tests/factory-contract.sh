@@ -215,6 +215,7 @@ required_files=(
   docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
   docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
   docs/adr/0174-separate-peer-and-prism-did-method-ownership.md
+  docs/adr/0200-raise-sdk-msrv-to-rust-199.md
   docs/adr/0175-bound-generic-did-for-prism-long-form-state.md
   docs/adr/0176-allow-only-in-tree-portable-prism-method-package.md
   docs/adr/0180-construct-explicit-oid4vp-protocol-errors.md

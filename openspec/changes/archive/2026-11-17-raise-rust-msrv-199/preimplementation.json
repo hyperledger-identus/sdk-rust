@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 596,
+  "change": "raise-rust-msrv-199",
+  "branch": "codex/fix/issue-596",
+  "baseRef": "origin/develop",
+  "baseSha": "f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8",
+  "contractHeadSha": "a508feb081d483f8e47f5d3d83e662973e3602ce",
+  "createdAt": "2026-11-17T15:43:45.097Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

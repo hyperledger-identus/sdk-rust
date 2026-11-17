@@ -203,22 +203,22 @@ class SupportPolicyTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_cargo_msrv_drift_fails(self) -> None:
-        self.replace("Cargo.toml", 'rust-version = "1.89.0"', 'rust-version = "1.88.0"')
+        self.replace("Cargo.toml", 'rust-version = "1.99.1"', 'rust-version = "1.99.0"')
         self.assert_fails("does not match policy MSRV")
 
     def test_primary_stable_drift_fails(self) -> None:
         self.replace(
             "docs/architecture/sdk-support-policy.toml",
-            'primary                      = "1.98.1"',
-            'primary                      = "1.98.0"',
+            'primary                      = "1.99.1"',
+            'primary                      = "1.99.0"',
         )
-        self.assert_fails("toolchains.primary must be 1.98.1")
+        self.assert_fails("toolchains.primary must be 1.99.1")
 
     def test_stable_overlay_lock_drift_fails(self) -> None:
         self.replace(
             "flake.lock",
-            "ca7f624be3935a5bc46d2c240515491ab8675503",
-            "da7f624be3935a5bc46d2c240515491ab8675503",
+            "ec07af44be2e0ce4e1a17e00a97d44232607c1ec",
+            "fc07af44be2e0ce4e1a17e00a97d44232607c1ec",
         )
         self.assert_fails("stable-rust-overlay lock revision")
 
@@ -2522,10 +2522,10 @@ evidence_token = "contradictory"
     def test_release_candidate_msrv_must_match_toolchain(self) -> None:
         self.replace(
             "docs/architecture/sdk-support-policy.toml",
-            'msrv                 = "1.89.0"',
-            'msrv                 = "1.90.0"',
+            'msrv                 = "1.99.1"',
+            'msrv                 = "1.99.0"',
         )
-        self.assert_fails("release_candidate.msrv must be '1.89.0'")
+        self.assert_fails("release_candidate.msrv must be '1.99.1'")
 
     def test_release_candidate_cannot_drop_hash_only_profile(self) -> None:
         self.replace(

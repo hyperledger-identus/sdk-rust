@@ -27,12 +27,14 @@ of crate versions tested together and their standards/profile capabilities.
 
 ## Candidate gate
 
-ADR 0133 selects Rust 1.89.0 as the `0.1.x` MSRV and Rust 1.98.1 as the primary
-compiler for `identus-derive`, `identus-core`, and `identus-crypto`. The fast
-lane stays on one Linux primary build; the release gate additionally requires
-the independent MSRV, profile, and compile-target matrix. Every recorded slow
-and sanitizer failure must be resolved and required repository settings must
-be verified.
+ADR 0200 selects exact Rust 1.99.1 as the MSRV, primary compiler, and etalon
+for the unpublished `0.2.x` source line of `identus-derive`, `identus-core`,
+and `identus-crypto`. The fast lane stays on one Linux primary build; the
+release gate additionally requires the separately named MSRV, profile, and
+compile-target matrix. This source migration does not authorize a `0.2`
+publication. The published `0.1.0-rc.1` receipt and its Rust 1.89.0 floor remain
+immutable history. Every recorded slow and sanitizer failure must be resolved
+and required repository settings must be verified before any later release.
 
 Before tagging, the release manager verifies:
 

@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 596
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The sponsor-directed next experimental line raises the declared Rust compiler floor from 1.89.0 to exact Rust 1.99.1. Source consumers must upgrade their compiler even though SDK runtime behavior, public APIs, wire formats, targets, and downstream source ownership remain unchanged."
+ledger_ids     = [ "factory.operations.rust-1-99-compiler-floor.v1" ]

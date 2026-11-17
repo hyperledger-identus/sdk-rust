@@ -98,6 +98,9 @@ function primitiveValue(value: unknown): DidDocumentExtensionValue | undefined {
 
 function emptyContainer(value: unknown): MutableJsonContainer {
   if (Array.isArray(value)) {
+    if (Object.getPrototypeOf(value) !== Array.prototype) {
+      throw bindingFailure();
+    }
     return [];
   }
   if (isObject(value)) {
@@ -108,6 +111,32 @@ function emptyContainer(value: unknown): MutableJsonContainer {
     return {};
   }
   throw bindingFailure();
+}
+
+function arrayEntries(
+  input: readonly unknown[],
+): readonly (readonly [number, unknown])[] {
+  const ownKeys = Reflect.ownKeys(input);
+  if (ownKeys.length !== input.length + 1 || ownKeys.at(-1) !== "length") {
+    throw bindingFailure();
+  }
+
+  const entries: (readonly [number, unknown])[] = [];
+  for (let index = 0; index < input.length; index += 1) {
+    if (ownKeys[index] !== String(index)) {
+      throw bindingFailure();
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(input, String(index));
+    if (
+      descriptor === undefined
+      || !("value" in descriptor)
+      || !descriptor.enumerable
+    ) {
+      throw bindingFailure();
+    }
+    entries.push([index, descriptor.value] as const);
+  }
+  return entries;
 }
 
 export function cloneFrozenJson(
@@ -143,7 +172,7 @@ export function cloneFrozenJson(
     }
     const entries: readonly (readonly [string | number, unknown])[] =
       Array.isArray(frame.input)
-        ? frame.input.map((entry, index) => [index, entry] as const)
+        ? arrayEntries(frame.input)
         : Object.entries(frame.input);
 
     for (const [key, child] of entries) {

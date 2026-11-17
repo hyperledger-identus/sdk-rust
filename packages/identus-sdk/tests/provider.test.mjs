@@ -661,6 +661,11 @@ test("rejects invalid nested resolution options before binding or host effects",
   const unsafe = { properties: { nested: Number.MAX_SAFE_INTEGER + 1 } };
   const cycle = { properties: {} };
   cycle.properties.self = cycle.properties;
+  const shadowedMap = [forbiddenProto.properties.nested];
+  Object.defineProperty(shadowedMap, "map", {
+    enumerable: true,
+    value: () => [],
+  });
   for (const options of [
     inherited,
     forbiddenProto,
@@ -668,6 +673,7 @@ test("rejects invalid nested resolution options before binding or host effects",
     nonPlain,
     unsafe,
     cycle,
+    { properties: { nested: shadowedMap } },
   ]) {
     await assert.rejects(
       provider.resolveDid("did:example:123", options),
@@ -700,16 +706,23 @@ test("maps invalid nested dereferencing options without invoking the binding", a
       },
     },
   );
-  const options = JSON.parse(
+  const forbiddenPrototype = JSON.parse(
     '{"properties":{"nested":{"prototype":{"polluted":true}}}}',
   );
+  class OptionArray extends Array {}
+  const subclassedArray = new OptionArray({ safe: true });
 
-  await assert.rejects(
-    provider.dereferenceDidUrl("did:example:123#key-1", options),
-    (error) => error instanceof DidError
-      && error.code === "did.invalid_dereferencing_options"
-      && error.stack === undefined,
-  );
+  for (const options of [
+    forbiddenPrototype,
+    { properties: { nested: subclassedArray } },
+  ]) {
+    await assert.rejects(
+      provider.dereferenceDidUrl("did:example:123#key-1", options),
+      (error) => error instanceof DidError
+        && error.code === "did.invalid_dereferencing_options"
+        && error.stack === undefined,
+    );
+  }
   assert.equal(bindingCalls, 0);
   assert.equal(hostCalls, 0);
   assert.equal({}.polluted, undefined);

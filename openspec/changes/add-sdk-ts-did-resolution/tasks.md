@@ -55,12 +55,13 @@
 
 - [x] 5.1 Extend impact planning, required symbols, boundary guards, target
       receipts, isolated failure-domain tests, and fail-closed aggregation.
-- [ ] 5.2 Run focused Rust/WASM/package/target/fuzz/evidence/factory gates and
+- [x] 5.2 Run focused Rust/WASM/package/target/fuzz/evidence/factory gates and
       complete `nix flake check --print-build-logs` locally.
-- [ ] 5.3 Complete distinct fresh-context architecture/security review,
-      resolve blocking findings, archive the change, and verify signed+DCO
-      commits before candidate push.
+- [x] 5.3 Complete distinct fresh-context architecture/security review,
+      resolve blocking findings, and verify signed+DCO commits before candidate
+      push.
 - [ ] 5.4 Push the exact locally validated candidate, monitor protected
       exact-head CI, and merge only when every required check/review is green.
-- [ ] 5.5 Clean owned rebuildable targets/worktrees after verified integration
-      while retaining receipts and source evidence.
+- [ ] 5.5 Archive the delivered change and clean owned rebuildable
+      targets/worktrees after verified integration while retaining receipts and
+      source evidence.

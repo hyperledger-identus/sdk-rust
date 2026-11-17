@@ -74,7 +74,7 @@ function properties(input: Record<string, unknown>): DidDocumentExtensionMapValu
   if (input.properties === undefined) {
     return Object.freeze({});
   }
-  return requireMap(cloneFrozenJson(input.properties));
+  return requireMap(cloneFrozenJson(input.properties, FORBIDDEN_PROPERTY_KEYS));
 }
 
 function appendProperties(

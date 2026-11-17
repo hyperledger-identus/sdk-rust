@@ -630,7 +630,7 @@ test("resolves through one injected host after closing request ownership", async
   assert.equal(result.freeCount(), 1);
 });
 
-test("rejects inherited and prototype-looking resolution options before binding or host effects", async () => {
+test("rejects invalid nested resolution options before binding or host effects", async () => {
   let bindingCalls = 0;
   let hostCalls = 0;
   const provider = createRustDidQueryProvider(
@@ -651,18 +651,110 @@ test("rejects inherited and prototype-looking resolution options before binding 
   );
 
   const inherited = Object.create({ noCache: true });
-  const forbidden = JSON.parse('{"properties":{"__proto__":{"polluted":true}}}');
-  for (const options of [inherited, forbidden]) {
+  const forbiddenProto = JSON.parse(
+    '{"properties":{"nested":{"__proto__":{"polluted":true}}}}',
+  );
+  const forbiddenConstructor = JSON.parse(
+    '{"properties":{"nested":{"constructor":{"polluted":true}}}}',
+  );
+  const nonPlain = { properties: { nested: new Date(0) } };
+  const unsafe = { properties: { nested: Number.MAX_SAFE_INTEGER + 1 } };
+  const cycle = { properties: {} };
+  cycle.properties.self = cycle.properties;
+  for (const options of [
+    inherited,
+    forbiddenProto,
+    forbiddenConstructor,
+    nonPlain,
+    unsafe,
+    cycle,
+  ]) {
     await assert.rejects(
       provider.resolveDid("did:example:123", options),
       (error) => error instanceof DidError
-        && error.code === "adapter.binding_contract"
+        && error.code === "did.invalid_resolution_options"
         && error.stack === undefined,
     );
   }
   assert.equal(bindingCalls, 0);
   assert.equal(hostCalls, 0);
   assert.equal({}.polluted, undefined);
+});
+
+test("maps invalid nested dereferencing options without invoking the binding", async () => {
+  let bindingCalls = 0;
+  let hostCalls = 0;
+  const provider = createRustDidQueryProvider(
+    binding({
+      prepareDidDereferencing() {
+        bindingCalls += 1;
+      },
+    }),
+    "node-wasm",
+    {
+      dereferencer: {
+        async dereference() {
+          hostCalls += 1;
+          return "{}";
+        },
+      },
+    },
+  );
+  const options = JSON.parse(
+    '{"properties":{"nested":{"prototype":{"polluted":true}}}}',
+  );
+
+  await assert.rejects(
+    provider.dereferenceDidUrl("did:example:123#key-1", options),
+    (error) => error instanceof DidError
+      && error.code === "did.invalid_dereferencing_options"
+      && error.stack === undefined,
+  );
+  assert.equal(bindingCalls, 0);
+  assert.equal(hostCalls, 0);
+  assert.equal({}.polluted, undefined);
+});
+
+test("bounds resolution host text by UTF-8 bytes before the WASM parse call", async () => {
+  const exact = "é".repeat(262_144);
+  const over = `${exact}a`;
+  const requests = [0, 1].map(() => owned({
+    did: "did:example:123",
+    method: "example",
+    methodSpecificId: "123",
+    options: "{}",
+  }));
+  const serialized = JSON.stringify({
+    didResolutionMetadata: {},
+    didDocument: { id: "did:example:123" },
+    didDocumentMetadata: {},
+  });
+  const result = owned({ serialized, kind: "success" });
+  let response = exact;
+  let parseCalls = 0;
+  const provider = createRustDidQueryProvider(
+    binding({
+      prepareDidResolution: () => requests.shift().value,
+      parseDidResolutionResult(did, raw) {
+        parseCalls += 1;
+        assert.equal(did, "did:example:123");
+        assert.equal(raw, exact);
+        return result.value;
+      },
+    }),
+    "node-wasm",
+    { resolver: { resolve: async () => response } },
+  );
+
+  assert.equal((await provider.resolveDid("did:example:123")).kind, "success");
+  response = over;
+  await assert.rejects(
+    provider.resolveDid("did:example:123"),
+    (error) => error instanceof DidError
+      && error.code === "did.invalid_resolution_result",
+  );
+  assert.equal(parseCalls, 1);
+  assert.equal(result.freeCount(), 1);
 });
 
 test("preserves a W3C problem as result data instead of throwing", async () => {
@@ -736,6 +828,54 @@ test("dereferences bounded JSON through the independent host effect", async () =
   assert.equal(dereferenced.content.id, "did:example:123#key-1");
   assert.equal(dereferenced.contentMetadata.properties.source, "fixture");
   assert.equal(request.freeCount(), 1);
+  assert.equal(result.freeCount(), 1);
+});
+
+test("bounds dereferencing host text by UTF-8 bytes before the WASM parse call", async () => {
+  const exact = "é".repeat(262_144);
+  const over = `${exact}a`;
+  const requests = [0, 1].map(() => owned({
+    didUrl: "did:example:123#key-1",
+    did: "did:example:123",
+    method: "example",
+    methodSpecificId: "123",
+    path: "",
+    query: undefined,
+    fragment: "key-1",
+    options: "{}",
+  }));
+  const serialized = JSON.stringify({
+    didUrlDereferencingMetadata: {},
+    content: { id: "did:example:123#key-1" },
+    contentMetadata: {},
+  });
+  const result = owned({ serialized, kind: "success" });
+  let response = exact;
+  let parseCalls = 0;
+  const provider = createRustDidQueryProvider(
+    binding({
+      prepareDidDereferencing: () => requests.shift().value,
+      parseDidDereferencingResult(raw) {
+        parseCalls += 1;
+        assert.equal(raw, exact);
+        return result.value;
+      },
+    }),
+    "node-wasm",
+    { dereferencer: { dereference: async () => response } },
+  );
+
+  assert.equal(
+    (await provider.dereferenceDidUrl("did:example:123#key-1")).kind,
+    "success",
+  );
+  response = over;
+  await assert.rejects(
+    provider.dereferenceDidUrl("did:example:123#key-1"),
+    (error) => error instanceof DidError
+      && error.code === "did.invalid_dereferencing_result",
+  );
+  assert.equal(parseCalls, 1);
   assert.equal(result.freeCount(), 1);
 });
 

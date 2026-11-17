@@ -1,4 +1,4 @@
-schema_version = 1
+schema_version  = 1
 owner_issue     = 599
 source_url      = "https://github.com/hyperledger-identus/sdk-ts"
 source_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
@@ -19,7 +19,7 @@ reconsideration = "Revisit only if a separately reviewed compatibility facade re
 [[records]]
 id              = "sdk-ts.did-resolution.http-proxy"
 kind            = "source"
-path            = "packages/lib/sdk/src/castor/DIDResolverHttpProxy.ts"
+path            = "packages/lib/sdk/src/castor/resolver/DIDResolverHttpProxy.ts"
 sha256          = "701a29ed51029b779b548a196527972b8c22f3ed8bbd1c59f02be04e61663e01"
 disposition     = "adapted"
 portable_part   = "Injected asynchronous retrieval of a serialized resolver response."
@@ -30,7 +30,7 @@ reconsideration = "Revisit only with an explicit transport profile and separate 
 [[records]]
 id              = "sdk-ts.did-resolution.long-form-prism"
 kind            = "source"
-path            = "packages/lib/sdk/src/castor/LongFormPrismDIDResolver.ts"
+path            = "packages/lib/sdk/src/castor/resolver/LongFormPrismDIDResolver.ts"
 sha256          = "a466e25a4beac125bbcb7ddeca1de8a98abf677e744d355d3da39f7a0fe9a030"
 disposition     = "platform-owned"
 portable_part   = "None in this generic resolution slice."
@@ -41,7 +41,7 @@ reconsideration = "Revisit under the SDK-TS PRISM facade milestone."
 [[records]]
 id              = "sdk-ts.did-resolution.peer"
 kind            = "source"
-path            = "packages/lib/sdk/src/castor/PeerDIDResolver.ts"
+path            = "packages/lib/sdk/src/castor/resolver/PeerDIDResolver.ts"
 sha256          = "60dec73c3d010d40c92d7a21537b91b0dd02c5097fbc75c1a438569fe3b04731"
 disposition     = "platform-owned"
 portable_part   = "None beyond generic result correlation."
@@ -52,7 +52,7 @@ reconsideration = "Revisit when peer resolution is wired as a named consumer."
 [[records]]
 id              = "sdk-ts.did-resolution.prism"
 kind            = "source"
-path            = "packages/lib/sdk/src/castor/PrismDIDResolver.ts"
+path            = "packages/lib/sdk/src/castor/resolver/PrismDIDResolver.ts"
 sha256          = "c4081f8740da0848371d9c0a8b2eb2a62c8de08f40013bd3bfe3985a72043de0"
 disposition     = "platform-owned"
 portable_part   = "None beyond generic result correlation."

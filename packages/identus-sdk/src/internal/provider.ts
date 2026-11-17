@@ -46,6 +46,7 @@ import type {
 
 const BINDING_API_VERSION = 3;
 const MAX_OBSERVED_DURATION_MS = 2_147_483_647;
+const MAX_DID_RESOLUTION_RESULT_BYTES = 512 * 1_024;
 
 interface ProviderInternals {
   readonly now?: () => number;
@@ -295,6 +296,50 @@ function requireInput(value: string): void {
   }
 }
 
+function hasBoundedUtf8Length(value: string): boolean {
+  let bytes = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit <= 0x7f) {
+      bytes += 1;
+    } else if (codeUnit <= 0x7ff) {
+      bytes += 2;
+    } else if (
+      codeUnit >= 0xd800
+      && codeUnit <= 0xdbff
+      && index + 1 < value.length
+    ) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        bytes += 4;
+        index += 1;
+      } else {
+        bytes += 3;
+      }
+    } else {
+      // Unpaired surrogates are encoded as the three-byte replacement
+      // character by the JavaScript/WASM string boundary.
+      bytes += 3;
+    }
+    if (bytes > MAX_DID_RESOLUTION_RESULT_BYTES) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function requireBoundedHostResult(
+  value: string,
+  errorCode: Extract<
+    DidErrorCode,
+    "did.invalid_resolution_result" | "did.invalid_dereferencing_result"
+  >,
+): void {
+  if (!hasBoundedUtf8Length(value)) {
+    throw new DidError(errorCode);
+  }
+}
+
 export function createRustDidProvider(
   binding: RawDidBinding,
   route: Exclude<DidProviderRoute, "legacy">,
@@ -447,12 +492,18 @@ export function createRustDidQueryProvider(
         if (effects.resolver === undefined) {
           throw new DidError("did.resolution_provider_unavailable");
         }
+        let serializedOptions: string;
+        try {
+          serializedOptions = serializeResolutionOptions(resolutionOptions);
+        } catch {
+          throw new DidError("did.invalid_resolution_options");
+        }
         let request: DidResolutionRequestValue;
         try {
           request = projectResolutionRequest(
             binding.prepareDidResolution(
               did,
-              serializeResolutionOptions(resolutionOptions),
+              serializedOptions,
             ),
             context?.signal,
           );
@@ -468,6 +519,7 @@ export function createRustDidQueryProvider(
         if (typeof raw !== "string") {
           throw new DidError("did.resolution_host_failure");
         }
+        requireBoundedHostResult(raw, "did.invalid_resolution_result");
         try {
           return projectResolutionResult(
             binding.parseDidResolutionResult(request.did.serialized, raw),
@@ -490,12 +542,18 @@ export function createRustDidQueryProvider(
         if (effects.dereferencer === undefined) {
           throw new DidError("did.dereferencing_provider_unavailable");
         }
+        let serializedOptions: string;
+        try {
+          serializedOptions = serializeDereferencingOptions(dereferencingOptions);
+        } catch {
+          throw new DidError("did.invalid_dereferencing_options");
+        }
         let request: DidDereferencingRequestValue;
         try {
           request = projectDereferencingRequest(
             binding.prepareDidDereferencing(
               didUrl,
-              serializeDereferencingOptions(dereferencingOptions),
+              serializedOptions,
             ),
             context?.signal,
           );
@@ -511,6 +569,7 @@ export function createRustDidQueryProvider(
         if (typeof raw !== "string") {
           throw new DidError("did.dereferencing_host_failure");
         }
+        requireBoundedHostResult(raw, "did.invalid_dereferencing_result");
         try {
           return projectDereferencingResult(
             binding.parseDidDereferencingResult(raw),

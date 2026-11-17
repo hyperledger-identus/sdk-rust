@@ -18,6 +18,7 @@ const MAX_PROJECTED_DEPTH = 64;
 const MAX_PROJECTED_NODES = 16_384;
 const MAX_CONTAINER_MEMBERS = 128;
 const MAX_SERIALIZED_CODE_UNITS = 1_572_864;
+const NO_FORBIDDEN_KEYS: ReadonlySet<string> = new Set();
 
 const DOCUMENT_FIELDS = new Set([
   "@context",
@@ -100,12 +101,19 @@ function emptyContainer(value: unknown): MutableJsonContainer {
     return [];
   }
   if (isObject(value)) {
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw bindingFailure();
+    }
     return {};
   }
   throw bindingFailure();
 }
 
-export function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
+export function cloneFrozenJson(
+  value: unknown,
+  forbiddenKeys: ReadonlySet<string> = NO_FORBIDDEN_KEYS,
+): DidDocumentExtensionValue {
   const primitive = primitiveValue(value);
   if (primitive !== undefined || value === null) {
     return primitive ?? null;
@@ -118,6 +126,7 @@ export function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
     depth: 0,
   }];
   const containers: MutableJsonContainer[] = [root];
+  const seen = new WeakSet<object>([value as object]);
   let nodes = 1;
 
   while (frames.length > 0) {
@@ -138,6 +147,9 @@ export function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
         : Object.entries(frame.input);
 
     for (const [key, child] of entries) {
+      if (typeof key === "string" && forbiddenKeys.has(key)) {
+        throw bindingFailure();
+      }
       nodes += 1;
       if (nodes > MAX_PROJECTED_NODES) {
         throw bindingFailure();
@@ -150,6 +162,10 @@ export function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
       if (frame.depth >= MAX_PROJECTED_DEPTH) {
         throw bindingFailure();
       }
+      if (seen.has(child as object)) {
+        throw bindingFailure();
+      }
+      seen.add(child as object);
       const childOutput = emptyContainer(child);
       defineValue(frame.output, key, childOutput);
       containers.push(childOutput);

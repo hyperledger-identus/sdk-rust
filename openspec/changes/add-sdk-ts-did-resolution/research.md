@@ -172,11 +172,13 @@ failure, and unknown error codes fail closed.
 
 One provider-neutral assertion body runs unchanged in Node ESM/CommonJS,
 Chromium, React SSR, and hydrated React client fixtures. Vectors cover success,
-deactivation, all standard problem types, extensions, document correlation,
-dereferenced content forms, duplicate names, branch contradictions, exact/over
-limits, unsafe integers, redaction, host rejection, observer rejection, and
-rollback selection. Property/fuzz evidence belongs to Rust; target evidence
-proves only the adapter, artifact, and lifecycle boundary.
+deactivation, representative `notFound` problem data, extensions, document
+correlation, dereferenced content forms, duplicate names, branch
+contradictions, exact/over limits, unsafe integers, redaction, host rejection,
+observer rejection, and rollback selection. The public type and canonical Rust
+unit tests retain all nine standard problem kinds; this packet does not claim a
+cross-target example for every kind. Property/fuzz evidence belongs to Rust;
+target evidence proves only the adapter, artifact, and lifecycle boundary.
 
 The public API accepts structured options only. TypeScript performs iterative
 cycle/prototype/number/depth/node/member validation and closed serialization

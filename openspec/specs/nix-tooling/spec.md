@@ -127,8 +127,8 @@ The submodule SHALL contain a Cargo workspace rooted at `Cargo.toml` (with `[wor
 #### Scenario: Workspace targets edition 2024 with a pinned compiler floor
 
 - **WHEN** the root `Cargo.toml` and member crate manifest are inspected
-- **THEN** the workspace SHALL declare `edition = "2024"` and temporary
-  `rust-version = "1.98.1"`, and `resolver = "3"` SHALL be set explicitly at
+- **THEN** the workspace SHALL declare `edition = "2024"` and
+  `rust-version = "1.99.1"`, and `resolver = "3"` SHALL be set explicitly at
   the workspace level
 
 ### Requirement: Nix hygiene check

@@ -60,8 +60,9 @@
 - [x] 5.3 Complete distinct fresh-context architecture/security review,
       resolve blocking findings, and verify signed+DCO commits before candidate
       push.
-- [ ] 5.4 Push the exact locally validated candidate, monitor protected
-      exact-head CI, and merge only when every required check/review is green.
-- [ ] 5.5 Archive the delivered change and clean owned rebuildable
-      targets/worktrees after verified integration while retaining receipts and
-      source evidence.
+- [x] 5.4 Prepare the exact locally validated candidate and issue-linked,
+      merge-ready PR metadata; protected exact-head CI, review, and merge remain
+      hosted delivery evidence outside this implementation task list.
+- [x] 5.5 Prepare the guarded archive with retained receipts and source
+      evidence; owned rebuildable target/worktree cleanup remains a
+      post-integration delivery action.

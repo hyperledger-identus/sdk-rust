@@ -8,17 +8,18 @@ canonical Rust parser for browser, Node.js, and React Web. It does not claim
 resolution, dereferencing, registration, method effects, React Native,
 publication, support, external SDK-TS adoption, production readiness, or mdoc.
 
-The fresh post-rebase target and full integration validation are bound to the
-reachable signed commit
-`2422380562521cff2f1fc6794519d8d621ca500b` and source tree
-`21f66d01a475af37dcdc891ccb8914769920e234`. The subsequent signed commit
-`184539fc42ac064a65ad9d4e21a9083699d0146d` changes only the consumer-change
-record lifecycle/PR binding and adds the deferred-acceptance sidecar; it does
-not change Rust, WASM, TypeScript, vectors, fixtures, target harnesses, or build
-configuration. Earlier pre-rebase target hashes below are retained only as
-historical deterministic packet evidence; the successful target assertions
-and full Rust 1.99.1 gate were rerun from the reachable source above and are not
-silently relabeled from the old history.
+The fresh target and full integration validation ran at signed implementation
+commit `2422380562521cff2f1fc6794519d8d621ca500b` and source tree
+`21f66d01a475af37dcdc891ccb8914769920e234`. After the Rust 1.99.1 base merged,
+the tree-preserving rebase maps that exact implementation tree to reachable
+signed commit `c5b7d86800dc8887bf5c4c4f18f8037f5bd6582a`. The complete child diff is
+byte-identical before and after the rebase. Subsequent signed commits bind the
+consumer-change lifecycle, deferred-acceptance sidecar, evidence/spec prose,
+and the closed `document-quality-evidence` planner/aggregator contract with its
+regression test; they do not change the Rust, WASM, or TypeScript runtime,
+vectors, fixtures, or build configuration. Earlier target hashes below remain
+historical deterministic packet evidence tied to the identical source tree;
+they are not silently relabeled as a new execution.
 
 - packet: `did.document.v1`, 12 cases, SHA-256
   `dcf62523885b42f780a4d57b1c6de7084a95ad12c77ed5be65ddd97d7ebc1ebb`
@@ -55,7 +56,7 @@ The following local gates passed:
 - `cargo clippy -p identus-wasm-did -p identus-conformance --all-targets -- -D warnings`;
 - `cargo test -p identus-conformance --test cross_language_did_vectors`: 2 tests;
 - package `npm test`: 24 tests;
-- `node scripts/tests/binding-target-isolation.mjs`: 15 mutation/isolation tests;
+- `node scripts/tests/binding-target-isolation.mjs`: 16 mutation/isolation tests;
 - `python3 scripts/tests/cross-language-vectors.py`;
 - `./scripts/factory check`: 126 OpenSpec/spec records, 69 vectors, and 88
   obligations at the recorded integration revision;

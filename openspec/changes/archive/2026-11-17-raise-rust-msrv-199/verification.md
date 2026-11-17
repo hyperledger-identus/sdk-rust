@@ -44,3 +44,16 @@ activation text omitted ADR 0200. Both are corrected in the next commit.
 `python3 scripts/tests/constraints.py`, `git diff --check`, and
 `./scripts/factory check` pass after those corrections. Archival and task
 closeout occur only after a fresh exact-head review.
+
+Independent exact-head re-review of
+`8ed9c66141a3de8e6132ed59520120dd48948e8d` found no actionable issues and
+confirmed both corrections. The reviewed commit is signed, DCO passes, and
+the repository policy, compatibility, security, and evidence contracts are
+consistent with issue #596. The archival delta receives a separate final
+review after `factory archive` moves this packet into immutable history.
+
+Exact-head hosted run
+[`44145436160`](https://github.com/hyperledger-identus/sdk-rust/actions/runs/44145436160)
+passed at that reviewed commit. The immutable Rust core job passed before the
+binding-impact planner released the isolated browser, Node.js, React web,
+package-types, and inapplicable React Native lanes; every selected lane passed.

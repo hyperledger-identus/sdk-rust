@@ -29,7 +29,7 @@
       and supply-chain gates.
 - [x] 4.2 Run the complete compatible-host `nix flake check` and record every
       unrun or host-incompatible lane.
-- [ ] 4.3 Complete a distinct exact-diff/security/compatibility review, resolve
+- [x] 4.3 Complete a distinct exact-diff/security/compatibility review, resolve
       blockers, archive the change, and verify signed/DCO commits.
-- [ ] 4.4 Push the base branch, open the issue-linked PR, monitor exact-head CI,
+- [x] 4.4 Push the base branch, open the issue-linked PR, monitor exact-head CI,
       and stop the DID Document child on any real base failure.

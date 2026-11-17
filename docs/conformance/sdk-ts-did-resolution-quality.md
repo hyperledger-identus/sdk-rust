@@ -36,11 +36,28 @@ restore the donor's legacy Castor, Mercury, or Pluto names.
 
 The packet, donor ledger, adapter mapping, compatibility record, resource
 boundary, TS1 row, and quality declaration are canonical registration. The
-quality declaration remains `required` with pending freshness until the
-focused, differential, fuzz, measurement, target, and full factory commands
-produce exact-revision receipts. Registration is not a claim that those gates,
-external consumer rehearsal, publication, support, production readiness, or
-React Native are complete.
+four required quality obligations are source-bound to their reviewed
+implementation revisions:
+
+- property and mutation coverage:
+  `packages/identus-sdk/tests/provider.test.mjs` at
+  `5aff2744b7637471c7b9d8a86aa2498185a8306c`;
+- bounded sanitizer fuzzing: `fuzz/fuzz_targets/did_resolution.rs` at
+  `f1b9a458adcee5fe0fd354ce649d343ed8a392a5`;
+- deterministic Node measurement harness with web/Node artifact accounting:
+  `packages/identus-sdk/tests/measurements.mjs` at
+  `808f8922110af12e6f8815dcbc8886b426922ed6`;
+- cross-target differential assertions:
+  `packages/identus-sdk/tests/resolution-vector-assertions.mjs` at
+  `808f8922110af12e6f8815dcbc8886b426922ed6`.
+
+The focused provider, OpenSpec, factory-structure, support-policy, quality
+registry, and mutation commands passed locally against the final remediation commit
+on 2026-11-17. Differential, fuzz, measurement, isolated-target, and full Nix
+execution remain explicit candidate-closeout gates rather than being inferred
+from source-bound evidence. Source-bound evidence is not a claim of external
+consumer rehearsal, publication, support, production readiness, or React
+Native applicability.
 
 ## Security and resource non-claims
 

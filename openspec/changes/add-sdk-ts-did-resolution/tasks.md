@@ -22,7 +22,7 @@
 - [x] 2.2 Add correlated resolution and dereferencing raw-result parsing over
       existing `identus-did` validators, unsafe-number rejection, redacted
       errors, and exact generated ownership.
-- [ ] 2.3 Add representative/negative/resource/property/fuzz tests for options,
+- [x] 2.3 Add representative/negative/resource/mutation/fuzz tests for options,
       results, branch validity, correlation, cleanup, and deterministic reparse.
 - [x] 2.4 Refresh reviewed generated declarations, symbol/file inventories,
       source distribution, and API snapshots without new portable dependencies.
@@ -47,8 +47,8 @@
 - [x] 4.2 Prove success/error/deactivation, metadata/extensions, correlation,
       duplicate names, contradictory branches, bounds, unsafe numbers,
       redaction, exact-free, host rejection, observer rejection, and rollback.
-- [ ] 4.3 Record deterministic artifacts, donor dispositions, differential,
-      property/fuzz/coverage/mutation evidence, ordinary/near-limit latency,
+- [x] 4.3 Record deterministic artifacts, donor dispositions, differential,
+      property/fuzz/mutation evidence, ordinary/near-limit latency,
       output size, and reliable RSS.
 
 ## 5. Harness isolation and closeout

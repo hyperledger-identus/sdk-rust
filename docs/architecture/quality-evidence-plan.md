@@ -885,42 +885,38 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
-| `property` | `required` | `focused` | `on-change` | `pending` | #599 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #599 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #599 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #599 |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #599 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #599 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #599 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #599 |
 
 ### `property`
 
-- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
-- Budget: Execute every resolution packet case plus structured options, correlation, unsafe-number, raw-text limit, exact-free, redaction, mutation, singleton, host rejection, observer rejection, cancellation non-claims, and rollback properties.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #599
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh package-types`
+- Budget: Exercise recursive structured-option rejection, exact/over UTF-8 host-text bounds, correlation, unsafe-number handling, exact-free ownership, redaction, singleton routing, host and observer rejection, abort-before-invocation, and rollback selection in the Node provider harness.
+- Receipt: `source:packages/identus-sdk/tests/provider.test.mjs`
+- Evidence revision: `5aff2744b7637471c7b9d8a86aa2498185a8306c`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh smoke did_resolution`
 - Budget: Exercise arbitrary bytes to the 524288-byte ceiling with timeout=5, rss_limit_mb=1024, correlated accepted-input reparse, duplicate-safe parsing, bounded trees, and redacted errors.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #599
+- Receipt: `source:fuzz/fuzz_targets/did_resolution.rs`
+- Evidence revision: `f1b9a458adcee5fe0fd354ce649d343ed8a392a5`
 
 ### `benchmark`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
-- Budget: Measure deterministic artifact bytes and hashes, cold/warm initialization, ordinary and near-limit prepare/host/parse p50/p95, projected output bytes, and RSS where reliable without activating support thresholds.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #599
+- Budget: Measure deterministic web/Node artifact bytes and assembly hash, one Node cold initialization, ordinary and near-limit Node prepare/host/parse p50/p95 after warm-up, projected output bytes, and process RSS without activating support thresholds.
+- Receipt: `source:packages/identus-sdk/tests/measurements.mjs`
+- Evidence revision: `808f8922110af12e6f8815dcbc8886b426922ed6`
 
 ### `differential`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
 - Budget: Execute every active did.resolution vector through canonical Rust and each applicable facade target, compare result branches and stable outcomes, and keep every donor source/test disposition closed.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #599
+- Receipt: `source:packages/identus-sdk/tests/resolution-vector-assertions.mjs`
+- Evidence revision: `808f8922110af12e6f8815dcbc8886b426922ed6`
 
 ## `credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1`
 

@@ -4,7 +4,7 @@
       candidate-line migration, advisory trigger, and rollback.
 - [x] 1.2 Add successor ADR 0200 and pass strict research and constraint
       readiness before implementation.
-- [ ] 1.3 Commit the planning-only contract and bind the issue #596
+- [x] 1.3 Commit the planning-only contract and bind the issue #596
       preimplementation receipt.
 
 ## 2. Toolchain and compatibility implementation

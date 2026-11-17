@@ -324,17 +324,17 @@ rationale           = "Resolver semantics and HTTP contracts are portable; fetch
 rust_surface        = "Substantial resolver, cancellation, cache, and HTTP contract support with injected network policy."
 target_surface      = "Rust-owned resolution semantics behind injected browser, Node.js, React web, and React Native transport adapters."
 applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
-target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
-missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
-missing_proof       = "Named resolver canary, cache, cancellation, and error equivalence, bounded-network tests, and per-target E2E evidence."
+target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "blocked" }
+missing_dimensions  = [ "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Fresh exact-revision target, fuzz, measurement, and resource receipts; named external consumer rehearsal; accepted transport/cancellation budgets; publication/support decision; React Native coverage; and default-switch rollback rehearsal."
 required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
-known_deviations    = [ "Browser and Node fetch policy remains platform-owned." ]
-evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/roadmap/platform-core-adoption-milestones.toml" ]
-owner_issue         = 502
-next_action         = "Select one SDK-TS resolver canary with explicit host network policy."
-consumer            = "SDK-TS credential verification"
-rollback            = "Retain the current resolver registry and HTTP proxy route."
-non_claims          = [ "unbounded network access", "all DID methods" ]
+known_deviations    = [ "Browser and Node fetch, DNS, TLS, redirect, SSRF, retry, timeout, authentication, and cancellation policy remains platform-owned.", "Native non-JSON DID URL dereferencing bytes are excluded from the raw-JSON host contract." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/architecture/language-adapter-mappings.toml", "docs/architecture/quality-evidence-declarations.toml", "docs/conformance/fixtures/did-resolution/v1/vectors.json", "docs/conformance/sdk-ts-did-resolution-donor.toml", "docs/conformance/sdk-ts-did-resolution-quality.md", "openspec/changes/add-sdk-ts-did-resolution/design.md" ]
+owner_issue         = 599
+next_action         = "Execute the exact-revision local target/fuzz/measurement gates, then rehearse one named external consumer before any support or default-switch decision."
+consumer            = "Private SDK-TS DID resolution canary; no external rehearsal consumer accepted yet"
+rollback            = "Before initialization, select the existing legacy resolver registry and HTTP proxy route; remove the unreleased private facade without changing canonical Rust."
+non_claims          = [ "ambient or unbounded network access", "all DID methods", "native non-JSON dereferencing", "React Native coverage", "external adoption", "publication or support" ]
 
 [[capability]]
 id                  = "credentials.jwt-vc"

@@ -16,8 +16,10 @@ CHECKER = ROOT / "scripts/check-cross-language-vectors.py"
 CATALOG = ROOT / "docs/conformance/cross-language-vector-catalog.toml"
 PACKET = ROOT / "docs/conformance/fixtures/did/v1/vectors.json"
 CRYPTO_PACKET = ROOT / "crates/crypto/tests/fixtures/crypto/v1/vectors.json"
+RESOLUTION_PACKET = ROOT / "docs/conformance/fixtures/did-resolution/v1/vectors.json"
 PACKET_PATH = PACKET.relative_to(ROOT)
 CRYPTO_PACKET_PATH = CRYPTO_PACKET.relative_to(ROOT)
+RESOLUTION_PACKET_PATH = RESOLUTION_PACKET.relative_to(ROOT)
 
 
 def replace_once(text: str, before: str, after: str) -> str:
@@ -47,7 +49,14 @@ def stage_packets(root: Path, catalog: str, overrides: dict[Path, str] | None = 
             shutil.copy2(ROOT / relative, target)
 
 
-def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | None = None) -> None:
+def run(
+    catalog: str,
+    packet: str,
+    should_pass: bool,
+    *,
+    crypto_packet: str | None = None,
+    resolution_packet: str | None = None,
+) -> None:
     with tempfile.TemporaryDirectory(prefix="cross-language-vectors-") as temporary:
         root = Path(temporary)
         catalog_target = root / "docs/conformance/cross-language-vector-catalog.toml"
@@ -62,6 +71,11 @@ def run(catalog: str, packet: str, should_pass: bool, *, crypto_packet: str | No
                     CRYPTO_PACKET.read_text(encoding="utf-8")
                     if crypto_packet is None
                     else crypto_packet
+                ),
+                RESOLUTION_PACKET_PATH: (
+                    RESOLUTION_PACKET.read_text(encoding="utf-8")
+                    if resolution_packet is None
+                    else resolution_packet
                 ),
             },
         )
@@ -82,6 +96,17 @@ def run_packet_mutation(catalog: str, packet: str) -> None:
     run(catalog_for_packet(catalog, packet), packet, False)
 
 
+def run_resolution_packet_mutation(catalog: str, packet: str) -> None:
+    old_digest = hashlib.sha256(RESOLUTION_PACKET.read_bytes()).hexdigest()
+    new_digest = hashlib.sha256(packet.encode()).hexdigest()
+    mutated_catalog = replace_once(
+        catalog,
+        f'sha256         = "{old_digest}"',
+        f'sha256         = "{new_digest}"',
+    )
+    run(mutated_catalog, PACKET.read_text(encoding="utf-8"), False, resolution_packet=packet)
+
+
 def catalog_for_crypto_packet(catalog: str, packet: str) -> str:
     old_digest = hashlib.sha256(CRYPTO_PACKET.read_bytes()).hexdigest()
     new_digest = hashlib.sha256(packet.encode()).hexdigest()
@@ -92,6 +117,7 @@ def main() -> None:
     catalog = CATALOG.read_text(encoding="utf-8")
     packet = PACKET.read_text(encoding="utf-8")
     crypto_packet = CRYPTO_PACKET.read_text(encoding="utf-8")
+    resolution_packet = RESOLUTION_PACKET.read_text(encoding="utf-8")
     run(catalog, packet, True)
     negative_crypto_packet = replace_once(
         crypto_packet,
@@ -171,6 +197,10 @@ def main() -> None:
             '"generated": { "prefix": "did:example:", "repeat": "a", "count": 131060, "suffix": "" }',
             '"generated": { "prefix": "did:example:", "repeat": "a", "count": 262145, "suffix": "" }',
         ),
+    )
+    run_resolution_packet_mutation(
+        catalog,
+        replace_once(resolution_packet, '"resultKind": "success"', '"unknown": "success"'),
     )
     run_packet_mutation(
         catalog,

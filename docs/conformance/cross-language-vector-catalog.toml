@@ -223,6 +223,48 @@ authorship     = "Hyperledger Identus contributors"
 license        = "Apache-2.0"
 redistribution = "allowed-with-attribution"
 
+[[sources]]
+id             = "w3c.did-resolution-v1"
+kind           = "standard"
+url            = "https://www.w3.org/TR/did-resolution/"
+version        = "W3C Candidate Recommendation Draft 2026-08-28"
+section        = "DID resolution and DID URL dereferencing results, metadata, errors, and options"
+authorship     = "W3C Decentralized Identifier Working Group"
+license        = "W3C-Document-License"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "sdk-rust.did-resolution"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-rust"
+revision       = "d3cdc6719fb040da2753dbfde9c3a784c85dafb2"
+path           = "crates/did/src/resolution"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[sources]]
+id             = "sdk-ts.did-resolution"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-ts"
+revision       = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+path           = "packages/lib/sdk/src/castor"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[packets]]
+id             = "did.resolution.v1"
+capability     = "did.resolution"
+schema_version = 1
+path           = "docs/conformance/fixtures/did-resolution/v1/vectors.json"
+sha256         = "37aa7e607a243714d5607d5e0c0f67e264e045fb0d0b9f6f6f268476072e02ec"
+authorship     = "SDK-Rust clean-room curation from the pinned W3C DID Resolution draft and canonical identus-did result validators"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript" ]
+
 [[packets]]
 id             = "did.peer.profiles.v1"
 capability     = "did.peer.profiles"
@@ -2083,3 +2125,210 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [  ]
 limitations        = "Published 0.1.0-rc.1 artifacts retain their historical Rust 1.89 floor; this rejection applies only to adopting the unpublished 0.2.x source line."
+
+[[vectors]]
+id                 = "did.resolution.success"
+packet             = "did.resolution.v1"
+case               = "did.resolution.success"
+capability         = "did.resolution"
+authority          = "normative"
+source_ids         = [ "w3c.did-resolution-v1", "sdk-rust.did-resolution" ]
+source_locator     = "DID Resolution result success branch under MAX_DID_RESOLUTION_RESULT_BYTES"
+operation          = "did-resolution.parse"
+expected           = "success"
+profile_scope      = "Correlated JSON DID resolution result with document and metadata"
+boundary           = "positive"
+resource_class     = "bounded-resolution-json"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_did::DidResolutionResult::from_json_str_for"
+language_selectors = [  ]
+owner_issue        = 599
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "did.resolution.typescript-migration.v1", "did.resolution.typescript.quality.v1" ]
+limitations        = "The host owns transport, trust, cancellation, retry, and DID method execution."
+
+[[vectors]]
+id                 = "did.resolution.not-found"
+packet             = "did.resolution.v1"
+case               = "did.resolution.not-found"
+capability         = "did.resolution"
+authority          = "normative"
+source_ids         = [ "w3c.did-resolution-v1", "sdk-rust.did-resolution" ]
+source_locator     = "DID Resolution URL-valued not-found problem under MAX_DID_RESOLUTION_RESULT_BYTES"
+operation          = "did-resolution.parse"
+expected           = "success"
+profile_scope      = "A standard operation failure is valid result data rather than a local parser failure"
+boundary           = "negative"
+resource_class     = "bounded-resolution-json"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_did::DidResolutionResult::from_json_str_for"
+language_selectors = [  ]
+owner_issue        = 599
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "did.resolution.typescript-migration.v1", "did.resolution.typescript.quality.v1" ]
+limitations        = "No network lookup, retry, cache policy, or method behavior is asserted."
+
+[[vectors]]
+id                 = "did.resolution.deactivated"
+packet             = "did.resolution.v1"
+case               = "did.resolution.deactivated"
+capability         = "did.resolution"
+authority          = "normative"
+source_ids         = [ "w3c.did-resolution-v1", "sdk-rust.did-resolution" ]
+source_locator     = "DID Resolution deactivated branch under MAX_DID_RESOLUTION_RESULT_BYTES"
+operation          = "did-resolution.parse"
+expected           = "success"
+profile_scope      = "No document and deactivated document metadata form a distinct valid branch"
+boundary           = "positive"
+resource_class     = "bounded-resolution-json"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_did::DidResolutionResult::from_json_str_for"
+language_selectors = [  ]
+owner_issue        = 599
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "did.resolution.typescript-migration.v1", "did.resolution.typescript.quality.v1" ]
+limitations        = "Deactivation provenance and ledger state remain method-owned."
+
+[[vectors]]
+id                 = "did.resolution.invalid-document-id"
+packet             = "did.resolution.v1"
+case               = "did.resolution.invalid-document-id"
+capability         = "did.resolution"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-resolution-v1", "sdk-rust.did-resolution" ]
+source_locator     = "Correlated result validation and MAX_DID_RESOLUTION_RESULT_BYTES"
+operation          = "did-resolution.parse"
+expected           = "did.invalid_resolution_result"
+profile_scope      = "A returned DID document must identify the requested DID"
+boundary           = "negative"
+resource_class     = "bounded-resolution-json"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_did::DidResolutionResult::from_json_str_for"
+language_selectors = [  ]
+owner_issue        = 599
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "did.resolution.typescript-migration.v1", "did.resolution.typescript.quality.v1" ]
+limitations        = "The request DID is supplied by the assertion harness from the expected DID field."
+
+[[vectors]]
+id                 = "did.resolution.invalid-duplicate-member"
+packet             = "did.resolution.v1"
+case               = "did.resolution.invalid-duplicate-member"
+capability         = "did.resolution"
+authority          = "identus-contract"
+source_ids         = [ "sdk-rust.did-resolution" ]
+source_locator     = "Duplicate-safe wire preflight and MAX_DID_RESOLUTION_RESULT_BYTES"
+operation          = "did-resolution.parse"
+expected           = "did.invalid_resolution_result"
+profile_scope      = "Duplicate decoded JSON members cannot overwrite security-relevant result state"
+boundary           = "mutation"
+resource_class     = "bounded-resolution-json"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_did::DidResolutionResult::from_json_str_for"
+language_selectors = [  ]
+owner_issue        = 599
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "did.resolution.typescript-migration.v1", "did.resolution.typescript.quality.v1" ]
+limitations        = "The vector deliberately preserves duplicate member names as raw JSON text."
+
+[[vectors]]
+id                 = "did.resolution.invalid-contradictory-state"
+packet             = "did.resolution.v1"
+case               = "did.resolution.invalid-contradictory-state"
+capability         = "did.resolution"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-resolution-v1", "sdk-rust.did-resolution" ]
+source_locator     = "Closed resolution result branch invariant and MAX_DID_RESOLUTION_RESULT_BYTES"
+operation          = "did-resolution.parse"
+expected           = "did.invalid_resolution_result"
+profile_scope      = "A result cannot contain both a document and operation error"
+boundary           = "mutation"
+resource_class     = "bounded-resolution-json"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_did::DidResolutionResult::from_json_str_for"
+language_selectors = [  ]
+owner_issue        = 599
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "did.resolution.typescript-migration.v1", "did.resolution.typescript.quality.v1" ]
+limitations        = "Only the portable serialized result branch invariant is asserted."
+
+[[vectors]]
+id                 = "did.resolution.dereferencing-success"
+packet             = "did.resolution.v1"
+case               = "did.resolution.dereferencing-success"
+capability         = "did.resolution"
+authority          = "normative"
+source_ids         = [ "w3c.did-resolution-v1", "sdk-rust.did-resolution" ]
+source_locator     = "DID URL dereferencing JSON content under MAX_DID_RESOLUTION_RESULT_BYTES"
+operation          = "did-url-dereferencing.parse"
+expected           = "success"
+profile_scope      = "Serialized JSON dereferencing success with open content and metadata"
+boundary           = "positive"
+resource_class     = "bounded-resolution-json"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_did::DidUrlDereferencingResult::from_json_str"
+language_selectors = [  ]
+owner_issue        = 599
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "did.resolution.typescript-migration.v1", "did.resolution.typescript.quality.v1" ]
+limitations        = "Native non-JSON dereferencing bytes are intentionally outside this packet."
+
+[[vectors]]
+id                 = "did.resolution.dereferencing-not-found"
+packet             = "did.resolution.v1"
+case               = "did.resolution.dereferencing-not-found"
+capability         = "did.resolution"
+authority          = "normative"
+source_ids         = [ "w3c.did-resolution-v1", "sdk-rust.did-resolution" ]
+source_locator     = "DID URL dereferencing failure branch under MAX_DID_RESOLUTION_RESULT_BYTES"
+operation          = "did-url-dereferencing.parse"
+expected           = "success"
+profile_scope      = "A standard dereferencing operation failure is valid result data"
+boundary           = "negative"
+resource_class     = "bounded-resolution-json"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_did::DidUrlDereferencingResult::from_json_str"
+language_selectors = [  ]
+owner_issue        = 599
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "did.resolution.typescript-migration.v1", "did.resolution.typescript.quality.v1" ]
+limitations        = "No transport or DID method behavior is asserted."
+
+[[vectors]]
+id                 = "did.resolution.dereferencing-invalid-state"
+packet             = "did.resolution.v1"
+case               = "did.resolution.dereferencing-invalid-state"
+capability         = "did.resolution"
+authority          = "identus-contract"
+source_ids         = [ "w3c.did-resolution-v1", "sdk-rust.did-resolution" ]
+source_locator     = "Closed dereferencing branch invariant and MAX_DID_RESOLUTION_RESULT_BYTES"
+operation          = "did-url-dereferencing.parse"
+expected           = "did.invalid_dereferencing_result"
+profile_scope      = "A dereferencing result cannot contain both content and operation error"
+boundary           = "mutation"
+resource_class     = "bounded-resolution-json"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_did::DidUrlDereferencingResult::from_json_str"
+language_selectors = [  ]
+owner_issue        = 599
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "did.resolution.typescript-migration.v1", "did.resolution.typescript.quality.v1" ]
+limitations        = "Native non-JSON content remains excluded rather than coerced to text or base64."

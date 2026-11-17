@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-11-17`
-- Declaration count: `22`
+- Declaration count: `23`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -872,6 +872,55 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #502
+
+## `did.resolution.typescript.quality.v1`
+
+- Capability: `did.resolution`
+- Slice: Private SDK-TS DID resolution and serialized dereferencing host facade
+- Owner: SDK-Rust DID and TypeScript binding maintainers (issue #599)
+- Risk: A host facade can bypass canonical correlation, accept contradictory results, allocate unbounded response text, corrupt JSON numbers, leak DID material, double-free generated resources, or couple target failures back into Rust core.
+- Targets: `package:identus-did`, `package:identus-wasm-did`, `package:identus-typescript-sdk`, `consumer:sdk-ts`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
+- Vector IDs: `9` local catalog entries
+- Limitations: Private local canary only; no ambient fetch, transport policy, DID method implementation, native non-JSON dereferencing bytes, cache backend, persistence, credentials, DIDComm, agent runtime, React Native, external adoption, support, publication, certification, production use, or mdoc.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #599 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #599 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #599 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #599 |
+
+### `property`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
+- Budget: Execute every resolution packet case plus structured options, correlation, unsafe-number, raw-text limit, exact-free, redaction, mutation, singleton, host rejection, observer rejection, cancellation non-claims, and rollback properties.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #599
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh smoke did_resolution`
+- Budget: Exercise arbitrary bytes to the 524288-byte ceiling with timeout=5, rss_limit_mb=1024, correlated accepted-input reparse, duplicate-safe parsing, bounded trees, and redacted errors.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #599
+
+### `benchmark`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
+- Budget: Measure deterministic artifact bytes and hashes, cold/warm initialization, ordinary and near-limit prepare/host/parse p50/p95, projected output bytes, and RSS where reliable without activating support thresholds.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #599
+
+### `differential`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
+- Budget: Execute every active did.resolution vector through canonical Rust and each applicable facade target, compare result branches and stable outcomes, and keep every donor source/test disposition closed.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #599
 
 ## `credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1`
 

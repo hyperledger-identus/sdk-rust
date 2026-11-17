@@ -101,13 +101,15 @@ invoke another provider.
 
 ## Vectors and donor dispositions
 
-One immutable source-bound packet covers resolution success, error,
-deactivation, metadata/extensions, correlation mismatch, every standard
-problem type, dereferencing document/resource/content forms, duplicate names,
-contradictory branches, exact/over limits, unsafe numbers, redaction, host
-rejection, observer rejection, exact-free, and rollback. One provider-neutral
-TypeScript assertion module runs unchanged in Node ESM/CommonJS, Chromium,
-React SSR, and hydrated React client fixtures.
+One immutable source-bound packet covers representative resolution success,
+error and deactivation branches, correlation mismatch, duplicate names,
+contradictory branches, and dereferencing success/error/invalid-state cases.
+One provider-neutral TypeScript assertion module runs that packet unchanged in
+Node ESM/CommonJS, Chromium, React SSR, and hydrated React client fixtures.
+Focused Rust and TypeScript tests separately cover the remaining problem-type,
+extension, bound, unsafe-number, redaction, host/observer rejection,
+exact-free, and rollback behavior; the packet does not claim to replace those
+layer-specific tests.
 
 The donor inventory records immutable revision/path/test/hash and exactly one
 disposition. The generic async resolver outcome is adapted. PRISM and peer DID
@@ -117,12 +119,14 @@ owning capabilities rather than copied or silently skipped.
 
 ## Property, fuzz, differential, and resource evidence
 
-Rust property tests generate valid/invalid option and result envelopes and
-prove deterministic serialize/reparse, branch validity, DID correlation,
-bounded cleanup, and redaction. Fuzz targets cover raw resolution/dereferencing
-result bytes through the public parsers with exact byte ceilings and iterative
-cleanup. Differential evidence compares the shared packet through canonical
-Rust and every TypeScript target; the donor is compatibility evidence only.
+Focused Rust and mutation tests exercise valid/invalid option and result
+envelopes and prove deterministic serialize/reparse, branch validity, DID
+correlation, bounded cleanup, and redaction. Fuzz targets cover raw
+resolution/dereferencing result bytes through the public parsers with exact
+byte ceilings and iterative cleanup. Differential evidence compares the
+shared packet through canonical Rust and every TypeScript target; the donor is
+compatibility evidence only. Generative property and coverage evidence remain
+explicit closeout obligations rather than inferred claims.
 
 Measurements cover artifact bytes/hashes, cold/warm initialization, request
 preparation, fixture host round trip, ordinary/near-limit result validation and

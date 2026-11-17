@@ -30,6 +30,19 @@ sha256             = "9dc6010e8b9ede3e5da14b78444c20f7ceaafb30ca7c1d9dadfb47adc0
 git_object_format  = "sha1"
 git_blob_oid       = "9deb6e0d769c188f87e6a1aa23a924babfd98bb2"
 
+[[canonical_sources]]
+id                 = "did-resolution.source.identus-did.v1"
+owner_issue        = 512
+state              = "active"
+canonical_crate    = "identus-did"
+canonical_revision = "d3cdc6719fb040da2753dbfde9c3a784c85dafb2"
+path               = "crates/did/src/resolution/wire.rs"
+file_mode          = "100644"
+byte_length        = 1826
+sha256             = "8383078cee088b9625c142fa650ace84137df5ee3eeae2906c974ef20aee19b7"
+git_object_format  = "sha1"
+git_blob_oid       = "b928986219a26d07dcbcffcb77cbbf920b435be0"
+
 [[mappings]]
 id = "did.value.typescript.legacy-v1"
 capability = "did.syntax"
@@ -439,5 +452,107 @@ mitigation  = "Reject typed projection with a stable unsupported-lossy-mapping e
 [[mappings.unsupported]]
 id           = "did.document.unsafe-number-projection"
 reason       = "JavaScript number cannot exactly represent every integer accepted by bounded JSON."
+behavior     = "Reject typed projection without fallback or rounded output."
+stable_error = "adapter.unsupported_lossy_mapping"
+
+[[mappings]]
+id = "did.resolution.typescript.host-v1"
+capability = "did.resolution"
+owner_issue = 505
+state = "active"
+kind = "value"
+canonical_crate = "identus-did"
+canonical_rust_path = "identus_did::DidResolutionResult"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_source_id = "did-resolution.source.identus-did.v1"
+canonical_description = "Bounded duplicate-safe and request-correlated DID resolution and serialized DID URL dereferencing result envelopes."
+canonical_bound_symbol = "MAX_DID_RESOLUTION_RESULT_BYTES"
+language = "typescript"
+language_package = "@hyperledger/identus-sdk"
+language_target = "browser-node-react-web"
+language_version = "0.0.0"
+language_revision = "9b4e463bf37881fd282b5d405fd9272524f34b99"
+language_path = "packages/identus-sdk/src/public.ts"
+language_license = "Apache-2.0"
+language_symbol = "DidResolutionProvider"
+language_shape_state = "private-canary"
+direction = "rust-to-language"
+compatibility_class = "additive"
+fidelity = "lossy"
+version_window = ">=0.0.0,<0.0.1"
+deprecation_phase = "none"
+version_negotiation = "npm-package-version"
+consumers = [ "sdk-ts" ]
+vector_ids = [
+  "did.resolution.success",
+  "did.resolution.not-found",
+  "did.resolution.deactivated",
+  "did.resolution.dereferencing-success",
+  "did.resolution.dereferencing-not-found",
+]
+rust_selectors = [ "identus_did::DidResolutionResult::from_json_str_for", "identus_did::DidUrlDereferencingResult::from_json_str" ]
+language_selectors = [ "packages/identus-sdk/src/public.ts", "packages/identus-sdk/src/internal/resolution-projection.ts" ]
+max_input_bytes = 524288
+redaction = "caller-input"
+sensitive_fields = [ "requested-did", "result-json", "problem-detail", "dereferenced-content" ]
+async_ownership = "language"
+cancellation_ownership = "adapter"
+migration_action = "Inject one bounded raw-text host effect and compose it between synchronous canonical Rust request preparation and correlated result parsing."
+replacement = "Private capability-named DID resolution and dereferencing provider backed by identus-did."
+observability = "Record only mapping ID, operation, target, stable result category, bounded sizes, duration, and artifact identity; never record DIDs, result JSON, content, problem detail, host errors, stacks, or WASM memory."
+fallback = "No automatic method, transport, parser, retry, or legacy resolver fallback follows a canonical rejection."
+rollback = "Select the existing legacy provider before initialization and remove the unreleased private facade without changing canonical Rust."
+removal_gate = "A separately accepted consumer-visible migration may retire the legacy route only after external rehearsal, support, budget, publication, and rollback evidence."
+errors = [  ]
+
+[[mappings.fields]]
+rust      = "did_resolution_metadata"
+language  = "resolutionMetadata"
+transform = "bounded-frozen-projection"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.fields]]
+rust      = "did_document"
+language  = "document"
+transform = "canonical-document-projection"
+direction = "rust-to-language"
+required  = false
+
+[[mappings.fields]]
+rust      = "did_document_metadata"
+language  = "documentMetadata"
+transform = "bounded-frozen-projection"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.fields]]
+rust      = "dereferenced_content"
+language  = "content"
+transform = "bounded-json-projection"
+direction = "rust-to-language"
+required  = false
+
+[[mappings.losses]]
+id          = "did.resolution.native-non-json-content"
+distinction = "DID URL dereferencing can return native non-JSON bytes with an exact media type while the issue-599 host effect returns raw JSON text only."
+consequence = "The private TypeScript canary cannot represent native binary dereferencing content."
+mitigation  = "Reject the unsupported branch and require a separately designed byte-oriented host capability."
+
+[[mappings.losses]]
+id          = "did.resolution.unsafe-number-projection"
+distinction = "Canonical bounded JSON can retain integers outside JavaScript's safe integer range."
+consequence = "Projecting through TypeScript number would silently corrupt accepted metadata or content."
+mitigation  = "Reject typed projection without rounded output or parser fallback."
+
+[[mappings.unsupported]]
+id           = "did.resolution.native-non-json-content"
+reason       = "The issue-599 host contract deliberately returns raw JSON text rather than arbitrary bytes."
+behavior     = "Reject and require a separately reviewed binary dereferencing capability."
+stable_error = "adapter.unsupported_lossy_mapping"
+
+[[mappings.unsupported]]
+id           = "did.resolution.unsafe-number-projection"
+reason       = "JavaScript number cannot exactly represent every integer accepted by bounded canonical JSON."
 behavior     = "Reject typed projection without fallback or rounded output."
 stable_error = "adapter.unsupported_lossy_mapping"

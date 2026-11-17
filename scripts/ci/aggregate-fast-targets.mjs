@@ -25,6 +25,7 @@ const planSignals = new Set([
   "package-metadata",
   "react-native-contract",
   "react-web-source",
+  "resolution-quality-evidence",
   "shared-typescript-source",
   "shared-vectors",
   "target-contract",

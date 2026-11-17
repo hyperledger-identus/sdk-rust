@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "packetId": "did.resolution.v1",
+  "capability": "did.resolution",
+  "cases": [
+    {
+      "id": "did.resolution.success",
+      "operation": "did-resolution.parse",
+      "input": {
+        "literal": "{\"didResolutionMetadata\":{\"contentType\":\"application/did+ld+json\"},\"didDocument\":{\"id\":\"did:example:123\"},\"didDocumentMetadata\":{\"versionId\":\"1\"}}"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "did": "did:example:123",
+          "resultKind": "success"
+        }
+      }
+    },
+    {
+      "id": "did.resolution.not-found",
+      "operation": "did-resolution.parse",
+      "input": {
+        "literal": "{\"didResolutionMetadata\":{\"error\":{\"type\":\"https://www.w3.org/ns/did#NOT_FOUND\"}},\"didDocument\":null,\"didDocumentMetadata\":{}}"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "resultKind": "error"
+        }
+      }
+    },
+    {
+      "id": "did.resolution.deactivated",
+      "operation": "did-resolution.parse",
+      "input": {
+        "literal": "{\"didResolutionMetadata\":{},\"didDocument\":null,\"didDocumentMetadata\":{\"deactivated\":true}}"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "resultKind": "deactivated"
+        }
+      }
+    },
+    {
+      "id": "did.resolution.invalid-document-id",
+      "operation": "did-resolution.parse",
+      "input": {
+        "literal": "{\"didResolutionMetadata\":{},\"didDocument\":{\"id\":\"did:example:other\"},\"didDocumentMetadata\":{}}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_resolution_result",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.resolution.invalid-duplicate-member",
+      "operation": "did-resolution.parse",
+      "input": {
+        "literal": "{\"didResolutionMetadata\":{},\"didDocument\":{\"id\":\"did:example:123\",\"id\":\"did:example:123\"},\"didDocumentMetadata\":{}}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_resolution_result",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.resolution.invalid-contradictory-state",
+      "operation": "did-resolution.parse",
+      "input": {
+        "literal": "{\"didResolutionMetadata\":{\"error\":{\"type\":\"https://www.w3.org/ns/did#NOT_FOUND\"}},\"didDocument\":{\"id\":\"did:example:123\"},\"didDocumentMetadata\":{}}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_resolution_result",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.resolution.dereferencing-success",
+      "operation": "did-url-dereferencing.parse",
+      "input": {
+        "literal": "{\"didUrlDereferencingMetadata\":{\"contentType\":\"application/did+ld+json\"},\"content\":{\"id\":\"did:example:123#key-1\",\"type\":\"JsonWebKey2020\"},\"contentMetadata\":{}}"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "resultKind": "dereferenced"
+        }
+      }
+    },
+    {
+      "id": "did.resolution.dereferencing-not-found",
+      "operation": "did-url-dereferencing.parse",
+      "input": {
+        "literal": "{\"didUrlDereferencingMetadata\":{\"error\":{\"type\":\"https://www.w3.org/ns/did#NOT_FOUND\"}},\"content\":null,\"contentMetadata\":{}}"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "resultKind": "error"
+        }
+      }
+    },
+    {
+      "id": "did.resolution.dereferencing-invalid-state",
+      "operation": "did-url-dereferencing.parse",
+      "input": {
+        "literal": "{\"didUrlDereferencingMetadata\":{\"error\":{\"type\":\"https://www.w3.org/ns/did#NOT_FOUND\"}},\"content\":{\"id\":\"did:example:123#key-1\"},\"contentMetadata\":{}}"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.invalid_dereferencing_result",
+        "redacted": true,
+        "fields": {}
+      }
+    }
+  ]
+}

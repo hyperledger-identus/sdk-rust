@@ -35,6 +35,12 @@
 Independent review of PR #597 at `3387f824a709ed9c665e34c5c89e45eefddd9f1d`
 found three blockers: incomplete current-spec deltas, incorrect
 behavior-neutral classification, and premature review wording. The first two
-are corrected in the following commit; the third remains open until a fresh
-exact-head review accepts the fixes. Archival and task closeout occur only
-after that re-review.
+were corrected in `af8682fa9f628109251c55e3ae2c3fe62d5b7b26`; the third
+remains open until a fresh exact-head review accepts the fixes. Re-review of
+that commit found two additional factory-integrity defects: the compiler-floor
+packet was absent from the mutation-suite fixture tree, and the constraint
+activation text omitted ADR 0200. Both are corrected in the next commit.
+`python3 scripts/tests/cross-language-vectors.py`,
+`python3 scripts/tests/constraints.py`, `git diff --check`, and
+`./scripts/factory check` pass after those corrections. Archival and task
+closeout occur only after a fresh exact-head review.

@@ -328,7 +328,7 @@ consumer_impact  = "A pre-release merge may precede its next slow matrix; no rel
 enforcement      = [ "fast workflow on pull requests and develop", "native weekly or manual slow and fuzz workflows", "read-only slow-run freshness audit", "release-policy prohibition", "support-policy checker" ]
 owner            = "SDK maintainers"
 review_triggers  = [ "2027-03-17", "repeated slow failure", "fast p95 is unacceptable" ]
-activation       = "Effective through ADRs 0120, 0127, and 0133: protected develop remains the default branch while main remains explicitly protected and minimal."
+activation       = "Effective through ADRs 0120, 0127, 0133, and 0200: protected develop remains the default branch while main remains explicitly protected and minimal."
 rollback         = "Restore a fuller per-PR matrix only through a measured CI-policy decision."
 
 [[entries]]

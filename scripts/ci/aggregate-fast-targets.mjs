@@ -18,6 +18,7 @@ const planSignals = new Set([
   "cargo-dependency-closure",
   "cargo-lock-or-toolchain",
   "ci-contract",
+  "document-quality-evidence",
   "language-mapping",
   "node-source",
   "npm-lock",

@@ -128,6 +128,14 @@ test("closed exact-head receipts aggregate successfully", () => {
   assert.equal(result.targetResults["react-native"], "inapplicable");
 });
 
+test("document quality evidence remains a closed planner and aggregator signal", () => {
+  const bindingPlan = plan(["docs/conformance/sdk-ts-did-document-quality.md"]);
+  assert.deepEqual(bindingPlan.signals, ["document-quality-evidence"]);
+  assert.deepEqual(bindingTargets.filter((target) => bindingPlan.targets[target].selected), bindingTargets);
+  assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
+  assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");
+});
+
 test("receipt construction is closed and exact-head", () => {
   const built = createTargetReceipt({
     headSha,

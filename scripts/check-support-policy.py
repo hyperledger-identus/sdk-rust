@@ -2112,7 +2112,7 @@ def validate_toolchains(
         "msrv": "1.99.1",
         "primary": "1.99.1",
         "etalon": "1.99.1",
-        "fuzz": "nightly-2026-03-18",
+        "fuzz": "nightly-2026-10-15",
         "neoprism_revision": "8becb225132efb1d9302b2c5f6ed4d87b84e8685",
         "nixpkgs_revision": "c27cdad491a991b11ed731760aa2ef8db0cb0410",
         "rust_overlay_revision": "f17186f52e82ec5cf40920b58eac63b78692ac7c",
@@ -2187,7 +2187,7 @@ def validate_toolchains(
             }};'''
         ),
         compact(
-            f"""fuzzToolchain = pkgs.rust-bin.nightly."{fuzz_date}".default.override {{
+            f"""fuzzToolchain = stablePkgs.rust-bin.nightly."{fuzz_date}".default.override {{
               extensions = [ "rust-src" ];
             }};"""
         ),

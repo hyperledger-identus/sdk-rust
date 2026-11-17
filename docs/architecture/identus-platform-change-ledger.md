@@ -49,6 +49,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive crates parse and authorize bounded PRISM VDR operations, resolve finite ancestry, plan complete ordered transactions, and expose replay-safe atomic commit ports without chain or persistence effects.
 
+### `did.resolution.typescript-migration.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade prepares structured resolution requests in Rust, invokes one injected asynchronous TypeScript host effect returning bounded raw JSON text, and correlates, validates, projects, and freezes resolution or serialized dereferencing results across browser, Node.js, and React web targets.
+
 ### `did.syntax.long-form-resource-policy.v1`
 
 State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably.
@@ -142,6 +146,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `did.prism.vdr-indexing.portable-core.v1`
 
 `unreleased` → `unreleased` for neoprism, sdk-rust-adopters. No migration action required.
+
+### `did.resolution.typescript-migration.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Opt in only through the private capability-named provider, inject an explicitly governed raw-text host effect, and retain the separately owned SDK-TS legacy resolver route until consumer rehearsal, support, budget, publication, and default-switch decisions are accepted.
 
 ### `did.syntax.long-form-resource-policy.v1`
 
@@ -237,6 +245,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
+### `did.resolution.typescript-migration.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The facade remains private, opt-in, non-default, and unpublished; no external compatibility window starts in this train.
+
 ### `did.syntax.long-form-resource-policy.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The release-candidate line documents the new limits before a stable 0.1.0 contract is declared.
@@ -331,6 +343,10 @@ Fallback: Consumers remain on their existing PRISM implementation until this exp
 
 Fallback: Consumers remain on their existing PRISM storage and indexing implementation until an explicit downstream canary accepts these additive crates. Rollback: Remove the additive crate dependencies before publication; existing SDK-Rust crates and downstream implementations retain their prior behavior. Removal gate: Not applicable.
 
+### `did.resolution.typescript-migration.v1`
+
+Fallback: No automatic transport, retry, method, parser, or legacy resolver fallback; canonical rejection and host rejection are terminal, and rollback selects the legacy provider before initialization. Rollback: Remove the unreleased provider, mapping activation, vector packet, and target assertions while preserving the merged syntax/document canary, canonical Rust resolution types, and unchanged external SDK-TS behavior. Removal gate: A separate consumer-visible change may retire the legacy route only after named external consumers adopt the Rust-backed facade, accepted transport/cancellation budgets and support/rollback evidence exist, and an announced migration window elapses.
+
 ### `did.syntax.long-form-resource-policy.v1`
 
 Fallback: Bypass cache retention for valid oversized identities; do not truncate keys or fall back to a second parser. Rollback: Restore the prior lexical constants and cache outcome before publication while retaining issue and measurement evidence. Removal gate: Not applicable; this is an expansion of a bounded public envelope rather than a deprecated facade.
@@ -424,6 +440,10 @@ Visibility: behavior, public-api, security, target-support, wire. The 32 MiB nat
 ### `did.prism.vdr-indexing.portable-core.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. No Cardano source, SQL repository, HTTP or CLI surface, runtime, retry loop, deployment, device execution, FFI, crates.io publication, or completed NeoPRISM adoption is included. The 300-second Linux fuzz receipt remains issue-owned slow-lane evidence until a successful immutable run is attached.
+
+### `did.resolution.typescript-migration.v1`
+
+Visibility: behavior, error, public-api, runtime-requirement, target-support, wire. Private generic result host facade only; no ambient fetch, transport/security policy, DID method semantics, native non-JSON dereferencing bytes, cache backend, persistence, credentials, DIDComm, agent runtime, React Native/native binding, external adoption, support, publication, stable API, certification, production claim, or mdoc.
 
 ### `did.syntax.long-form-resource-policy.v1`
 

@@ -2,6 +2,64 @@
 /* eslint-disable */
 
 /**
+ * Owned normalized request for one DID URL dereferencing host effect.
+ */
+export class DidDereferencingRequestView {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * Base DID portion.
+     */
+    readonly did: string;
+    /**
+     * Exact validated DID URL.
+     */
+    readonly didUrl: string;
+    /**
+     * Fragment without the leading hash.
+     */
+    readonly fragment: string | undefined;
+    /**
+     * DID method name.
+     */
+    readonly method: string;
+    /**
+     * Method-specific identifier.
+     */
+    readonly methodSpecificId: string;
+    /**
+     * Deterministic normalized dereferencing options JSON.
+     */
+    readonly options: string;
+    /**
+     * Path including its leading slash when present.
+     */
+    readonly path: string;
+    /**
+     * Query without the leading question mark.
+     */
+    readonly query: string | undefined;
+}
+
+/**
+ * Owned normalized DID URL dereferencing result.
+ */
+export class DidDereferencingResultView {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * Closed result branch: `success` or `error`.
+     */
+    readonly kind: string;
+    /**
+     * Deterministic normalized W3C DID URL Dereferencing result JSON.
+     */
+    readonly serialized: string;
+}
+
+/**
  * Owned JavaScript view of a validated DID Document.
  *
  * `serialized` is deterministic normalized JSON produced from the validated
@@ -33,6 +91,48 @@ export class DidParseError {
      * Stable code without caller or implementation text.
      */
     readonly code: string;
+}
+
+/**
+ * Owned normalized request for one DID resolution host effect.
+ */
+export class DidResolutionRequestView {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * Exact validated DID.
+     */
+    readonly did: string;
+    /**
+     * DID method name.
+     */
+    readonly method: string;
+    /**
+     * Method-specific identifier.
+     */
+    readonly methodSpecificId: string;
+    /**
+     * Deterministic normalized resolution options JSON.
+     */
+    readonly options: string;
+}
+
+/**
+ * Owned normalized DID resolution result.
+ */
+export class DidResolutionResultView {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * Closed result branch: `success`, `error`, or `deactivated`.
+     */
+    readonly kind: string;
+    /**
+     * Deterministic normalized W3C DID Resolution result JSON.
+     */
+    readonly serialized: string;
 }
 
 /**
@@ -104,6 +204,11 @@ export function bindingApiVersion(): number;
 export function parseDid(value: string): DidView;
 
 /**
+ * Validate and normalize raw DID URL dereferencing result JSON.
+ */
+export function parseDidDereferencingResult(result_json: string): DidDereferencingResultView;
+
+/**
  * Parse a bounded DID Document into an owned JavaScript view.
  *
  * Rust validates the raw JSON before any TypeScript projection. Documents
@@ -114,14 +219,53 @@ export function parseDid(value: string): DidView;
 export function parseDidDocument(value: string): DidDocumentView;
 
 /**
+ * Validate, correlate, and normalize raw DID resolution result JSON.
+ */
+export function parseDidResolutionResult(did: string, result_json: string): DidResolutionResultView;
+
+/**
  * Parse a bounded DID URL into an owned JavaScript view.
  */
 export function parseDidUrl(value: string): DidUrlView;
+
+/**
+ * Validate and normalize one DID URL dereferencing request before host invocation.
+ */
+export function prepareDidDereferencing(did_url: string, options_json: string): DidDereferencingRequestView;
+
+/**
+ * Validate and normalize one DID resolution request before host invocation.
+ */
+export function prepareDidResolution(did: string, options_json: string): DidResolutionRequestView;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly __wbg_diddereferencingrequestview_free: (a: number, b: number) => void;
+    readonly __wbg_diddereferencingresultview_free: (a: number, b: number) => void;
+    readonly __wbg_didresolutionrequestview_free: (a: number, b: number) => void;
+    readonly __wbg_didresolutionresultview_free: (a: number, b: number) => void;
+    readonly diddereferencingrequestview_did: (a: number) => [number, number];
+    readonly diddereferencingrequestview_didUrl: (a: number) => [number, number];
+    readonly diddereferencingrequestview_fragment: (a: number) => [number, number];
+    readonly diddereferencingrequestview_method: (a: number) => [number, number];
+    readonly diddereferencingrequestview_methodSpecificId: (a: number) => [number, number];
+    readonly diddereferencingrequestview_options: (a: number) => [number, number];
+    readonly diddereferencingrequestview_path: (a: number) => [number, number];
+    readonly diddereferencingrequestview_query: (a: number) => [number, number];
+    readonly diddereferencingresultview_kind: (a: number) => [number, number];
+    readonly diddereferencingresultview_serialized: (a: number) => [number, number];
+    readonly didresolutionrequestview_did: (a: number) => [number, number];
+    readonly didresolutionrequestview_method: (a: number) => [number, number];
+    readonly didresolutionrequestview_methodSpecificId: (a: number) => [number, number];
+    readonly didresolutionrequestview_options: (a: number) => [number, number];
+    readonly didresolutionresultview_kind: (a: number) => [number, number];
+    readonly didresolutionresultview_serialized: (a: number) => [number, number];
+    readonly parseDidDereferencingResult: (a: number, b: number) => [number, number, number];
+    readonly parseDidResolutionResult: (a: number, b: number, c: number, d: number) => [number, number, number];
+    readonly prepareDidDereferencing: (a: number, b: number, c: number, d: number) => [number, number, number];
+    readonly prepareDidResolution: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly __wbg_diddocumentview_free: (a: number, b: number) => void;
     readonly __wbg_didparseerror_free: (a: number, b: number) => void;
     readonly __wbg_didurlview_free: (a: number, b: number) => void;

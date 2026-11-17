@@ -14,6 +14,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | --- | --- | --- | --- | --- | ---: | --- | --- |
 | `did.source.identus-did.v1` | `active` | `identus-did` | `4612053cef68dd68a26a6940aa10fd41f3fb14e0` | `crates/did/src/did.rs` | 13161 | `89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753` | `sha1:18132b1f388abd1cac9a0bf6fb14935604e089f6` |
 | `did-document.source.identus-did.v1` | `active` | `identus-did` | `f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8` | `crates/did/src/document.rs` | 3202 | `9dc6010e8b9ede3e5da14b78444c20f7ceaafb30ca7c1d9dadfb47adc09ed293` | `sha1:9deb6e0d769c188f87e6a1aa23a924babfd98bb2` |
+| `did-resolution.source.identus-did.v1` | `active` | `identus-did` | `d3cdc6719fb040da2753dbfde9c3a784c85dafb2` | `crates/did/src/resolution/wire.rs` | 1826 | `8383078cee088b9625c142fa650ace84137df5ee3eeae2906c974ef20aee19b7` | `sha1:b928986219a26d07dcbcffcb77cbbf920b435be0` |
 
 ## Mappings
 
@@ -24,6 +25,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `did.error.invalid-did.typescript.legacy-v1` | error | `@hyperledger/identus-sdk` `CastorError.InvalidDIDString` | rust-to-language | lossy | transitional |
 | `did.error.invalid-did-url.typescript.legacy-v1` | error | `@hyperledger/identus-sdk` `CastorError.InvalidDIDString` | rust-to-language | lossy | transitional |
 | `did.document.typescript.legacy-v1` | value | `@hyperledger/identus-sdk` `DIDDocument` | rust-to-language | lossy | none |
+| `did.resolution.typescript.host-v1` | value | `@hyperledger/identus-sdk` `DidResolutionProvider` | rust-to-language | lossy | none |
 
 ## `did.value.typescript.legacy-v1`
 
@@ -223,3 +225,50 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | Case | Reason | Required behavior | Stable adapter error |
 | --- | --- | --- | --- |
 | `did.document.unsafe-number-projection` | JavaScript number cannot exactly represent every integer accepted by bounded JSON. | Reject typed projection without fallback or rounded output. | `adapter.unsupported_lossy_mapping` |
+
+## `did.resolution.typescript.host-v1`
+
+- Record: capability `did.resolution`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
+- Cargo package: `identus-did`.
+- Rust API: `identus_did::DidResolutionResult` from source `did-resolution.source.identus-did.v1` at `d3cdc6719fb040da2753dbfde9c3a784c85dafb2` (unreleased-workspace-0.0.0).
+- Canonical semantics: Bounded duplicate-safe and request-correlated DID resolution and serialized DID URL dereferencing result envelopes.
+- Canonical bound: `MAX_DID_RESOLUTION_RESULT_BYTES` in `crates/did/src/resolution/wire.rs`.
+- Language source: `typescript` package `@hyperledger/identus-sdk`, target `browser-node-react-web`, symbol `DidResolutionProvider`, version `0.0.0` at `9b4e463bf37881fd282b5d405fd9272524f34b99`, path `packages/identus-sdk/src/public.ts`.
+- Language evidence: license `Apache-2.0`; shape state `private-canary`.
+- Compatibility: additive, rust-to-language, lossy; window `>=0.0.0,<0.0.1`; phase `none`.
+- Version negotiation: npm-package-version
+- Consumers: `sdk-ts`.
+- Resource policy: at most 524288 bytes; redaction `caller-input`; sensitive fields: `requested-did`, `result-json`, `problem-detail`, `dereferenced-content`.
+- Ownership: async `language`; cancellation `adapter`.
+- Migration: Inject one bounded raw-text host effect and compose it between synchronous canonical Rust request preparation and correlated result parsing.
+- Replacement: Private capability-named DID resolution and dereferencing provider backed by identus-did.
+- Observability: Record only mapping ID, operation, target, stable result category, bounded sizes, duration, and artifact identity; never record DIDs, result JSON, content, problem detail, host errors, stacks, or WASM memory.
+- Fallback: No automatic method, transport, parser, retry, or legacy resolver fallback follows a canonical rejection.
+- Rollback: Select the existing legacy provider before initialization and remove the unreleased private facade without changing canonical Rust.
+- Removal gate: A separately accepted consumer-visible migration may retire the legacy route only after external rehearsal, support, budget, publication, and rollback evidence.
+- Vectors: `did.resolution.success`, `did.resolution.not-found`, `did.resolution.deactivated`, `did.resolution.dereferencing-success`, `did.resolution.dereferencing-not-found`.
+- Rust selectors: `identus_did::DidResolutionResult::from_json_str_for`, `identus_did::DidUrlDereferencingResult::from_json_str`.
+- Language selectors: `packages/identus-sdk/src/public.ts`, `packages/identus-sdk/src/internal/resolution-projection.ts`.
+
+### Fields
+
+| Rust | Language | Transform | Direction | Required |
+| --- | --- | --- | --- | --- |
+| `did_resolution_metadata` | `resolutionMetadata` | bounded-frozen-projection | rust-to-language | true |
+| `did_document` | `document` | canonical-document-projection | rust-to-language | false |
+| `did_document_metadata` | `documentMetadata` | bounded-frozen-projection | rust-to-language | true |
+| `dereferenced_content` | `content` | bounded-json-projection | rust-to-language | false |
+
+### Losses
+
+| ID | Lost distinction | Consequence | Mitigation |
+| --- | --- | --- | --- |
+| `did.resolution.native-non-json-content` | DID URL dereferencing can return native non-JSON bytes with an exact media type while the issue-599 host effect returns raw JSON text only. | The private TypeScript canary cannot represent native binary dereferencing content. | Reject the unsupported branch and require a separately designed byte-oriented host capability. |
+| `did.resolution.unsafe-number-projection` | Canonical bounded JSON can retain integers outside JavaScript's safe integer range. | Projecting through TypeScript number would silently corrupt accepted metadata or content. | Reject typed projection without rounded output or parser fallback. |
+
+### Unsupported legacy round trips
+
+| Case | Reason | Required behavior | Stable adapter error |
+| --- | --- | --- | --- |
+| `did.resolution.native-non-json-content` | The issue-599 host contract deliberately returns raw JSON text rather than arbitrary bytes. | Reject and require a separately reviewed binary dereferencing capability. | `adapter.unsupported_lossy_mapping` |
+| `did.resolution.unsafe-number-projection` | JavaScript number cannot exactly represent every integer accepted by bounded canonical JSON. | Reject typed projection without fallback or rounded output. | `adapter.unsupported_lossy_mapping` |

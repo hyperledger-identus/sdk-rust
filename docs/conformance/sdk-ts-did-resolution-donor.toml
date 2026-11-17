@@ -1,0 +1,94 @@
+schema_version  = 1
+owner_issue     = 599
+source_url      = "https://github.com/hyperledger-identus/sdk-ts"
+source_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+source_version  = "8.1.4"
+license         = "Apache-2.0"
+
+[[records]]
+id              = "sdk-ts.did-resolution.castor"
+kind            = "source"
+path            = "packages/lib/sdk/src/castor/index.ts"
+sha256          = "b4de37066994585d2eb7cb35334b19d21373f5c0804f8ecd524dc7ea3d8d4791"
+disposition     = "adapted"
+portable_part   = "Injected asynchronous invocation and explicit resolution method selection."
+excluded_part   = "Resolver-loop fallback, generic thrown errors, legacy names, and DID-bearing logging."
+replacement     = "Capability-named TypeScript facade around synchronous Rust prepare/parse calls and one injected host promise."
+reconsideration = "Revisit only if a separately reviewed compatibility facade requires the legacy route."
+
+[[records]]
+id              = "sdk-ts.did-resolution.http-proxy"
+kind            = "source"
+path            = "packages/lib/sdk/src/castor/resolver/DIDResolverHttpProxy.ts"
+sha256          = "701a29ed51029b779b548a196527972b8c22f3ed8bbd1c59f02be04e61663e01"
+disposition     = "adapted"
+portable_part   = "Injected asynchronous retrieval of a serialized resolver response."
+excluded_part   = "Ambient fetch, endpoint concatenation, fixed headers, response.json allocation, unbounded response retention, and generic errors."
+replacement     = "Caller-owned host effect returning bounded raw JSON text; networking, SSRF, redirects, retry, timeout, and cancellation policy remain host-owned."
+reconsideration = "Revisit only with an explicit transport profile and separate security review."
+
+[[records]]
+id              = "sdk-ts.did-resolution.long-form-prism"
+kind            = "source"
+path            = "packages/lib/sdk/src/castor/resolver/LongFormPrismDIDResolver.ts"
+sha256          = "a466e25a4beac125bbcb7ddeca1de8a98abf677e744d355d3da39f7a0fe9a030"
+disposition     = "platform-owned"
+portable_part   = "None in this generic resolution slice."
+excluded_part   = "PRISM method state and long-form resolution behavior."
+replacement     = "A separately owned PRISM method adapter may use the generic host boundary."
+reconsideration = "Revisit under the SDK-TS PRISM facade milestone."
+
+[[records]]
+id              = "sdk-ts.did-resolution.peer"
+kind            = "source"
+path            = "packages/lib/sdk/src/castor/resolver/PeerDIDResolver.ts"
+sha256          = "60dec73c3d010d40c92d7a21537b91b0dd02c5097fbc75c1a438569fe3b04731"
+disposition     = "platform-owned"
+portable_part   = "None beyond generic result correlation."
+excluded_part   = "peer DID method resolution and key ordering."
+replacement     = "The existing portable peer DID method owns method semantics."
+reconsideration = "Revisit when peer resolution is wired as a named consumer."
+
+[[records]]
+id              = "sdk-ts.did-resolution.prism"
+kind            = "source"
+path            = "packages/lib/sdk/src/castor/resolver/PrismDIDResolver.ts"
+sha256          = "c4081f8740da0848371d9c0a8b2eb2a62c8de08f40013bd3bfe3985a72043de0"
+disposition     = "platform-owned"
+portable_part   = "None beyond generic result correlation."
+excluded_part   = "PRISM ledger, state, and method resolution."
+replacement     = "A separately owned PRISM method adapter may use the generic host boundary."
+reconsideration = "Revisit under the SDK-TS PRISM facade milestone."
+
+[[records]]
+id              = "sdk-ts.did-resolution.peer-test"
+kind            = "test"
+path            = "packages/lib/sdk/tests/castor/PeerDID.test.ts"
+sha256          = "66a3b70e73c5d707c4475f29f732f6be982753c6e4a43d191dbe70b1b2e4ae54"
+disposition     = "adapted"
+portable_part   = "Resolved document identity equals the requested DID."
+excluded_part   = "Method-specific key ordering and peer construction behavior."
+replacement     = "did.resolution.invalid-document-id and target-neutral correlation assertions."
+reconsideration = "Revisit method-specific assertions with the peer consumer adapter."
+
+[[records]]
+id              = "sdk-ts.did-resolution.prism-test"
+kind            = "test"
+path            = "packages/lib/sdk/tests/castor/PrismDID.test.ts"
+sha256          = "18a25ef8e1d5a7586f02b98a932d919b8efe73f24d8c97da916a835f3cebd330"
+disposition     = "adapted"
+portable_part   = "Resolved document identity and generic result shape."
+excluded_part   = "PRISM state, network, and method-specific behavior."
+replacement     = "did.resolution.success plus separately owned PRISM conformance."
+reconsideration = "Revisit method assertions under the SDK-TS PRISM facade milestone."
+
+[[records]]
+id              = "sdk-ts.did-resolution.didcomm-test"
+kind            = "test"
+path            = "packages/lib/sdk/tests/mercury/didcomm/DIDResolver.test.ts"
+sha256          = "e8f4b0ecf298bb23dd18cfdf1552a8100e7b14d7fe632ea6f8b4168fd3539142"
+disposition     = "platform-owned"
+portable_part   = "Potential downstream resolver consumer rehearsal only."
+excluded_part   = "DIDComm workflow, agent state, and legacy resolver registry behavior."
+replacement     = "No replacement in issue 599; a later DIDComm consumer slice may bind the new facade."
+reconsideration = "Revisit when DIDComm becomes the named external rehearsal consumer."

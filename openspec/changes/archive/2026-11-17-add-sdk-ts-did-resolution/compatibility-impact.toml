@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 599
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The implementation adds a private TypeScript/WASM DID resolution and serialized dereferencing host facade with new public types, stable errors, result wire handling, target behavior, and explicit compatibility boundaries; the canonical ledger record owns that complete additive contract."
+ledger_ids     = [ "did.resolution.typescript-migration.v1" ]

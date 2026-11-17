@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-11-17`
-- Declaration count: `22`
+- Declaration count: `23`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -872,6 +872,51 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Receipt: `pending`
 - Evidence revision: `pending`
 - Delivery debt: #502
+
+## `did.resolution.typescript.quality.v1`
+
+- Capability: `did.resolution`
+- Slice: Private SDK-TS DID resolution and serialized dereferencing host facade
+- Owner: SDK-Rust DID and TypeScript binding maintainers (issue #599)
+- Risk: A host facade can bypass canonical correlation, accept contradictory results, allocate unbounded response text, corrupt JSON numbers, leak DID material, double-free generated resources, or couple target failures back into Rust core.
+- Targets: `package:identus-did`, `package:identus-wasm-did`, `package:identus-typescript-sdk`, `consumer:sdk-ts`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
+- Vector IDs: `9` local catalog entries
+- Limitations: Private local canary only; no ambient fetch, transport policy, DID method implementation, native non-JSON dereferencing bytes, cache backend, persistence, credentials, DIDComm, agent runtime, React Native, external adoption, support, publication, certification, production use, or mdoc.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #599 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #599 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #599 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #599 |
+
+### `property`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh package-types`
+- Budget: Exercise recursive structured-option rejection, exact/over UTF-8 host-text bounds, correlation, unsafe-number handling, exact-free ownership, redaction, singleton routing, host and observer rejection, abort-before-invocation, and rollback selection in the Node provider harness.
+- Receipt: `source:packages/identus-sdk/tests/provider.test.mjs`
+- Evidence revision: `5aff2744b7637471c7b9d8a86aa2498185a8306c`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-did.sh smoke did_resolution`
+- Budget: Exercise arbitrary bytes to the 524288-byte ceiling with timeout=5, rss_limit_mb=1024, correlated accepted-input reparse, duplicate-safe parsing, bounded trees, and redacted errors.
+- Receipt: `source:fuzz/fuzz_targets/did_resolution.rs`
+- Evidence revision: `f1b9a458adcee5fe0fd354ce649d343ed8a392a5`
+
+### `benchmark`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
+- Budget: Measure deterministic web/Node artifact bytes and assembly hash, one Node cold initialization, ordinary and near-limit Node prepare/host/parse p50/p95 after warm-up, projected output bytes, and process RSS without activating support thresholds.
+- Receipt: `source:packages/identus-sdk/tests/measurements.mjs`
+- Evidence revision: `808f8922110af12e6f8815dcbc8886b426922ed6`
+
+### `differential`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
+- Budget: Execute every active did.resolution vector through canonical Rust and each applicable facade target, compare result branches and stable outcomes, and keep every donor source/test disposition closed.
+- Receipt: `source:packages/identus-sdk/tests/resolution-vector-assertions.mjs`
+- Evidence revision: `808f8922110af12e6f8815dcbc8886b426922ed6`
 
 ## `credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1`
 

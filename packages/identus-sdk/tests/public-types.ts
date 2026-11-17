@@ -5,12 +5,30 @@ import type {
   DidDocumentExtensionMapValue,
   DidDocumentExtensionValue,
   DidDocumentValue,
+  DidDereferencingOptions,
+  DidDereferencingOptionsValue,
+  DidDereferencingRequestValue,
+  DidDocumentMetadataValue,
   DidProvider,
   DidProviderFactory,
+  DidQueryEffects,
+  DidQueryProvider,
+  DidQueryProviderFactory,
+  DidResolutionMetadataValue,
+  DidResolutionOptions,
+  DidResolutionOptionsValue,
+  DidResolutionProblemValue,
+  DidResolutionProvider,
+  DidResolutionRequestValue,
+  DidResolutionResultValue,
+  DidResolverEffect,
   DidServiceEndpointEntryValue,
   DidServiceEndpointValue,
   DidServiceValue,
   DidUrlValue,
+  DidUrlDereferencerEffect,
+  DidUrlDereferencingProvider,
+  DidUrlDereferencingResultValue,
   DidValue,
   DidVerificationMethodValue,
   DidVerificationRelationshipValue,
@@ -26,6 +44,24 @@ type DidIsNotAny = AssertFalse<IsAny<DidValue>>;
 type DidUrlIsNotAny = AssertFalse<IsAny<DidUrlValue>>;
 type ProviderIsNotAny = AssertFalse<IsAny<DidProvider>>;
 type DocumentIsNotAny = AssertFalse<IsAny<DidDocumentValue>>;
+type ResolutionOptionsIsNotAny = AssertFalse<IsAny<DidResolutionOptions>>;
+type ResolutionOptionsValueIsNotAny = AssertFalse<IsAny<DidResolutionOptionsValue>>;
+type DereferencingOptionsIsNotAny = AssertFalse<IsAny<DidDereferencingOptions>>;
+type DereferencingOptionsValueIsNotAny = AssertFalse<IsAny<DidDereferencingOptionsValue>>;
+type ResolutionRequestIsNotAny = AssertFalse<IsAny<DidResolutionRequestValue>>;
+type DereferencingRequestIsNotAny = AssertFalse<IsAny<DidDereferencingRequestValue>>;
+type ResolutionProblemIsNotAny = AssertFalse<IsAny<DidResolutionProblemValue>>;
+type ResolutionMetadataIsNotAny = AssertFalse<IsAny<DidResolutionMetadataValue>>;
+type DocumentMetadataIsNotAny = AssertFalse<IsAny<DidDocumentMetadataValue>>;
+type ResolutionResultIsNotAny = AssertFalse<IsAny<DidResolutionResultValue>>;
+type DereferencingResultIsNotAny = AssertFalse<IsAny<DidUrlDereferencingResultValue>>;
+type ResolutionProviderIsNotAny = AssertFalse<IsAny<DidResolutionProvider>>;
+type DereferencingProviderIsNotAny = AssertFalse<IsAny<DidUrlDereferencingProvider>>;
+type QueryProviderIsNotAny = AssertFalse<IsAny<DidQueryProvider>>;
+type QueryEffectsIsNotAny = AssertFalse<IsAny<DidQueryEffects>>;
+type ResolverEffectIsNotAny = AssertFalse<IsAny<DidResolverEffect>>;
+type DereferencerEffectIsNotAny = AssertFalse<IsAny<DidUrlDereferencerEffect>>;
+type QueryFactoryIsNotAny = AssertFalse<IsAny<DidQueryProviderFactory>>;
 type DocumentContextIsNotAny = AssertFalse<IsAny<DidDocumentContextValue>>;
 type DocumentContextEntryIsNotAny = AssertFalse<IsAny<DidDocumentContextEntryValue>>;
 type DocumentControllerIsNotAny = AssertFalse<IsAny<DidDocumentControllerValue>>;
@@ -46,6 +82,24 @@ const compileAssertions: readonly [
   DidUrlIsNotAny,
   ProviderIsNotAny,
   DocumentIsNotAny,
+  ResolutionOptionsIsNotAny,
+  ResolutionOptionsValueIsNotAny,
+  DereferencingOptionsIsNotAny,
+  DereferencingOptionsValueIsNotAny,
+  ResolutionRequestIsNotAny,
+  DereferencingRequestIsNotAny,
+  ResolutionProblemIsNotAny,
+  ResolutionMetadataIsNotAny,
+  DocumentMetadataIsNotAny,
+  ResolutionResultIsNotAny,
+  DereferencingResultIsNotAny,
+  ResolutionProviderIsNotAny,
+  DereferencingProviderIsNotAny,
+  QueryProviderIsNotAny,
+  QueryEffectsIsNotAny,
+  ResolverEffectIsNotAny,
+  DereferencerEffectIsNotAny,
+  QueryFactoryIsNotAny,
   DocumentContextIsNotAny,
   DocumentContextEntryIsNotAny,
   DocumentControllerIsNotAny,
@@ -61,6 +115,24 @@ const compileAssertions: readonly [
   NodeFactoryIsNotAny,
   ReactStateIsNotAny,
 ] = [
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
   false,
   false,
   false,

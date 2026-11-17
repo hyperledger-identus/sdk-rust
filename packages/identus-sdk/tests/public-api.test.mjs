@@ -23,7 +23,7 @@ test("the reviewed public declaration names contain no historical components", a
     declaration.replace(/^\/\/# sourceMappingURL=.*$/gmu, "").trim(),
     reviewed.trim(),
   );
-  assert.equal(snapshot.trim().split("\n").length, 23);
+  assert.equal(snapshot.trim().split("\n").length, 44);
 });
 
 test("target entries match reviewed declarations and expose only their capability surface", async () => {
@@ -36,8 +36,14 @@ test("target entries match reviewed declarations and expose only their capabilit
       target,
     );
   }
-  assert.deepEqual(Object.keys(await import("../dist/browser.js")), ["createDidProvider"]);
-  assert.deepEqual(Object.keys(await import("../dist/node.js")), ["createDidProvider"]);
+  assert.deepEqual(
+    Object.keys(await import("../dist/browser.js")),
+    ["createDidProvider", "createDidQueryProvider"],
+  );
+  assert.deepEqual(
+    Object.keys(await import("../dist/node.js")),
+    ["createDidProvider", "createDidQueryProvider"],
+  );
   assert.deepEqual(
     Object.keys(await import("../dist/react.js")),
     ["DidProviderBoundary", "useDidProvider"],

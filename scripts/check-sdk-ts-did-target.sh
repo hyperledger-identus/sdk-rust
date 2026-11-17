@@ -120,8 +120,10 @@ run_browser() {
   digest="$(target_contract_digest browser \
     docs/conformance/fixtures/did/v1/vectors.json \
     docs/conformance/fixtures/did-document/v1/vectors.json \
+    docs/conformance/fixtures/did-resolution/v1/vectors.json \
     packages/identus-sdk/tests/vector-assertions.mjs \
     packages/identus-sdk/tests/document-vector-assertions.mjs \
+    packages/identus-sdk/tests/resolution-vector-assertions.mjs \
     packages/identus-sdk/tests/browser-runtime.mjs)"
   write_receipt browser selected success "$digest"
 }
@@ -132,8 +134,10 @@ run_nodejs() {
   digest="$(target_contract_digest nodejs \
     docs/conformance/fixtures/did/v1/vectors.json \
     docs/conformance/fixtures/did-document/v1/vectors.json \
+    docs/conformance/fixtures/did-resolution/v1/vectors.json \
     packages/identus-sdk/tests/vector-assertions.mjs \
     packages/identus-sdk/tests/document-vector-assertions.mjs \
+    packages/identus-sdk/tests/resolution-vector-assertions.mjs \
     packages/identus-sdk/tests/node-runtime.test.mjs)"
   write_receipt nodejs selected success "$digest"
 }
@@ -144,8 +148,10 @@ run_react_web() {
   digest="$(target_contract_digest react-web \
     docs/conformance/fixtures/did/v1/vectors.json \
     docs/conformance/fixtures/did-document/v1/vectors.json \
+    docs/conformance/fixtures/did-resolution/v1/vectors.json \
     packages/identus-sdk/tests/vector-assertions.mjs \
     packages/identus-sdk/tests/document-vector-assertions.mjs \
+    packages/identus-sdk/tests/resolution-vector-assertions.mjs \
     packages/identus-sdk/tests/react-runtime.test.mjs \
     packages/identus-sdk/tests/react-browser-fixture.tsx \
     packages/identus-sdk/tests/react-browser-runtime.mjs)"

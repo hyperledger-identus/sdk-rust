@@ -115,7 +115,8 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
     if (relative === "docs/architecture/language-adapter-mappings.toml") addSignal(signals, targetSignals, "language-mapping");
     if (relative === "docs/conformance/cross-language-vector-catalog.toml"
         || relative.startsWith("docs/conformance/fixtures/did/")
-        || relative.startsWith("docs/conformance/fixtures/did-document/")) {
+        || relative.startsWith("docs/conformance/fixtures/did-document/")
+        || relative.startsWith("docs/conformance/fixtures/did-resolution/")) {
       addSignal(signals, targetSignals, "shared-vectors");
     }
     if (relative === "docs/architecture/quality-evidence-declarations.toml"
@@ -127,8 +128,16 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
         || relative === "scripts/fuzz-did.sh") {
       addSignal(signals, targetSignals, "document-quality-evidence");
     }
+    if (relative === "docs/conformance/sdk-ts-did-resolution-quality.md"
+        || relative === "docs/conformance/sdk-ts-did-resolution-donor.toml"
+        || relative === "fuzz/fuzz_targets/did_resolution.rs"
+        || relative.startsWith("fuzz/corpus/did_resolution/")
+        || relative === "fuzz/dictionaries/did_resolution.dict") {
+      addSignal(signals, targetSignals, "resolution-quality-evidence");
+    }
     if (relative.startsWith("openspec/specs/sdk-ts-parity-conformance/")
         || relative.startsWith("openspec/specs/sdk-ts-did-document/")
+        || relative.startsWith("openspec/specs/sdk-ts-did-resolution/")
         || relative.startsWith("openspec/changes/add-sdk-ts-did-canary/")
         || relative === "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md") {
       addSignal(signals, targetSignals, "target-contract");

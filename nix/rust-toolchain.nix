@@ -34,7 +34,9 @@
       };
       # libFuzzer sanitizer instrumentation remains a tooling-only nightly
       # exception and is never an ordinary SDK compatibility provider.
-      fuzzToolchain = pkgs.rust-bin.nightly."2026-03-18".default.override {
+      # Keep the sanitizer compiler newer than the declared 1.99.1 floor so
+      # Cargo can build the same workspace graph under the fuzz profile.
+      fuzzToolchain = stablePkgs.rust-bin.nightly."2026-10-15".default.override {
         extensions = [
           "rust-src"
         ];

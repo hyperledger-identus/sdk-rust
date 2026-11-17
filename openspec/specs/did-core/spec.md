@@ -420,11 +420,11 @@ SHALL map to a stable redaction-safe DID resolution error.
 ### Requirement: Bounded extensible DID resolution options
 
 The DID Core capability SHALL provide immutable `ResolutionOptions` containing
-optional `accept`, `expandRelativeUrls`, `versionId` and `versionTime` values
-plus method/extension members. Common members SHALL reuse their existing typed
-validators. Absence and explicit false SHALL remain distinct, extensions SHALL
-NOT shadow common keys, and native construction and serde SHALL enforce the
-same bounded metadata policy.
+optional `accept`, `expandRelativeUrls`, `noCache`, `versionId` and
+`versionTime` values plus method/extension members. Common members SHALL reuse
+their existing typed validators. Absence and explicit false SHALL remain
+distinct, extensions SHALL NOT shadow common keys, and native construction and
+serde SHALL enforce the same bounded metadata policy.
 
 #### Scenario: common and method options remain portable
 

@@ -40,6 +40,7 @@ FIELD_KEYS = {
     "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment",
     "operationKind", "operationId", "operationHash", "canonicalDid", "curve",
     "relationshipCount", "url",
+    "resultKind",
 }
 AUTHORITIES = {
     "normative", "identus-contract", "consumer-regression", "implementation-regression", "exploratory"
@@ -49,6 +50,8 @@ OPERATIONS = {
     "did.parse",
     "did-url.parse",
     "did-document.parse",
+    "did-resolution.parse",
+    "did-url-dereferencing.parse",
     "did-prism.envelope.parse",
     "did-prism-indexer.transition.digest",
     "did-prism.signed-create.verify",
@@ -241,6 +244,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 allowed_fields = {"serialized", "method", "methodSpecificId"}
             elif operation == "did-document.parse":
                 allowed_fields = {"serialized", "did"}
+            elif operation in {"did-resolution.parse", "did-url-dereferencing.parse"}:
+                allowed_fields = {"did", "resultKind"}
             elif operation == "did-url.parse":
                 allowed_fields = {
                     "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment"
@@ -292,6 +297,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 "did.parse": "did.invalid_did",
                 "did-url.parse": "did.invalid_did_url",
                 "did-document.parse": "did.invalid_document",
+                "did-resolution.parse": "did.invalid_resolution_result",
+                "did-url-dereferencing.parse": "did.invalid_dereferencing_result",
                 "did-prism.envelope.parse": "did-prism.invalid_wire",
                 "did-prism-indexer.transition.digest": "did-prism-indexer.invalid_transition",
                 "did-prism.signed-create.verify": "did-prism.invalid_operation",

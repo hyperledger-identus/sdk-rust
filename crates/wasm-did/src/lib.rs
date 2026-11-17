@@ -1,18 +1,25 @@
-//! Experimental WASM facade for bounded DID, DID URL, and DID Document parsing.
+//! Experimental WASM facade for bounded DID values, documents, resolution, and
+//! dereferencing.
 //!
 //! This unpublished outer boundary exposes only owned public identifier values
 //! and stable error codes. `identus-did` remains binding-framework-free.
+
+mod resolution;
 
 use identus_did::{Did, DidDocument, DidUrl};
 use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 /// Version of the JavaScript value and error contract.
-pub const BINDING_API_VERSION: u32 = 2;
+pub const BINDING_API_VERSION: u32 = 3;
 
 const INVALID_DID_CODE: &str = "did.invalid_did";
 const INVALID_DID_URL_CODE: &str = "did.invalid_did_url";
 const INVALID_DID_DOCUMENT_CODE: &str = "did.invalid_document";
+const INVALID_RESOLUTION_OPTIONS_CODE: &str = "did.invalid_resolution_options";
+const INVALID_DEREFERENCING_OPTIONS_CODE: &str = "did.invalid_dereferencing_options";
+const INVALID_RESOLUTION_RESULT_CODE: &str = "did.invalid_resolution_result";
+const INVALID_DEREFERENCING_RESULT_CODE: &str = "did.invalid_dereferencing_result";
 const UNSUPPORTED_LOSSY_MAPPING_CODE: &str = "adapter.unsupported_lossy_mapping";
 const MAX_SAFE_JAVASCRIPT_INTEGER: i64 = 9_007_199_254_740_991;
 
@@ -148,13 +155,13 @@ impl DidParseError {
 }
 
 impl DidParseError {
-    fn invalid_did() -> Self {
+    pub(crate) fn invalid_did() -> Self {
         Self {
             code: INVALID_DID_CODE.to_owned(),
         }
     }
 
-    fn invalid_did_url() -> Self {
+    pub(crate) fn invalid_did_url() -> Self {
         Self {
             code: INVALID_DID_URL_CODE.to_owned(),
         }
@@ -166,9 +173,33 @@ impl DidParseError {
         }
     }
 
-    fn unsupported_lossy_mapping() -> Self {
+    pub(crate) fn unsupported_lossy_mapping() -> Self {
         Self {
             code: UNSUPPORTED_LOSSY_MAPPING_CODE.to_owned(),
+        }
+    }
+
+    pub(crate) fn invalid_resolution_options() -> Self {
+        Self {
+            code: INVALID_RESOLUTION_OPTIONS_CODE.to_owned(),
+        }
+    }
+
+    pub(crate) fn invalid_dereferencing_options() -> Self {
+        Self {
+            code: INVALID_DEREFERENCING_OPTIONS_CODE.to_owned(),
+        }
+    }
+
+    pub(crate) fn invalid_resolution_result() -> Self {
+        Self {
+            code: INVALID_RESOLUTION_RESULT_CODE.to_owned(),
+        }
+    }
+
+    pub(crate) fn invalid_dereferencing_result() -> Self {
+        Self {
+            code: INVALID_DEREFERENCING_RESULT_CODE.to_owned(),
         }
     }
 }
@@ -230,7 +261,7 @@ pub fn parse_did_document(value: &str) -> Result<DidDocumentView, DidParseError>
     })
 }
 
-fn contains_unsafe_javascript_integer(root: &Value) -> bool {
+pub(crate) fn contains_unsafe_javascript_integer(root: &Value) -> bool {
     let mut pending = vec![root];
     while let Some(value) = pending.pop() {
         match value {
@@ -274,7 +305,7 @@ mod tests {
 
     #[test]
     fn version_and_component_views_are_stable() {
-        assert_eq!(binding_api_version(), 2);
+        assert_eq!(binding_api_version(), 3);
 
         let did = parse_did("did:example:123").unwrap();
         assert_eq!(did.value(), "did:example:123");

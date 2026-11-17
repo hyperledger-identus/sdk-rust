@@ -75,10 +75,14 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "docs/architecture/quality-evidence-declarations.toml",
     "docs/conformance/fixtures/did/v1/vectors.json",
     "docs/conformance/fixtures/did-document/v1/vectors.json",
+    "docs/conformance/fixtures/did-resolution/v1/vectors.json",
     "docs/conformance/sdk-ts-did-document-quality.md",
+    "docs/conformance/sdk-ts-did-resolution-quality.md",
     "fuzz/fuzz_targets/did_document.rs",
+    "fuzz/fuzz_targets/did_resolution.rs",
     "openspec/changes/add-sdk-ts-did-canary/specs/sdk-ts-did-facade/spec.md",
     "openspec/specs/sdk-ts-did-document/spec.md",
+    "openspec/specs/sdk-ts-did-resolution/spec.md",
     "nix/devshells/typescript.nix",
     "scripts/assemble-sdk-ts-did-artifacts.mjs",
     "scripts/build-sdk-ts-did-artifacts.sh",
@@ -131,6 +135,14 @@ test("closed exact-head receipts aggregate successfully", () => {
 test("document quality evidence remains a closed planner and aggregator signal", () => {
   const bindingPlan = plan(["docs/conformance/sdk-ts-did-document-quality.md"]);
   assert.deepEqual(bindingPlan.signals, ["document-quality-evidence"]);
+  assert.deepEqual(bindingTargets.filter((target) => bindingPlan.targets[target].selected), bindingTargets);
+  assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
+  assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");
+});
+
+test("resolution quality evidence remains a closed planner and aggregator signal", () => {
+  const bindingPlan = plan(["docs/conformance/sdk-ts-did-resolution-quality.md"]);
+  assert.deepEqual(bindingPlan.signals, ["resolution-quality-evidence"]);
   assert.deepEqual(bindingTargets.filter((target) => bindingPlan.targets[target].selected), bindingTargets);
   assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
   assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");

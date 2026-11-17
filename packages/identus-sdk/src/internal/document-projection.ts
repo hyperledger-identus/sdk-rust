@@ -18,6 +18,7 @@ const MAX_PROJECTED_DEPTH = 64;
 const MAX_PROJECTED_NODES = 16_384;
 const MAX_CONTAINER_MEMBERS = 128;
 const MAX_SERIALIZED_CODE_UNITS = 1_572_864;
+const NO_FORBIDDEN_KEYS: ReadonlySet<string> = new Set();
 
 const DOCUMENT_FIELDS = new Set([
   "@context",
@@ -43,7 +44,7 @@ interface ProjectionFrame {
   readonly depth: number;
 }
 
-function bindingFailure(): Error {
+export function bindingFailure(): Error {
   const error = new Error("DID binding contract failed");
   error.name = "DidBindingError";
   Object.defineProperty(error, "stack", {
@@ -97,15 +98,51 @@ function primitiveValue(value: unknown): DidDocumentExtensionValue | undefined {
 
 function emptyContainer(value: unknown): MutableJsonContainer {
   if (Array.isArray(value)) {
+    if (Object.getPrototypeOf(value) !== Array.prototype) {
+      throw bindingFailure();
+    }
     return [];
   }
   if (isObject(value)) {
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw bindingFailure();
+    }
     return {};
   }
   throw bindingFailure();
 }
 
-function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
+function arrayEntries(
+  input: readonly unknown[],
+): readonly (readonly [number, unknown])[] {
+  const ownKeys = Reflect.ownKeys(input);
+  if (ownKeys.length !== input.length + 1 || ownKeys.at(-1) !== "length") {
+    throw bindingFailure();
+  }
+
+  const entries: (readonly [number, unknown])[] = [];
+  for (let index = 0; index < input.length; index += 1) {
+    if (ownKeys[index] !== String(index)) {
+      throw bindingFailure();
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(input, String(index));
+    if (
+      descriptor === undefined
+      || !("value" in descriptor)
+      || !descriptor.enumerable
+    ) {
+      throw bindingFailure();
+    }
+    entries.push([index, descriptor.value] as const);
+  }
+  return entries;
+}
+
+export function cloneFrozenJson(
+  value: unknown,
+  forbiddenKeys: ReadonlySet<string> = NO_FORBIDDEN_KEYS,
+): DidDocumentExtensionValue {
   const primitive = primitiveValue(value);
   if (primitive !== undefined || value === null) {
     return primitive ?? null;
@@ -118,6 +155,7 @@ function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
     depth: 0,
   }];
   const containers: MutableJsonContainer[] = [root];
+  const seen = new WeakSet<object>([value as object]);
   let nodes = 1;
 
   while (frames.length > 0) {
@@ -134,10 +172,13 @@ function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
     }
     const entries: readonly (readonly [string | number, unknown])[] =
       Array.isArray(frame.input)
-        ? frame.input.map((entry, index) => [index, entry] as const)
+        ? arrayEntries(frame.input)
         : Object.entries(frame.input);
 
     for (const [key, child] of entries) {
+      if (typeof key === "string" && forbiddenKeys.has(key)) {
+        throw bindingFailure();
+      }
       nodes += 1;
       if (nodes > MAX_PROJECTED_NODES) {
         throw bindingFailure();
@@ -150,6 +191,10 @@ function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
       if (frame.depth >= MAX_PROJECTED_DEPTH) {
         throw bindingFailure();
       }
+      if (seen.has(child as object)) {
+        throw bindingFailure();
+      }
+      seen.add(child as object);
       const childOutput = emptyContainer(child);
       defineValue(frame.output, key, childOutput);
       containers.push(childOutput);
@@ -167,21 +212,21 @@ function cloneFrozenJson(value: unknown): DidDocumentExtensionValue {
   return root as DidDocumentExtensionValue;
 }
 
-function requireMap(value: DidDocumentExtensionValue): DidDocumentExtensionMapValue {
+export function requireMap(value: DidDocumentExtensionValue): DidDocumentExtensionMapValue {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     throw bindingFailure();
   }
   return value as DidDocumentExtensionMapValue;
 }
 
-function requireString(value: DidDocumentExtensionValue | undefined): string {
+export function requireString(value: DidDocumentExtensionValue | undefined): string {
   if (typeof value !== "string") {
     throw bindingFailure();
   }
   return value;
 }
 
-function requireArray(
+export function requireArray(
   value: DidDocumentExtensionValue | undefined,
 ): readonly DidDocumentExtensionValue[] {
   if (!Array.isArray(value)) {
@@ -190,7 +235,7 @@ function requireArray(
   return value;
 }
 
-function requireNonEmptyArray(
+export function requireNonEmptyArray(
   value: DidDocumentExtensionValue | undefined,
 ): readonly DidDocumentExtensionValue[] {
   const values = requireArray(value);
@@ -200,18 +245,18 @@ function requireNonEmptyArray(
   return values;
 }
 
-function has(map: DidDocumentExtensionMapValue, property: string): boolean {
+export function has(map: DidDocumentExtensionMapValue, property: string): boolean {
   return Object.hasOwn(map, property);
 }
 
-function optional(
+export function optional(
   map: DidDocumentExtensionMapValue,
   property: string,
 ): DidDocumentExtensionValue | undefined {
   return has(map, property) ? map[property] : undefined;
 }
 
-function didValue(serialized: string): DidValue {
+export function didValue(serialized: string): DidValue {
   if (!serialized.startsWith("did:")) {
     throw bindingFailure();
   }
@@ -226,7 +271,7 @@ function didValue(serialized: string): DidValue {
   });
 }
 
-function extensionProperties(
+export function extensionProperties(
   map: DidDocumentExtensionMapValue,
   reserved: ReadonlySet<string>,
 ): DidDocumentExtensionMapValue {

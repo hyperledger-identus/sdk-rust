@@ -2415,6 +2415,116 @@ debt_status       = "open"
 debt_issue        = 502
 rationale         = ""
 details           = [ "oracle=W3C DID Core 1.0 plus canonical identus-did and the immutable did.document.v1 packet; SDK-TS 8.1.4 is compatibility evidence only", "oracle-revision=W3C Recommendation 2022-07-19; SDK-Rust f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8; SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e", "normalization=Compare exact accepted normalized JSON, typed field distinctions, stable redacted outcomes, and explicit unsupported safe-integer projection rather than donor classes or messages", "deviations=The new projection retains controller, aliases, references, cardinality, endpoints, and extensions the donor loses; method, resolver, DIDComm, custody, and agent behavior remains outside this capability" ]
+
+[[declarations]]
+id          = "did.resolution.typescript.quality.v1"
+capability  = "did.resolution"
+slice       = "Private SDK-TS DID resolution and serialized dereferencing host facade"
+owner       = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue = 599
+risk        = "A host facade can bypass canonical correlation, accept contradictory results, allocate unbounded response text, corrupt JSON numbers, leak DID material, double-free generated resources, or couple target failures back into Rust core."
+targets     = [ "package:identus-did", "package:identus-wasm-did", "package:identus-typescript-sdk", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+vector_ids  = [ "did.resolution.success", "did.resolution.not-found", "did.resolution.deactivated", "did.resolution.invalid-document-id", "did.resolution.invalid-duplicate-member", "did.resolution.invalid-contradictory-state", "did.resolution.dereferencing-success", "did.resolution.dereferencing-not-found", "did.resolution.dereferencing-invalid-state" ]
+limitations = "Private local canary only; no ambient fetch, transport policy, DID method implementation, native non-JSON dereferencing bytes, cache backend, persistence, credentials, DIDComm, agent runtime, React Native, external adoption, support, publication, certification, production use, or mdoc."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Structured options, correlation, closed result branches, projection, immutability, redaction, singleton routing, and exact-once generated ownership can diverge across targets."
+selectors         = [ "openspec/changes/archive/2026-11-17-add-sdk-ts-did-resolution/design.md#Dependency and effect direction" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh package-types"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-typescript-sdk", "runtime:nodejs" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Exercise recursive structured-option rejection, exact/over UTF-8 host-text bounds, correlation, unsafe-number handling, exact-free ownership, redaction, singleton routing, host and observer rejection, abort-before-invocation, and rollback selection in the Node provider harness."
+receipt_kind      = "source"
+receipt           = "source:packages/identus-sdk/tests/provider.test.mjs"
+evidence_revision = "5aff2744b7637471c7b9d8a86aa2498185a8306c"
+recorded_at       = "2026-11-17"
+artifact          = "packages/identus-sdk/tests/provider.test.mjs"
+owner             = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue       = 599
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=One injected host promise is composed between synchronous canonical Rust preparation and correlated parsing while generated ownership is released exactly once", "domain=Resolution and dereferencing options, success, operation error, metadata, content, extensions, provider routing, and host-result resource boundaries", "cases=Positive, negative, recursive-prototype, non-plain-prototype, unsafe-integer, exact/over UTF-8 byte, host rejection, observer rejection, abort, ownership, and rollback cases" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "satisfied"
+risk              = "Arbitrary result bytes, duplicate names, contradictory branches, and hostile metadata/content trees can panic, exhaust resources, bypass correlation, leak diagnostics, or serialize nondeterministically."
+selectors         = [ "openspec/changes/archive/2026-11-17-add-sdk-ts-did-resolution/design.md#Property, fuzz, differential, and resource evidence" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-did.sh smoke did_resolution"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did", "package:identus-wasm-did", "host:linux", "sanitizer:address" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Exercise arbitrary bytes to the 524288-byte ceiling with timeout=5, rss_limit_mb=1024, correlated accepted-input reparse, duplicate-safe parsing, bounded trees, and redacted errors."
+receipt_kind      = "source"
+receipt           = "source:fuzz/fuzz_targets/did_resolution.rs"
+evidence_revision = "f1b9a458adcee5fe0fd354ce649d343ed8a392a5"
+recorded_at       = "2026-11-17"
+artifact          = "fuzz/fuzz_targets/did_resolution.rs"
+owner             = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue       = 599
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "harness=Arbitrary bounded raw JSON enters resolution and dereferencing result parsers and accepted values serialize and reparse deterministically", "corpus=Checked-in success, deactivated, dereferenced, and duplicate-name seeds plus runtime-generated exact/over-limit input; arbitrary mutations explore other result states", "seed=libFuzzer-managed reproducible failures are promoted to checked-in regression cases", "bounds=max_len=524288;timeout=5;rss_limit_mb=1024;smoke=bounded-local", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "satisfied"
+risk              = "Artifact assembly, request preparation, result validation, typed projection, deep freezing, or near-limit JSON can create disproportionate size, latency, or memory regressions."
+selectors         = [ "openspec/changes/archive/2026-11-17-add-sdk-ts-did-resolution/design.md#Property, fuzz, differential, and resource evidence" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-typescript-sdk", "runtime:nodejs" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Measure deterministic web/Node artifact bytes and assembly hash, one Node cold initialization, ordinary and near-limit Node prepare/host/parse p50/p95 after warm-up, projected output bytes, and process RSS without activating support thresholds."
+receipt_kind      = "source"
+receipt           = "source:packages/identus-sdk/tests/measurements.mjs"
+evidence_revision = "808f8922110af12e6f8815dcbc8886b426922ed6"
+recorded_at       = "2026-11-17"
+artifact          = "packages/identus-sdk/tests/measurements.mjs"
+owner             = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue       = 599
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "operation=Build and load the Node artifact, then prepare, execute one deterministic resolution host effect, parse, correlate, project, freeze, and dispose", "fixture=Deterministic ordinary and near-limit DID, DID Document, and DID resolution inputs", "environment=Pinned Nix Node and exact Rust 1.99.1 toolchains with wasm-pack, wasm-bindgen, and the exact npm lock", "statistic=Assembly SHA-256, web/Node artifact bytes, one Node initialization duration, warmed operation p50/p95, projected output bytes, and process RSS", "samples=101 measured operations after 21 warm-up iterations for each ordinary and near-limit operation", "threshold=Measurement-only directional baseline; support budgets remain a separate protected decision" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "The facade can appear internally consistent while diverging from W3C DID Resolution, canonical Rust acceptance, request correlation, stable codes, or applicable SDK-TS journeys."
+selectors         = [ "docs/conformance/cross-language-vector-catalog.toml#did.resolution.success", "docs/conformance/sdk-ts-did-resolution-donor.toml#sdk-ts.did-resolution.castor" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-did", "package:identus-typescript-sdk", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Execute every active did.resolution vector through canonical Rust and each applicable facade target, compare result branches and stable outcomes, and keep every donor source/test disposition closed."
+receipt_kind      = "source"
+receipt           = "source:packages/identus-sdk/tests/resolution-vector-assertions.mjs"
+evidence_revision = "808f8922110af12e6f8815dcbc8886b426922ed6"
+recorded_at       = "2026-11-17"
+artifact          = "packages/identus-sdk/tests/resolution-vector-assertions.mjs"
+owner             = "SDK-Rust DID and TypeScript binding maintainers"
+owner_issue       = 599
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=W3C DID Resolution Candidate Recommendation Draft 2026-08-28 plus canonical identus-did and immutable did.resolution.v1 packet; SDK-TS 8.1.4 is compatibility evidence only", "oracle-revision=W3C CRD 2026-08-28; SDK-Rust d3cdc6719fb040da2753dbfde9c3a784c85dafb2; SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e", "normalization=Compare closed result branch, correlated document identity, typed metadata/content distinctions, stable redacted outcomes, and explicit unsupported projection rather than donor classes or messages", "deviations=Network, method selection, retry, cache backend, timeout, cancellation, and native non-JSON bytes remain platform-owned or explicitly excluded" ]
 [[declarations]]
 id          = "credentials.sd-jwt-vc.legacy-draft03-adapter.quality.v1"
 capability  = "credentials.sd-jwt"

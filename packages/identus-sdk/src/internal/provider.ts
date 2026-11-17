@@ -1,5 +1,9 @@
 import {
   DidError,
+  type DidDereferencingRequestValue,
+  type DidDereferencingOptions,
+  type DidQueryEffects,
+  type DidQueryProvider,
   type DidDocumentValue,
   type DidErrorCode,
   type DidMappingId,
@@ -8,21 +12,41 @@ import {
   type DidProvider,
   type DidProviderOptions,
   type DidProviderRoute,
+  type DidOperationContext,
+  type DidResolutionOptions,
+  type DidResolutionRequestValue,
+  type DidResolutionResultValue,
+  type DidUrlDereferencingResultValue,
   type DidUrlValue,
   type DidValue,
 } from "../public.js";
 import { projectDidDocument as projectDidDocumentValue } from "./document-projection.js";
+import {
+  projectDereferencingOptions,
+  projectDidDereferencingResult,
+  projectDidResolutionResult,
+  projectResolutionOptions,
+} from "./resolution-projection.js";
+import {
+  serializeDereferencingOptions,
+  serializeResolutionOptions,
+} from "./resolution-options.js";
 import type {
   RawDidBinding,
+  RawDidDereferencingRequestView,
+  RawDidDereferencingResultView,
   RawDidDocumentView,
   RawDidParseError,
+  RawDidResolutionRequestView,
+  RawDidResolutionResultView,
   RawDidUrlView,
   RawDidView,
   RawOwnedValue,
 } from "./raw-binding.js";
 
-const BINDING_API_VERSION = 2;
+const BINDING_API_VERSION = 3;
 const MAX_OBSERVED_DURATION_MS = 2_147_483_647;
+const MAX_DID_RESOLUTION_RESULT_BYTES = 512 * 1_024;
 
 interface ProviderInternals {
   readonly now?: () => number;
@@ -101,6 +125,74 @@ function projectDidDocument(raw: RawDidDocumentView): DidDocumentValue {
   }
 }
 
+function projectResolutionRequest(
+  raw: RawDidResolutionRequestView,
+  signal: AbortSignal | undefined,
+): DidResolutionRequestValue {
+  try {
+    return Object.freeze({
+      did: Object.freeze({
+        serialized: requireString(raw.did),
+        method: requireString(raw.method),
+        methodSpecificId: requireString(raw.methodSpecificId),
+      }),
+      options: projectResolutionOptions(requireString(raw.options)),
+      signal,
+    });
+  } finally {
+    dispose(raw);
+  }
+}
+
+function projectDereferencingRequest(
+  raw: RawDidDereferencingRequestView,
+  signal: AbortSignal | undefined,
+): DidDereferencingRequestValue {
+  try {
+    return Object.freeze({
+      didUrl: Object.freeze({
+        serialized: requireString(raw.didUrl),
+        did: requireString(raw.did),
+        method: requireString(raw.method),
+        methodSpecificId: requireString(raw.methodSpecificId),
+        path: requireString(raw.path),
+        query: requireOptionalString(raw.query),
+        fragment: requireOptionalString(raw.fragment),
+      }),
+      options: projectDereferencingOptions(requireString(raw.options)),
+      signal,
+    });
+  } finally {
+    dispose(raw);
+  }
+}
+
+function projectResolutionResult(
+  raw: RawDidResolutionResultView,
+): DidResolutionResultValue {
+  try {
+    return projectDidResolutionResult(
+      requireString(raw.serialized),
+      requireString(raw.kind),
+    );
+  } finally {
+    dispose(raw);
+  }
+}
+
+function projectDereferencingResult(
+  raw: RawDidDereferencingResultView,
+): DidUrlDereferencingResultValue {
+  try {
+    return projectDidDereferencingResult(
+      requireString(raw.serialized),
+      requireString(raw.kind),
+    );
+  } finally {
+    dispose(raw);
+  }
+}
+
 function readErrorCode(raw: RawDidParseError): DidErrorCode {
   let code: unknown;
   try {
@@ -112,6 +204,10 @@ function readErrorCode(raw: RawDidParseError): DidErrorCode {
     code === "did.invalid_did"
     || code === "did.invalid_did_url"
     || code === "did.invalid_document"
+    || code === "did.invalid_resolution_options"
+    || code === "did.invalid_dereferencing_options"
+    || code === "did.invalid_resolution_result"
+    || code === "did.invalid_dereferencing_result"
     || code === "adapter.unsupported_lossy_mapping"
   ) {
     return code;
@@ -162,6 +258,9 @@ function successMapping(operation: DidOperation): DidMappingId {
       return "did-url.value.typescript.legacy-v1";
     case "did-document.parse":
       return "did.document.typescript.legacy-v1";
+    case "did.resolve":
+    case "did-url.dereference":
+      return "did.resolution.typescript.host-v1";
   }
 }
 
@@ -175,12 +274,69 @@ function errorMapping(code: DidErrorCode): DidMappingId {
       return "did.document.typescript.legacy-v1";
     case "adapter.unsupported_lossy_mapping":
       return "did.document.typescript.legacy-v1";
+    case "did.invalid_resolution_options":
+    case "did.invalid_dereferencing_options":
+    case "did.invalid_resolution_result":
+    case "did.invalid_dereferencing_result":
+      return "did.resolution.typescript.host-v1";
+    case "did.resolution_host_failure":
+    case "did.dereferencing_host_failure":
+    case "did.resolution_provider_unavailable":
+    case "did.dereferencing_provider_unavailable":
+    case "did.operation_aborted":
+    case "did.observer_failure":
+    case "adapter.binding_contract":
+      return "did.resolution.typescript.host-v1";
   }
 }
 
 function requireInput(value: string): void {
   if (typeof value !== "string") {
     throw new TypeError("DID input must be a string");
+  }
+}
+
+function hasBoundedUtf8Length(value: string): boolean {
+  let bytes = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit <= 0x7f) {
+      bytes += 1;
+    } else if (codeUnit <= 0x7ff) {
+      bytes += 2;
+    } else if (
+      codeUnit >= 0xd800
+      && codeUnit <= 0xdbff
+      && index + 1 < value.length
+    ) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        bytes += 4;
+        index += 1;
+      } else {
+        bytes += 3;
+      }
+    } else {
+      // Unpaired surrogates are encoded as the three-byte replacement
+      // character by the JavaScript/WASM string boundary.
+      bytes += 3;
+    }
+    if (bytes > MAX_DID_RESOLUTION_RESULT_BYTES) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function requireBoundedHostResult(
+  value: string,
+  errorCode: Extract<
+    DidErrorCode,
+    "did.invalid_resolution_result" | "did.invalid_dereferencing_result"
+  >,
+): void {
+  if (!hasBoundedUtf8Length(value)) {
+    throw new DidError(errorCode);
   }
 }
 
@@ -242,6 +398,186 @@ export function createRustDidProvider(
         "did-document.parse",
         () => projectDidDocument(binding.parseDidDocument(value)),
       );
+    },
+  });
+}
+
+function strictNotify(
+  observer: DidProviderOptions["observer"],
+  observation: DidObservation,
+): void {
+  if (observer === undefined) {
+    return;
+  }
+  try {
+    observer(Object.freeze(observation));
+  } catch {
+    throw new DidError("did.observer_failure");
+  }
+}
+
+function isAborted(signal: AbortSignal | undefined): boolean {
+  if (signal === undefined) {
+    return false;
+  }
+  try {
+    return signal.aborted === true;
+  } catch {
+    throw new DidError("adapter.binding_contract");
+  }
+}
+
+function mapQueryBindingError(binding: RawDidBinding, error: unknown): DidError {
+  const mapped = mappedError(binding, error);
+  return mapped instanceof DidError
+    ? mapped
+    : new DidError("adapter.binding_contract");
+}
+
+export function createRustDidQueryProvider(
+  binding: RawDidBinding,
+  route: Exclude<DidProviderRoute, "legacy">,
+  effects: DidQueryEffects,
+  options: DidProviderOptions = {},
+  internals: ProviderInternals = {},
+): DidQueryProvider {
+  const base = createRustDidProvider(binding, route, options, internals);
+  const now = internals.now ?? Date.now;
+
+  async function runQuery<T>(
+    operation: Extract<DidOperation, "did.resolve" | "did-url.dereference">,
+    invoke: () => Promise<T>,
+  ): Promise<T> {
+    const start = now();
+    let result: T;
+    try {
+      result = await invoke();
+    } catch (error) {
+      const mapped = error instanceof DidError
+        ? error
+        : new DidError("adapter.binding_contract");
+      strictNotify(options.observer, {
+        operation,
+        route,
+        result: "error",
+        mappingId: successMapping(operation),
+        errorCode: mapped.code,
+        durationMs: boundedDuration(start, now()),
+      });
+      throw mapped;
+    }
+    strictNotify(options.observer, {
+      operation,
+      route,
+      result: "success",
+      mappingId: successMapping(operation),
+      errorCode: undefined,
+      durationMs: boundedDuration(start, now()),
+    });
+    return result;
+  }
+
+  return Object.freeze({
+    ...base,
+    resolveDid(
+      did: string,
+      resolutionOptions?: DidResolutionOptions,
+      context?: DidOperationContext,
+    ) {
+      requireInput(did);
+      return runQuery("did.resolve", async () => {
+        if (isAborted(context?.signal)) {
+          throw new DidError("did.operation_aborted");
+        }
+        if (effects.resolver === undefined) {
+          throw new DidError("did.resolution_provider_unavailable");
+        }
+        let serializedOptions: string;
+        try {
+          serializedOptions = serializeResolutionOptions(resolutionOptions);
+        } catch {
+          throw new DidError("did.invalid_resolution_options");
+        }
+        let request: DidResolutionRequestValue;
+        try {
+          request = projectResolutionRequest(
+            binding.prepareDidResolution(
+              did,
+              serializedOptions,
+            ),
+            context?.signal,
+          );
+        } catch (error) {
+          throw mapQueryBindingError(binding, error);
+        }
+        let raw: string;
+        try {
+          raw = await effects.resolver.resolve(request);
+        } catch {
+          throw new DidError("did.resolution_host_failure");
+        }
+        if (typeof raw !== "string") {
+          throw new DidError("did.resolution_host_failure");
+        }
+        requireBoundedHostResult(raw, "did.invalid_resolution_result");
+        try {
+          return projectResolutionResult(
+            binding.parseDidResolutionResult(request.did.serialized, raw),
+          );
+        } catch (error) {
+          throw mapQueryBindingError(binding, error);
+        }
+      });
+    },
+    dereferenceDidUrl(
+      didUrl: string,
+      dereferencingOptions?: DidDereferencingOptions,
+      context?: DidOperationContext,
+    ) {
+      requireInput(didUrl);
+      return runQuery("did-url.dereference", async () => {
+        if (isAborted(context?.signal)) {
+          throw new DidError("did.operation_aborted");
+        }
+        if (effects.dereferencer === undefined) {
+          throw new DidError("did.dereferencing_provider_unavailable");
+        }
+        let serializedOptions: string;
+        try {
+          serializedOptions = serializeDereferencingOptions(dereferencingOptions);
+        } catch {
+          throw new DidError("did.invalid_dereferencing_options");
+        }
+        let request: DidDereferencingRequestValue;
+        try {
+          request = projectDereferencingRequest(
+            binding.prepareDidDereferencing(
+              didUrl,
+              serializedOptions,
+            ),
+            context?.signal,
+          );
+        } catch (error) {
+          throw mapQueryBindingError(binding, error);
+        }
+        let raw: string;
+        try {
+          raw = await effects.dereferencer.dereference(request);
+        } catch {
+          throw new DidError("did.dereferencing_host_failure");
+        }
+        if (typeof raw !== "string") {
+          throw new DidError("did.dereferencing_host_failure");
+        }
+        requireBoundedHostResult(raw, "did.invalid_dereferencing_result");
+        try {
+          return projectDereferencingResult(
+            binding.parseDidDereferencingResult(raw),
+          );
+        } catch (error) {
+          throw mapQueryBindingError(binding, error);
+        }
+      });
     },
   });
 }

@@ -7,7 +7,7 @@ mode=${1:-smoke}
 selection=${2:-all}
 
 usage() {
-  printf 'Usage: %s {replay|smoke|soak} {did|did_url|did_document|all}\n' "$0" >&2
+  printf 'Usage: %s {replay|smoke|soak} {did|did_url|did_document|did_resolution|all}\n' "$0" >&2
 }
 
 case "$mode" in
@@ -22,7 +22,8 @@ case "$selection" in
   did) targets=(did) ;;
   did_url) targets=(did_url) ;;
   did_document) targets=(did_document) ;;
-  all) targets=(did did_url did_document) ;;
+  did_resolution) targets=(did_resolution) ;;
+  all) targets=(did did_url did_document did_resolution) ;;
   *)
     usage
     exit 2
@@ -58,10 +59,16 @@ for target in "${targets[@]}"; do
   cp -R "$source_corpus" "$run_corpus"
   mkdir -p "$artifact_dir"
 
-  if [[ "$target" == did_document ]]; then
+  if [[ "$target" == did_document || "$target" == did_resolution ]]; then
     exact_seed="$run_corpus/exact-limit"
-    exact_prefix='{"id":"did:example:123"}'
-    padding_bytes=$((262144 - ${#exact_prefix}))
+    if [[ "$target" == did_document ]]; then
+      exact_prefix='{"id":"did:example:123"}'
+      exact_bytes=262144
+    else
+      exact_prefix='{"didResolutionMetadata":{},"didDocument":{"id":"did:example:123"},"didDocumentMetadata":{}}'
+      exact_bytes=524288
+    fi
+    padding_bytes=$((exact_bytes - ${#exact_prefix}))
     printf '%s' "$exact_prefix" >"$exact_seed"
     dd if=/dev/zero bs="$padding_bytes" count=1 2>/dev/null | LC_ALL=C tr '\000' ' ' >>"$exact_seed"
   fi
@@ -69,6 +76,8 @@ for target in "${targets[@]}"; do
   common=(-max_len=139264)
   if [[ "$target" == did_document ]]; then
     common=(-max_len=262144)
+  elif [[ "$target" == did_resolution ]]; then
+    common=(-max_len=524288)
   fi
 
   common+=(

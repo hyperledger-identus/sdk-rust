@@ -11,6 +11,7 @@ import { chromium } from "playwright-core";
 
 import { loadVectors } from "./vector-loader.mjs";
 import { loadDocumentVectors } from "./document-vector-loader.mjs";
+import { loadResolutionVectors } from "./resolution-vector-loader.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -61,23 +62,29 @@ try {
   browser = await chromium.launch({ executablePath: browserExecutable(), headless: true });
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${address.port}/`);
-  const result = await page.evaluate(async ({ didVectors, documentVectors }) => {
-    const { createDidProvider } = await import("/dist/browser.js");
+  const result = await page.evaluate(async ({ didVectors, documentVectors, resolutionVectors }) => {
+    const { createDidProvider, createDidQueryProvider } = await import("/dist/browser.js");
     const { assertAllVectors } = await import("/tests/vector-assertions.mjs");
     const { assertAllDocumentVectors } = await import("/tests/document-vector-assertions.mjs");
+    const { assertAllResolutionVectors } = await import("/tests/resolution-vector-assertions.mjs");
     const provider = await createDidProvider();
     try {
       assertAllVectors(provider, didVectors);
       assertAllDocumentVectors(provider, documentVectors);
-      return { status: "success", didCount: didVectors.length, documentCount: documentVectors.length };
+      await assertAllResolutionVectors(createDidQueryProvider, resolutionVectors);
+      return { status: "success", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length };
     } catch {
-      return { status: "failure", didCount: didVectors.length, documentCount: documentVectors.length };
+      return { status: "failure", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length };
     }
-  }, { didVectors: await loadVectors(), documentVectors: await loadDocumentVectors() });
-  if (result.didCount !== 22 || result.documentCount < 1 || result.status !== "success") {
-    throw new Error("browser DID and DID Document vector canary failed");
+  }, {
+    didVectors: await loadVectors(),
+    documentVectors: await loadDocumentVectors(),
+    resolutionVectors: await loadResolutionVectors(),
+  });
+  if (result.didCount !== 22 || result.documentCount < 1 || result.resolutionCount < 1 || result.status !== "success") {
+    throw new Error("browser DID, DID Document, and DID Resolution vector canary failed");
   }
-  process.stdout.write(`browser DID vectors: ${result.didCount} passed; DID Document vectors: ${result.documentCount} passed\n`);
+  process.stdout.write(`browser DID vectors: ${result.didCount} passed; DID Document vectors: ${result.documentCount} passed; DID Resolution vectors: ${result.resolutionCount} passed\n`);
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));

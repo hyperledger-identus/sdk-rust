@@ -56,6 +56,11 @@ calling it unbounded SDK behavior.
   transports and generic deserializers can allocate before typed SDK entry.
   Native constructors arm one iterative cleanup boundary after taking ownership,
   and inline context objects are bounded before entering the domain model.
+- The private TypeScript resolution host owns response streaming and raw-text
+  preallocation, applies transport/security/cancellation policy, and stops
+  reading at the canonical result ceiling; the facade rechecks raw-text bytes
+  before bounded duplicate-safe Rust parsing and never supplies ambient fetch,
+  automatic retry/fallback, or native non-JSON coercion.
 - UniFFI and WASM DID facades delegate to bounded DID parsing after their
   language bridges allocate input.
 - Hash/sign/verify primitives and injected resolver, registrar, verifier,

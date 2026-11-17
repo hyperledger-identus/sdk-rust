@@ -51,7 +51,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `did.resolution.typescript-migration.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade prepares structured resolution requests in Rust, invokes one injected asynchronous TypeScript host effect returning bounded raw JSON text, and correlates, validates, projects, and freezes resolution or serialized dereferencing results across browser, Node.js, and React web targets.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade prepares structured resolution requests in Rust, invokes one injected asynchronous TypeScript host effect returning bounded raw JSON text, and correlates, validates, projects, and freezes resolution or serialized dereferencing results across browser, Node.js, and React web targets.
 
 ### `did.syntax.long-form-resource-policy.v1`
 

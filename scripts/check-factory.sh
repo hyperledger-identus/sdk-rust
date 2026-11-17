@@ -127,6 +127,7 @@ required_files=(
   docs/adr/0172-version-didcomm-engine-and-application-protocols-separately.md
   docs/adr/0173-sequence-a1-through-versioned-evidence-contracts.md
   docs/adr/0174-separate-peer-and-prism-did-method-ownership.md
+  docs/adr/0200-raise-sdk-msrv-to-rust-199.md
   nix/checks/gates.toml
   nix/checks/rust-gates.nix
   nix/apps/crypto-candidate.nix

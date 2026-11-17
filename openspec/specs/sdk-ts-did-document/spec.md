@@ -1,7 +1,15 @@
 # sdk-ts-did-document Specification
 
 ## Purpose
-TBD - created by archiving change add-sdk-ts-did-document. Update Purpose after archive.
+
+Define the private, additive SDK-TS DID Document facade backed by the bounded
+canonical Rust model. The contract covers immutable capability-oriented
+TypeScript projection, lossless normalized JSON, stable redacted failures,
+shared browser/Node/React evidence, CI isolation, and rollback. It excludes
+DID resolution, dereferencing, registration, method effects, networking,
+storage, key custody, credentials, agent orchestration, React Native/native
+bindings, publication, stable support, production claims, and mdoc.
+
 ## Requirements
 ### Requirement: Raw documents are validated by Rust before projection
 

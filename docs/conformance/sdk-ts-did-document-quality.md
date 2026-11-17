@@ -8,13 +8,17 @@ canonical Rust parser for browser, Node.js, and React Web. It does not claim
 resolution, dereferencing, registration, method effects, React Native,
 publication, support, external SDK-TS adoption, production readiness, or mdoc.
 
-The implementation target receipts are bound to committed source
-`6ce12c88cc45d189efef9aa5d55f9dadfbf45dd7`. The later integration validation
-is bound to source tree
-`d1562968c8d34f26dbe07f6ad208a3a29a292be6`, committed after a signature-only
-history repair as `ddafbbb5ccc5df7a8be2d5671967e8e40caedfa0`; it adds only harness
-hardening, fixture-source inclusion, and text-policy normalization. Evidence is
-not silently relabeled between those revisions.
+The fresh post-rebase target and full integration validation are bound to the
+reachable signed commit
+`2422380562521cff2f1fc6794519d8d621ca500b` and source tree
+`21f66d01a475af37dcdc891ccb8914769920e234`. The subsequent signed commit
+`184539fc42ac064a65ad9d4e21a9083699d0146d` changes only the consumer-change
+record lifecycle/PR binding and adds the deferred-acceptance sidecar; it does
+not change Rust, WASM, TypeScript, vectors, fixtures, target harnesses, or build
+configuration. Earlier pre-rebase target hashes below are retained only as
+historical deterministic packet evidence; the successful target assertions
+and full Rust 1.99.1 gate were rerun from the reachable source above and are not
+silently relabeled from the old history.
 
 - packet: `did.document.v1`, 12 cases, SHA-256
   `dcf62523885b42f780a4d57b1c6de7084a95ad12c77ed5be65ddd97d7ebc1ebb`
@@ -53,10 +57,11 @@ The following local gates passed:
 - package `npm test`: 24 tests;
 - `node scripts/tests/binding-target-isolation.mjs`: 15 mutation/isolation tests;
 - `python3 scripts/tests/cross-language-vectors.py`;
-- `./scripts/factory check`: 126 OpenSpec/spec records, 67 vectors, and 84
+- `./scripts/factory check`: 126 OpenSpec/spec records, 69 vectors, and 88
   obligations at the recorded integration revision;
 - `nix flake check`: every compatible `aarch64-darwin` check passed, including
-  the Rust source contract and etalon build.
+  the Rust 1.99.1 source contract, etalon build, 1,200 workspace tests, and the
+  isolated binding target contracts.
 
 The operation/branch inventory covers raw JSON entering Rust before TypeScript
 parsing; success and both stable document failures; normalized serialization;

@@ -27,7 +27,7 @@ State: `active`. Class: `security` / `security`. Target: `unreleased`. The same 
 
 ### `did.document.typescript-migration.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade validates raw generic DID Document JSON in canonical Rust and projects deterministic normalized JSON plus strict frozen capability-named TypeScript values across isolated browser, Node.js, and React web targets.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade validates raw generic DID Document JSON in canonical Rust and projects deterministic normalized JSON plus strict frozen capability-named TypeScript values across isolated browser, Node.js, and React web targets.
 
 ### `did.jwk.profile.v1`
 

@@ -35,8 +35,8 @@ Hand-written Nix modules SHALL NOT duplicate named Rust compatibility gates.
 ### Requirement: Reproducible development environment
 
 The repository SHALL provide a self-contained Nix flake whose default devshell
-uses the immutable NeoPRISM-etalon baseline: Rust nightly `2026-03-18`,
-rust-overlay `f17186f52e82ec5cf40920b58eac63b78692ac7c` and nixpkgs
+uses the immutable SDK baseline: Rust `1.99.1`, stable rust-overlay
+`ec07af44be2e0ce4e1a17e00a97d44232607c1ec` and nixpkgs
 `c27cdad491a991b11ed731760aa2ef8db0cb0410`. The referenced nixpkgs SHALL
 supply Nix package version `2.34.8`. The shell SHALL retain the SDK's C, Cargo,
 Nix hygiene and file-hygiene tooling.
@@ -45,8 +45,16 @@ Nix hygiene and file-hygiene tooling.
 
 - **WHEN** a contributor runs `nix develop` from the repository root
 - **THEN** the shell SHALL provide `cargo`, `rustc`, `rustfmt`,
-  `rust-analyzer`, and `clippy` from Rust nightly `2026-03-18`
+  `rust-analyzer`, and `clippy` from Rust `1.99.1`
 - **AND** the toolchain SHALL include the `wasm32-unknown-unknown` target
+
+#### Scenario: Fuzz devshell provides the pinned sanitizer toolchain
+
+- **WHEN** a contributor runs `nix develop .#fuzz`
+- **THEN** the shell SHALL provide nightly `2026-10-15`
+  (`rustc 1.101.0-nightly`) for sanitizer-only instrumentation
+- **AND** ordinary SDK compatibility evidence SHALL remain bound to stable
+  Rust `1.99.1`
 
 #### Scenario: Default devshell provides the pinned Nix package
 

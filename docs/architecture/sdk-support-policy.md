@@ -36,8 +36,10 @@ primary development compiler, and compatibility etalon for the unpublished
 providers even though all three resolve to the same exact corrected toolchain.
 The published `0.1.0-rc.1` artifacts retain their historical Rust 1.89.0 floor.
 
-Nightly `2026-03-18` is retained only as the explicitly named sanitizer fuzz
-toolchain. It is not a supported SDK compiler or compatibility etalon.
+Nightly `2026-10-15` (`rustc 1.101.0-nightly`) is retained only as the
+explicitly named sanitizer fuzz toolchain. It is newer than the Rust 1.99.1
+workspace floor so Cargo can build the same graph under sanitizer
+instrumentation. It is not a supported SDK compiler or compatibility etalon.
 
 [ADR 0200](../adr/0200-raise-sdk-msrv-to-rust-199.md) selects the current
 compiler matrix and prospectively supersedes ADR 0133 for the `0.2.x` source

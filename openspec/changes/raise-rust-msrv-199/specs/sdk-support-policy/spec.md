@@ -1,5 +1,28 @@
 ## MODIFIED Requirements
 
+### Requirement: Supported feature surfaces are isolated
+
+The target policy SHALL enumerate the default, minimal and opt-in feature
+surfaces that are required to compile or test. Checks SHALL exercise compatible
+surfaces independently rather than relying only on Cargo feature unification.
+The `crypto-minimal` surface SHALL include both strict Clippy and tests with no
+default features. During the temporary active-development phase, exhaustive
+feature permutations SHALL remain available in the active native weekly/manual
+`slow` workflow on Rust 1.99.1 and through exact local reproduction rather than
+through an independently lower compiler lane.
+
+#### Scenario: Minimal crypto surface regresses
+
+- **WHEN** `identus-crypto` no longer compiles, lints or runs its eligible tests
+  without default features
+- **THEN** its isolated minimal-feature gate fails
+
+#### Scenario: Entropy feature surface regresses
+
+- **WHEN** the empty, deterministic or system-random entropy feature surface
+  fails independently
+- **THEN** the corresponding feature-matrix gate fails
+
 ### Requirement: Release-candidate compiler and CI lanes
 
 The SDK SHALL declare exact stable Rust 1.99.1 as the package MSRV, pinned

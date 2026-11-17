@@ -15,8 +15,9 @@ The handbook is intentionally explicit about what has **not** been proven.
   in-memory and compile-target evidence, but no SDK-owned Cardano source,
   durable store, hosted service, production QoS threshold, or downstream
   replacement claim.
-- Rust 1.89.0 is the `0.1.x` release MSRV; Rust 1.98.1 remains the primary and
-  compatibility-etalon compiler.
+- Published `0.1.x` artifacts retain their historical Rust 1.89.0 floor. The
+  unpublished `0.2.x` source line requires exact Rust 1.99.1 for MSRV, primary,
+  candidate-preparation, and compatibility-etalon evidence.
 - WASM, iOS, and Android cryptography evidence is currently compile-oriented;
   it is not a blanket browser/device/runtime support claim.
 - Experimental DID language-binding evidence does not automatically support

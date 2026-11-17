@@ -4,8 +4,8 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-11-10`
-- Declaration count: `20`
+- Evidence evaluated: `2026-11-17`
+- Declaration count: `21`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -904,3 +904,39 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `differential`
 
 - Rationale: No independent implementation defines this repository's exact receipt, archive, branch, and protected-squash policy; deterministic mutation tests are the authoritative comparison surface.
+
+## `factory.rust-1-99-compiler-floor.quality.v1`
+
+- Capability: `factory.operations`
+- Slice: Exact Rust 1.99.1 source and candidate compiler contract
+- Owner: SDK-Rust factory and release maintainers (issue #596)
+- Risk: Toolchain, Cargo metadata, candidate policy, generated fixtures, or public documentation can drift and silently admit an older compiler or rewrite historical release evidence.
+- Targets: `repository:sdk-rust`, `host:rust`, `consumer:sdk-rust-adopters`
+- Vector IDs: `2` local catalog entries
+- Limitations: This declaration proves source-policy consistency and compiler compatibility for the unpublished 0.2.x line; it does not publish crates, certify runtimes, or relabel historical 0.1.x evidence.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #596 |
+| `fuzz` | `not-applicable` | `none` | `not-applicable` | `not-applicable` | #596 |
+| `benchmark` | `not-applicable` | `none` | `not-applicable` | `not-applicable` | #596 |
+| `differential` | `not-applicable` | `none` | `not-applicable` | `not-applicable` | #596 |
+
+### `property`
+
+- Command: `python3 scripts/tests/support-policy.py && python3 scripts/tests/constraints.py && python3 scripts/tests/release-candidates.py`
+- Budget: Mutate MSRV, primary, etalon, candidate line, overlay source, constraints, support text, fixtures, and historical evidence so every inconsistent state fails closed.
+- Receipt: `source:scripts/tests/support-policy.py`
+- Evidence revision: `8cb46391c01840ec4092dae0a62b0e4d0367fb12`
+
+### `fuzz`
+
+- Rationale: The contract consumes closed version and path fields; exhaustive semantic mutations provide stronger and more reproducible coverage than byte fuzzing.
+
+### `benchmark`
+
+- Rationale: The ordinary factory gate already bounds the small closed policy surface; no consumer performance contract or optimization decision exists.
+
+### `differential`
+
+- Rationale: Exact local policy, target builds, and named downstream compiler inspection are authoritative; no independent implementation defines this repository contract.

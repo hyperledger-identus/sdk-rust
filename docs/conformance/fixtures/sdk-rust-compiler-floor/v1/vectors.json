@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "packetId": "factory.operations.rust-1-99-compiler-floor.v1",
+  "capability": "factory.operations",
+  "cases": [
+    {
+      "id": "factory.operations.rust-1-99-compiler-floor.accepted",
+      "operation": "sdk.compiler-floor.evaluate",
+      "input": {
+        "literal": "1.99.1"
+      },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "serialized": "1.99.1"
+        }
+      }
+    },
+    {
+      "id": "factory.operations.rust-1-98-compiler-floor.rejected",
+      "operation": "sdk.compiler-floor.evaluate",
+      "input": {
+        "literal": "1.98.1"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "sdk.unsupported_rust_version",
+        "redacted": true,
+        "fields": {}
+      }
+    }
+  ]
+}

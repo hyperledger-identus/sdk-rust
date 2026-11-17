@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "sdk-support-policy"
+requirement      = "Release-candidate compiler and CI lanes"
+canonical_sha256 = "7d082647c11174c368daf0a86a9575eefeb5b72c28fe0138d7fb539866b432fb"
+reason           = "Replace the 0.1/Rust 1.89/1.98.1 contract with the sponsor-directed 0.2/Rust 1.99.1 contract while preserving the current target/profile/CI boundaries and immutable historical evidence."

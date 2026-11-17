@@ -1,0 +1,677 @@
+schema_version   = 2
+milestone_id     = "TS1"
+milestone_number = 7
+milestone_url    = "https://github.com/hyperledger-identus/sdk-rust/milestone/7"
+title            = "SDK-Rust/SDK-TS capability parity and conformance"
+program_issue    = 502
+definition_issue = 594
+status           = "baseline"
+snapshot_date    = "2026-11-07"
+
+[source]
+inventory  = "docs/architecture/identus-platform-ts-capabilities.toml"
+repository = "https://github.com/hyperledger-identus/sdk-ts"
+revision   = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+package    = "@hyperledger/identus-sdk"
+version    = "8.1.4"
+
+[delivery]
+mode                   = "local-first-capability-trains"
+target_changed_loc_min = 5000
+target_changed_loc_max = 10000
+target_is_merge_gate   = false
+excluded_loc           = [ "generated", "vendored", "lockfiles", "evidence-artifacts" ]
+required_contents      = [ "implementation", "adapters", "vectors", "migration", "documentation", "tests" ]
+split_conditions       = [ "independent-ownership", "security-or-release-authority", "independent-rollback", "unsafe-review-size" ]
+checkpoint_policy      = "signed-reviewable-commits-with-targeted-local-gates"
+candidate_policy       = "complete-applicable-local-gate-before-push"
+hosted_ci_policy       = "mandatory-final-confirmation"
+
+[vocabulary]
+relations                  = [ "semantic-equivalent", "compatible-adapter", "platform-owned", "intentionally-different", "deferred", "retired" ]
+states                     = [ "delivered", "partial", "blocked", "excluded", "not-applicable" ]
+dimensions                 = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+targets                    = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states              = [ "delivered", "partial", "blocked", "excluded", "not-applicable" ]
+legacy_public_names        = [ "apollo", "castor", "mercury", "pluto", "pollux", "edge-agent" ]
+donor_test_dispositions    = [ "shared", "adapted", "platform-owned", "superseded", "excluded" ]
+rust_evidence_dispositions = [ "rust-addition", "rust-deviation" ]
+
+[ci]
+core_job             = "core-rust"
+protected_status     = "fast"
+policy_constraint    = "SDK-LIM-009"
+impact_job           = "binding-impact-plan"
+target_jobs          = [ "target-browser", "target-nodejs", "target-react-web", "target-react-native", "target-package-types" ]
+impact_inputs        = [ "exported-api-fingerprint", "binding-schema-fingerprint", "transitive-bound-crates", "relevant-lockfiles", "generated-mappings", "package-metadata", "target-contracts", "changed-paths" ]
+unknown_impact       = "select-all-target-jobs"
+selected_failure     = "preserve-core-result-and-fail-fast-aggregator"
+selected_terminal    = "only-success-satisfies-selected-job; failure-cancelled-skipped-timed-out-or-missing-blocks"
+unselected_target    = "machine-readable-inapplicable-receipt-without-target-toolchain"
+fail_fast            = false
+dependency_direction = "bindings-and-platform-adapters-depend-inward-on-portable-core-only"
+
+[[target]]
+id               = "browser"
+state            = "target"
+runtime_matrix   = [ "real Chromium", "real Firefox", "supported browser versions remain unselected" ]
+binding          = "wasm-bindgen WASM over portable Rust crates"
+artifact         = "browser ESM WASM package"
+module_format    = "ESM"
+loader           = "browser package export with bundler and direct-module fixtures"
+host_ports       = [ "fetch", "storage", "time", "entropy", "custody", "lifecycle" ]
+consumer_fixture = "plain browser and client React application"
+support_tier     = "target-not-supported"
+ci_job           = "target-browser"
+success_evidence = [ "wasm build", "package import", "real-browser E2E", "bundle budget", "rollback" ]
+limitations      = [ "SDK-LIM-002", "SDK-LIM-003" ]
+non_claims       = [ "current runtime certification", "publication", "default route" ]
+
+[[target]]
+id               = "nodejs"
+state            = "target"
+runtime_matrix   = [ "supported Node.js versions remain unselected", "ESM and CommonJS consumers" ]
+binding          = "Node-compatible WASM over portable Rust crates"
+artifact         = "Node.js WASM package entry"
+module_format    = "ESM and CommonJS compatibility entries"
+loader           = "Node package exports with worker, filesystem, and WebCrypto policy"
+host_ports       = [ "fetch", "filesystem", "storage", "time", "entropy", "custody", "workers", "lifecycle" ]
+consumer_fixture = "plain Node.js application"
+support_tier     = "target-not-supported"
+ci_job           = "target-nodejs"
+success_evidence = [ "wasm build", "package import", "Node E2E", "module-format matrix", "rollback" ]
+limitations      = [ "SDK-LIM-002" ]
+non_claims       = [ "browser ESM equivalence", "current runtime certification", "publication" ]
+
+[[target]]
+id               = "react-web"
+state            = "target"
+runtime_matrix   = [ "client React over browser target", "SSR and hydration additionally require the Node.js target" ]
+binding          = "browser WASM for client execution; Node.js contract for SSR"
+artifact         = "shared browser package plus React consumer fixture"
+module_format    = "consumer-bundler ESM"
+loader           = "React provider or hook integration without domain-logic duplication"
+host_ports       = [ "browser ports", "React lifecycle", "SSR boundary" ]
+consumer_fixture = "client and SSR/hydration React applications"
+support_tier     = "target-not-supported"
+ci_job           = "target-react-web"
+success_evidence = [ "client E2E", "bundler matrix", "SSR boundary E2E", "hydration proof", "rollback" ]
+limitations      = [ "SDK-LIM-002", "SDK-LIM-003" ]
+non_claims       = [ "a second Rust artifact", "React Native support", "current runtime certification" ]
+
+[[target]]
+id               = "react-native"
+state            = "blocked"
+runtime_matrix   = [ "iOS New Architecture", "Android New Architecture", "Hermes or other engines remain qualification inputs" ]
+binding          = "ADR 0163 New Architecture/TurboModule package over a qualified native Rust binding"
+artifact         = "separate iOS and Android native artifacts behind one capability-oriented TypeScript contract"
+module_format    = "React Native package with generated native interfaces"
+loader           = "TurboModule registration and lifecycle"
+host_ports       = [ "native storage", "native networking", "secure custody", "time", "entropy", "lifecycle" ]
+consumer_fixture = "minimal iOS and Android React Native applications"
+support_tier     = "blocked-not-supported"
+ci_job           = "target-react-native"
+success_evidence = [ "qualified native binding", "iOS E2E", "Android E2E", "engine matrix", "lifecycle and memory proof", "rollback" ]
+limitations      = [ "SDK-LIM-002", "ADR-0163", "issue-223" ]
+non_claims       = [ "browser WASM reuse", "current native binding support", "publication" ]
+
+[[success_criterion]]
+id                    = "SC-01"
+title                 = "Capability-oriented TypeScript contract"
+pass_condition        = "New public exports, package paths, and primary documentation use capability or standards names and contain none of the closed legacy-public-name vocabulary."
+evidence              = [ "public API and package-export snapshot", "case-insensitive legacy-name guard", "migration-only exception inventory" ]
+applicability         = "all new Rust-backed TypeScript public surfaces"
+not_applicable_policy = "No exemption for new public names; donor-history and private legacy providers are outside the public scan."
+non_claims            = [ "identical Rust and TypeScript API shapes", "removal of private legacy providers" ]
+
+[[success_criterion]]
+id                    = "SC-02"
+title                 = "Target-specific build and runtime proof"
+pass_condition        = "Every claimed target has delivered build, artifact, loader, package, consumer E2E, resource, budget, and rollback evidence for its pinned runtime matrix."
+evidence              = [ "target record", "exact artifact identity", "consumer fixture", "accepted target budget", "rollback rehearsal" ]
+applicability         = "each applicable target of a delivered capability"
+not_applicable_policy = "Requires owner, rationale, review or expiry trigger, and reconsideration rule in the capability record."
+non_claims            = [ "cross-target inference", "support from compile-only evidence" ]
+
+[[success_criterion]]
+id                    = "SC-03"
+title                 = "Applicable SDK-TS E2E reuse"
+pass_condition        = "Every discovered donor E2E test is ledgered and each shared journey runs one TypeScript assertion body against legacy and Rust-backed private providers on every applicable target."
+evidence              = [ "donor revision path suite test ID and content hash", "discovered-count equality", "disposition and authority", "no unledgered skip focus or quarantine" ]
+applicability         = "all SDK-TS E2E tests discovered from the pinned donor revision"
+not_applicable_policy = "Only adapted, platform-owned, superseded, or excluded with owner, rationale, replacement evidence, and reconsideration trigger."
+non_claims            = [ "all donor behavior is normative", "unchanged execution for superseded profiles" ]
+
+[[success_criterion]]
+id                    = "SC-04"
+title                 = "Rust evidence for additions and deviations"
+pass_condition        = "Additional or intentionally different portable behavior has Rust-owned normative, negative, resource-bound, and E2E or conformance evidence plus applicable quality-evidence dispositions."
+evidence              = [ "rust-addition or rust-deviation ledger", "selected profile", "negative and boundary tests", "TypeScript boundary smoke" ]
+applicability         = "every Rust addition or deviation from the donor journey"
+not_applicable_policy = "Requires a stable quality-evidence declaration or owner, rationale, review trigger, and reconsideration rule per evidence class."
+non_claims            = [ "TypeScript regressions define Rust semantics", "coverage alone establishes authority" ]
+
+[[success_criterion]]
+id                    = "SC-05"
+title                 = "Coverage and public-operation exercise"
+pass_condition        = "Every owned public operation maps to contract or E2E evidence; owned changed executable code reaches at least 80 percent line and 70 percent branch coverage where reliable and never regresses below a higher established package baseline."
+evidence              = [ "public-operation inventory", "pinned tool version", "base head numerator denominator target and profile", "coverage artifact", "condition mutation and negative evidence where branch coverage is unavailable" ]
+applicability         = "owned changed executable Rust and TypeScript adapter code"
+not_applicable_policy = "Unsupported measures require an owner, tool limitation, strongest alternative evidence, and reconsideration trigger; invented percentages are forbidden."
+non_claims            = [ "coverage proves conformance", "lowering an established higher baseline" ]
+
+[[success_criterion]]
+id                    = "SC-06"
+title                 = "Type-safe and validated boundary"
+pass_condition        = "Pinned strict TypeScript declarations expose no explicit any, narrow unknown at ingress, validate wire values, and map numbers, bigint, bytes, null, undefined, errors, lifecycle, Promises, cancellation, and AbortSignal deterministically while Rust revalidates domain invariants."
+evidence              = [ "strict compiler receipt", "public declaration snapshot", "runtime wire-validation tests", "DTO error and API drift snapshots", "lifecycle and cancellation tests" ]
+applicability         = "all owned TypeScript binding and facade surfaces"
+not_applicable_policy = "Platform-owned values still require strict host types and a bounded mapping rationale."
+non_claims            = [ "unknown is forbidden at ingress", "TypeScript validation replaces Rust validation" ]
+
+[[success_criterion]]
+id                    = "SC-07"
+title                 = "Shared portable semantics and thin adapters"
+pass_condition        = "Portable core crates contain no inward binding or platform dependency; bindings depend inward only and TypeScript duplicates no cryptography, canonical parsing, format, or protocol-state logic."
+evidence              = [ "dependency-direction guard", "semantic-duplication review", "generated mapping drift test", "host-port contract tests" ]
+applicability         = "all Rust-backed capabilities"
+not_applicable_policy = "Generated outer allocation bounds and explicit host policy are permitted when Rust remains authoritative."
+non_claims            = [ "one universal artifact", "platform-owned behavior moves to Rust" ]
+
+[[success_criterion]]
+id                    = "SC-08"
+title                 = "Operable target with accepted budgets"
+pass_condition        = "Before support, each target has accepted size, startup, latency, throughput, and memory budgets as applicable plus bounded diagnostics, observability, fallback, and rollback."
+evidence              = [ "pinned runner and protocol", "compressed and uncompressed artifact size", "cold and warm p50 p95", "representative latency throughput and memory", "variance regression and rollback rules" ]
+applicability         = "each target support claim"
+not_applicable_policy = "A measure may be omitted only with owner, rationale, review or expiry trigger, and reconsideration rule; until a budget is accepted results remain measurement-only."
+non_claims            = [ "universal performance threshold", "measurement activates support" ]
+
+[[success_criterion]]
+id                    = "SC-09"
+title                 = "Rust-core-first isolated CI"
+pass_condition        = "The independent Rust-core job passes first, a fail-closed exact-head impact plan selects all dependent target jobs, selected jobs do not cancel siblings, and the existing protected fast aggregator is satisfied only when core and every selected target succeeds."
+evidence              = [ "core package-set guard", "API and schema fingerprints", "impact-plan receipt", "isolated target receipts", "single fast aggregation receipt" ]
+applicability         = "every pull request after CI implementation"
+not_applicable_policy = "Unselected targets emit an inapplicable receipt without installing target tools; unknown impact selects all targets."
+non_claims            = [ "changing SDK-LIM-009", "a target failure erases core evidence", "path-only impact routing" ]
+
+[[capability]]
+id                  = "crypto.key-operations"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "Portable key operations are Rust-owned while custody and ergonomic key facades remain host concerns."
+rust_surface        = "Mature portable key generation, import/export, signing, verification, and shared-secret operations."
+target_surface      = "Rust-owned cryptographic operations behind a thin typed TypeScript key facade; secret custody remains host-owned."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+missing_proof       = "Cross-SDK vectors, error mapping, secret-handling review, and browser, Node.js, React web, and React Native target E2E evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations    = [ "Secret custody and key-object ergonomics remain TypeScript adapter responsibilities." ]
+evidence            = [ "docs/architecture/apollo-parity.toml", "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Select a named SDK-TS key-operation canary and freeze its compatibility adapter."
+consumer            = "sdk-ts root API"
+rollback            = "Retain the current Apollo route behind the canary boundary."
+non_claims          = [ "secret-custody migration", "default SDK-TS activation" ]
+
+[[capability]]
+id                  = "crypto.hd-derivation"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "Rust owns deterministic derivation semantics; mnemonic sources and custody stay in the host."
+rust_surface        = "Mature deterministic derivation and path semantics for the selected profiles."
+target_surface      = "Rust-owned derivation behind a thin TypeScript facade; mnemonic sources and custody remain host-owned."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "normative-profile", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+missing_proof       = "Frozen cross-language vectors, profile-specific negative tests, adapter E2E coverage, and target-runtime evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations    = [ "CIP-0003 applies only where an explicit profile selects it." ]
+evidence            = [ "docs/architecture/apollo-parity.toml", "docs/architecture/cross-language-vectors.toml" ]
+owner_issue         = 502
+next_action         = "Add an SDK-TS derivation adapter over the frozen Rust vectors."
+consumer            = "SDK-TS wallet key creation"
+rollback            = "Keep the existing TypeScript derivation path selectable."
+non_claims          = [ "mnemonic custody migration", "all derivation profiles" ]
+
+[[capability]]
+id                  = "did.syntax"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "DID and DID URL semantics are mature in Rust, but SDK-TS has not activated the value facade."
+rust_surface        = "Mature DID and DID URL parsing, validation, component access, and serialization with an existing WASM value surface."
+target_surface      = "Capability-named DID and DID URL TypeScript values backed by Rust semantics on supported targets."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "blocked" }
+missing_dimensions  = [ "consumer-proof", "rollback" ]
+missing_proof       = "External SDK-TS consumer and named legacy-provider rollback rehearsals, default-switch and support decisions, accepted budgets, and a separate React Native native-binding package."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "TypeScript constructors and error classes remain compatibility adapters.", "React Native requires a separate native binding and is not proven by the WASM canary." ]
+evidence            = [ "docs/conformance/cross-language-vector-catalog.toml", "docs/architecture/language-adapter-mappings.toml", "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md", "packages/identus-sdk/tests/vector-assertions.mjs", "packages/identus-sdk/tests/provider.test.mjs" ]
+owner_issue         = 492
+next_action         = "Rehearse the opt-in facade in the external SDK-TS consumer and its named rollback path before any default or support claim."
+consumer            = "SDK-TS DID parser facade"
+rollback            = "Disable the opt-in Rust-backed facade and retain current parsing."
+non_claims          = [ "DID document parity", "default activation" ]
+
+[[capability]]
+id                  = "did.document"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "The portable DID document model is Rust-owned while TypeScript serialization ergonomics may differ."
+rust_surface        = "Substantial portable DID document, verification method, service, and relationship model."
+target_surface      = "Rust-owned DID document semantics exposed through generated or versioned typed TypeScript DTO mappings."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+missing_proof       = "Round-trip vectors, stable field and error mapping, extension policy, and resolver-consumer E2E evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+known_deviations    = [ "Method-specific extensions remain versioned adapters." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/architecture/cross-language-vectors.toml" ]
+owner_issue         = 502
+next_action         = "Freeze document DTO mappings after the DID value canary."
+consumer            = "SDK-TS DID resolution"
+rollback            = "Retain current SDK-TS document projection until mapping evidence passes."
+non_claims          = [ "all method extensions", "consumer activation" ]
+
+[[capability]]
+id                  = "did.method.peer"
+relation            = "semantic-equivalent"
+state               = "partial"
+rationale           = "Selected peer DID profiles require the same deterministic identifiers and documents across SDKs."
+rust_surface        = "Bounded experimental SDK-Rust support for peer DID numalgo 4 and opt-in numalgo 2 creation, parsing, local resolution, and generic DID-document projection."
+target_surface      = "Rust-owned deterministic creation and resolution for explicitly selected peer DID profiles with a thin TypeScript facade."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+missing_proof       = "Cross-SDK and DID-document equivalence, typed TypeScript facade and error mapping, pairwise messaging consumer E2E tests, per-target receipts, and rollback proof."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+known_deviations    = [ "Only explicitly selected numalgo profiles are in scope." ]
+evidence            = [ "docs/roadmap/platform-core-adoption-milestones.toml", "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Route a pairwise SDK-TS fixture through the selected Rust peer DID profile."
+consumer            = "SDK-TS DIDComm connection fixture"
+rollback            = "Keep the TypeScript peer DID implementation selectable during canary."
+non_claims          = [ "all peer DID numalgos", "DIDComm engine migration" ]
+
+[[capability]]
+id                  = "did.method.prism"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "Rust owns portable PRISM method semantics; Cardano effects and runtime policy remain downstream."
+rust_surface        = "Portable PRISM method semantics are consumer-proven downstream but are not yet a complete SDK-Rust core and binding surface."
+target_surface      = "Rust-owned portable PRISM identifier and document semantics; network, ledger, persistence, and service composition stay injected."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+missing_proof       = "SDK-Rust integration boundary, cross-SDK vectors, typed binding surface, resolver adapter E2E tests, and rollback evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations    = [ "Cardano observation, submission, persistence, and service composition are not SDK-Rust parity targets." ]
+evidence            = [ "https://github.com/hyperledger-identus/neoprism/pull/324", "https://github.com/hyperledger-identus/neoprism/pull/346" ]
+owner_issue         = 502
+next_action         = "Define the SDK-TS PRISM facade over the proven portable boundary."
+consumer            = "NeoPRISM main at merged PR 324"
+rollback            = "NeoPRISM retains its compatibility facade and downstream effects."
+non_claims          = [ "Cardano client ownership", "SDK-TS activation" ]
+
+[[capability]]
+id                  = "did.resolution"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "Resolver semantics and HTTP contracts are portable; fetch, cache, and network policy remain injected."
+rust_surface        = "Substantial resolver, cancellation, cache, and HTTP contract support with injected network policy."
+target_surface      = "Rust-owned resolution semantics behind injected browser, Node.js, React web, and React Native transport adapters."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Named resolver canary, cache, cancellation, and error equivalence, bounded-network tests, and per-target E2E evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Browser and Node fetch policy remains platform-owned." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/roadmap/platform-core-adoption-milestones.toml" ]
+owner_issue         = 502
+next_action         = "Select one SDK-TS resolver canary with explicit host network policy."
+consumer            = "SDK-TS credential verification"
+rollback            = "Retain the current resolver registry and HTTP proxy route."
+non_claims          = [ "unbounded network access", "all DID methods" ]
+
+[[capability]]
+id                  = "credentials.jwt-vc"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "JWT credential semantics belong in Rust after an exact VC profile is selected; workflows remain host adapters."
+rust_surface        = "Partial credential support; the exact normative JWT VC profile is not yet fully pinned and delivered."
+target_surface      = "Rust-owned selected JWT VC and JOSE semantics with thin TypeScript workflow and ergonomic adapters."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+missing_proof       = "Normative profile decision, issuance and verification vectors, negative cases, workflow E2E tests, and target-runtime proof."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+known_deviations    = [ "No generic historical JWT VC behavior is normative without a selected profile." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Pin the Identus JWT VC profile and add cross-SDK issuance and verification vectors."
+consumer            = "SDK-TS OID4VCI workflow"
+rollback            = "Retain the current did-jwt based route until the selected profile passes."
+non_claims          = [ "profile selection", "SDK-TS route migration" ]
+
+[[capability]]
+id                  = "credentials.sd-jwt"
+relation            = "intentionally-different"
+state               = "partial"
+rationale           = "SDK-Rust selects RFC 9901 and draft-22 rather than preserving the donor dependency's historical behavior."
+rust_surface        = "Partial RFC 9901 and draft-22 implementation behind an Identus-owned direction."
+target_surface      = "Rust-owned RFC 9901 and selected VC-profile semantics with a capability-named TypeScript facade."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+missing_proof       = "Complete base and profile train, media-type compatibility decision, cross-SDK vectors, security negatives, and workflow E2E evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations    = [ "dc+sd-jwt is canonical; vc+sd-jwt is only a named-consumer-gated compatibility adapter." ]
+evidence            = [ "docs/adr/0193-select-an-identus-owned-sd-jwt-engine.md", "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Complete the selected base/profile train and decide the legacy media-type adapter from consumer evidence."
+consumer            = "SDK-TS OEA selective-disclosure workflow"
+rollback            = "Keep the existing SDK-TS SD-JWT dependency route until the new profile is opt-in and measured."
+non_claims          = [ "legacy media-type equivalence", "default migration" ]
+
+[[capability]]
+id                  = "credentials.anoncreds-v1"
+relation            = "compatible-adapter"
+state               = "blocked"
+rationale           = "Portable AnonCreds semantics need a qualified engine; VDR, secret, and packaging remain adapters."
+rust_surface        = "No approved SDK-Rust engine or complete facade."
+target_surface      = "Identus-owned Rust facade over a qualified engine; ledger, secret, packaging, and platform adapters remain injected."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Engine qualification, dependency and security review, target matrix, VDR and secret-port contracts, interoperability vectors, and E2E flows."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "The SDK-TS embedded engine revision is evidence, not an approved SDK-Rust dependency." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 490
+next_action         = "Qualify the engine and target matrix before implementing an Identus facade."
+consumer            = "Cloud Agent AnonCreds flows"
+rollback            = "No route changes until an opt-in engine facade is qualified."
+non_claims          = [ "engine approval", "mobile or WASM support" ]
+
+[[capability]]
+id                  = "credentials.status"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "Status validation is portable while retrieval, caching, and privacy policy remain host-owned."
+rust_surface        = "Partial portable status and revocation validation support."
+target_surface      = "Rust-owned selected status-profile validation with explicit bounded TypeScript retrieval and cache adapters."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+missing_proof       = "Exact status-profile selection, normative and negative vectors, privacy and cache policy tests, and presentation E2E evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
+known_deviations    = [ "Network retrieval is injected and bounded rather than embedded in the core." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Select the exact status profile and freeze retrieval-port behavior."
+consumer            = "SDK-TS presentation verification"
+rollback            = "Retain current TypeScript status handlers during the canary."
+non_claims          = [ "all revocation formats", "network policy migration" ]
+
+[[capability]]
+id                  = "presentations.exchange"
+relation            = "deferred"
+state               = "blocked"
+rationale           = "The exact Presentation Exchange version and its overlap with DCQL remain unresolved."
+rust_surface        = "Partial presentation functionality without an accepted Presentation Exchange versus DCQL boundary."
+target_surface      = "Versioned Rust presentation-query semantics after the protocol boundary is selected, with TypeScript UI and query composition retained."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "consumer-proof", "rollback" ]
+missing_proof       = "Protocol and version decision, ownership boundary, normative vectors, format coverage, and end-to-end presentation evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "consumer-proof", "rollback" ]
+known_deviations    = [ "No parity target is selected until Presentation Exchange versus DCQL ownership is decided." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 494
+next_action         = "Choose the protocol/version boundary before scheduling implementation."
+consumer            = "SDK-TS credential presentation flow"
+rollback            = "No migration is activated while the target remains deferred."
+non_claims          = [ "Presentation Exchange version", "DCQL replacement" ]
+
+[[capability]]
+id                  = "openid4vc.issuance-wallet"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "SDK-Rust owns the Final-spec bounded protocol core; browser redirects, callbacks, fetch, and consent stay in TypeScript."
+rust_surface        = "Substantial OpenID4VCI 1.0 Final wallet-side protocol core."
+target_surface      = "Rust-owned Final-spec protocol state and validation with thin TypeScript redirect, callback, fetch, consent, and lifecycle adapters."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Applicable donor E2E inventory, differential results, browser, Node.js, React web, and React Native target tests, error mapping, and rollback evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Rust Final-spec behavior supersedes older donor-flow semantics." ]
+evidence            = [ "docs/conformance/oid4vci-1.0.toml", "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Define an SDK-TS wallet flow adapter and browser/Node canary over the Final core."
+consumer            = "SDK-TS OIDC plugin"
+rollback            = "Keep the existing TypeScript OIDC route selectable per flow."
+non_claims          = [ "browser consent migration", "default route switch" ]
+
+[[capability]]
+id                  = "messaging.didcomm-v2"
+relation            = "compatible-adapter"
+state               = "blocked"
+rationale           = "DIDComm v2.1 needs a qualified Rust engine behind Identus resolver, secret, and transport ports."
+rust_surface        = "Placeholder support; no qualified production DIDComm v2.1 engine is selected."
+target_surface      = "Identus-owned DIDComm v2.1 Rust facade over a qualified engine with injected resolver, secret, and transport ports."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Engine qualification, JOSE and attachment coverage, interoperability vectors, secret review, runtime matrix, and mediator E2E evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "The SDK-TS embedded fork is not an approved SDK-Rust dependency." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 491
+next_action         = "Complete the engine/facade qualification and exact target decision."
+consumer            = "Existing Mediator endpoint"
+rollback            = "No SDK-TS route changes before a qualified opt-in engine exists."
+non_claims          = [ "engine selection", "application protocol migration" ]
+
+[[capability]]
+id                  = "messaging.didcomm-application-protocols"
+relation            = "semantic-equivalent"
+state               = "blocked"
+rationale           = "Protocol messages and deterministic state must match selected PIURI/version/role contracts across hosts."
+rust_surface        = "Placeholder protocol support without a complete versioned protocol catalog or production state machines."
+target_surface      = "Versioned Rust messages and deterministic state machines per selected PIURI, role, and protocol version; product workflow remains host-owned."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+missing_proof       = "Protocol catalog, message and state vectors, role and negative coverage, engine prerequisites, and Cloud Agent and Mediator E2E evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
+known_deviations    = [ "Product workflow, consent, and lifecycle remain host effects." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/roadmap/platform-core-adoption-milestones.toml" ]
+owner_issue         = 500
+next_action         = "Create the versioned protocol catalog after DIDComm engine and agent-kernel prerequisites."
+consumer            = "Cloud Agent and Mediator deployments"
+rollback            = "Keep existing TypeScript protocol tasks until each bounded state machine passes E2E."
+non_claims          = [ "all DIDComm protocols", "product workflow ownership" ]
+
+[[capability]]
+id                  = "wallet.storage-contracts"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "Portable repository contracts belong in Rust while concrete browser storage and migrations stay platform-specific."
+rust_surface        = "Substantial portable repository and domain-contract support, without ownership of a physical browser database."
+target_surface      = "Rust-owned repository semantics and typed ports with TypeScript database, reactive-query, and runtime adapters."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "DTO and query mapping, migration contracts, transaction and error semantics, credential repository canary, and multi-runtime E2E evidence."
+required_dimensions = [ "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Rust contracts do not mandate RIDB or a browser database." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Select one credential repository canary and freeze the storage adapter mapping."
+consumer            = "SDK-TS agent repositories"
+rollback            = "Retain the existing Pluto repository implementation behind the adapter."
+non_claims          = [ "browser database replacement", "data migration" ]
+
+[[capability]]
+id                  = "wallet.storage-browser"
+relation            = "platform-owned"
+state               = "not-applicable"
+rationale           = "Browser persistence, schema upgrades, quotas, and lifecycle are TypeScript platform responsibilities."
+rust_surface        = "Outside the portable Rust core except for storage ports and shared contracts."
+target_surface      = "Platform-owned storage implementations conforming to Rust-defined ports and shared data contracts."
+applicable_targets  = [ "browser", "nodejs", "react-web" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "not-applicable" }
+missing_dimensions  = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Port-conformance suite, schema and migration tests, encryption and lifecycle evidence, and browser, Node.js, and React web runtime coverage."
+required_dimensions = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "No duplicate Rust browser database implementation is planned." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Document the Rust storage-port boundary and retain browser implementation ownership."
+consumer            = "SDK-TS browser wallet"
+rollback            = "Browser storage remains unchanged."
+non_claims          = [ "Rust browser database", "storage engine replacement" ]
+
+[[capability]]
+id                  = "wallet.backup-format"
+relation            = "deferred"
+state               = "blocked"
+rationale           = "Backup scope, encryption, compatibility, and product recovery policy need a separate decision."
+rust_surface        = "Partial backup-related support without an accepted versioned format and recovery contract."
+target_surface      = "Versioned Rust-owned backup wire and cryptographic semantics with host-owned filesystem, download, storage, and recovery UX."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "resource-security", "consumer-proof", "rollback" ]
+missing_proof       = "Threat model, format decision, compatibility policy, cross-SDK fixtures, corruption negatives, and full restore E2E evidence."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "resource-security", "consumer-proof", "rollback" ]
+known_deviations    = [ "No parity target exists until format and recovery ownership are accepted." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 495
+next_action         = "Define the backup threat model and versioned format before implementation."
+consumer            = "SDK-TS wallet recovery"
+rollback            = "No migration is activated while the target is deferred."
+non_claims          = [ "backup standard", "recovery compatibility" ]
+
+[[capability]]
+id                  = "agent.protocol-state"
+relation            = "semantic-equivalent"
+state               = "blocked"
+rationale           = "Portable protocol transitions must be deterministic across reference, native, and WASM-shaped executors."
+rust_surface        = "Placeholder support; reusable production protocol state machines are not yet established."
+target_surface      = "Capability-specific deterministic Rust state machines reusable across native and WASM-shaped executors."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Two unrelated protocol implementations, shared transition vectors, replay and error tests, host-effect separation, and E2E canaries."
+required_dimensions = [ "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Host effects and scheduling are outside deterministic transition semantics." ]
+evidence            = [ "docs/roadmap/platform-core-adoption-milestones.toml" ]
+owner_issue         = 500
+next_action         = "Prove the agent kernel boundary with two unrelated consumer protocols."
+consumer            = "SDK-TS DIDComm protocol tasks"
+rollback            = "Keep existing protocol task state until per-protocol canaries pass."
+non_claims          = [ "product agent framework", "mandatory async runtime" ]
+
+[[capability]]
+id                  = "agent.runtime-orchestration"
+relation            = "compatible-adapter"
+state               = "blocked"
+rationale           = "Rust owns deterministic events, transitions, and typed effects; TypeScript owns host scheduling and lifecycle."
+rust_surface        = "Placeholder effect-driven runtime concepts without a completed bounded reference executor."
+target_surface      = "Rust-owned deterministic events, transitions, correlation, checkpoints, and typed effects with thin TypeScript host executors."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Reference executor, native and WASM-shaped fixtures, cancellation and checkpoint tests, effect-port mapping, and two consumer E2E proofs."
+required_dimensions = [ "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Product lifecycle, consent, telemetry, and scheduling remain platform effects." ]
+evidence            = [ "docs/roadmap/platform-core-adoption-milestones.toml" ]
+owner_issue         = 498
+next_action         = "Build the bounded reference executor and native/WASM-shaped fixture."
+consumer            = "SDK-TS agent host"
+rollback            = "Retain current TypeScript orchestration during opt-in canaries."
+non_claims          = [ "product agent replacement", "Tokio requirement" ]
+
+[[capability]]
+id                  = "platform.typescript-plugin-host"
+relation            = "platform-owned"
+state               = "not-applicable"
+rationale           = "Plugin loading, permissions, UI, consent, and product lifecycle are inherently TypeScript host concerns."
+rust_surface        = "Outside the Rust core by design."
+target_surface      = "TypeScript-owned thin plugin host that composes Rust-backed capabilities without duplicating portable semantics."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Architecture checks against duplicated domain logic, plugin compatibility tests, package-subpath tests, and consumer E2E evidence."
+required_dimensions = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Portable protocol semantics may move below the host, but the plugin host itself does not." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Keep the plugin host thin and prevent duplication of migrated portable semantics."
+consumer            = "SDK-TS internal plugins"
+rollback            = "Plugin hosting remains unchanged."
+non_claims          = [ "Rust plugin host", "UI or consent migration" ]
+
+[[capability]]
+id                  = "platform.browser-node-networking"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "Portable request/response contracts may be Rust-owned while browser and Node transports remain host adapters."
+rust_surface        = "Partial portable request, response, correlation, bounds, cancellation, and transport-port contracts."
+target_surface      = "Rust-owned protocol and network contracts with isolated browser, Node.js, React web, and React Native transport adapters."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "rust-contract", "adapter-mapping", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Target-specific binding decisions, transport contract tests, cancellation, error, redirect, and proxy coverage, security review, and isolated target CI."
+required_dimensions = [ "rust-contract", "adapter-mapping", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Fetch, redirects, proxies, cancellation wiring, and credential policy differ by host." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 499
+next_action         = "Decide browser and Node transport boundaries per selected canary."
+consumer            = "SDK-TS browser and Node runtimes"
+rollback            = "Keep current fetch adapters selectable per runtime."
+non_claims          = [ "one transport for every target", "implicit React Native support" ]
+
+[[capability]]
+id                  = "platform.npm-packaging"
+relation            = "platform-owned"
+state               = "not-applicable"
+rationale           = "npm packaging, bundler exports, source maps, and JavaScript ergonomics remain SDK-TS responsibilities."
+rust_surface        = "Outside Cargo distribution ownership; Rust and WASM artifacts are package inputs."
+target_surface      = "A capability-named TypeScript package that loads Rust artifacts per target without exposing historical component names."
+applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
+target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
+missing_dimensions  = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+missing_proof       = "Install and import tests, ESM, CommonJS, and declaration checks, bundler matrix, artifact provenance, target entry points, and legacy-name export guard."
+required_dimensions = [ "adapter-mapping", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Rust artifacts may be inputs, but npm distribution is not reproduced in Cargo." ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml" ]
+owner_issue         = 502
+next_action         = "Define package and bundler evidence for each activated binding surface."
+consumer            = "@hyperledger/identus-sdk consumers"
+rollback            = "Retain the current npm package surface during opt-in activation."
+non_claims          = [ "npm replacement", "all bundlers supported" ]
+
+[[capability]]
+id                  = "bindings.wasm-did"
+relation            = "compatible-adapter"
+state               = "partial"
+rationale           = "The WASM DID value surface exists, but SDK-TS still needs an opt-in facade, package evidence, and rollback proof."
+rust_surface        = "Substantial experimental WASM DID value binding backed by mature Rust DID semantics."
+target_surface      = "Thin DID TypeScript facade using WASM in browser, Node.js, and React web; React Native uses a separate native binding under the same capability contract."
+applicable_targets  = [ "browser", "nodejs", "react-web" ]
+target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "not-applicable" }
+missing_dimensions  = [ "resource-security", "consumer-proof", "rollback" ]
+missing_proof       = "Fresh facade coverage and fuzz evidence, external SDK-TS consumer and named rollback rehearsals, and accepted publication, support, and performance budgets."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "WASM DTOs and JavaScript errors are adapters, not the canonical domain model.", "React Native is structurally recorded but not applicable to the WASM binding." ]
+evidence            = [ "docs/architecture/language-adapter-mappings.toml", "docs/conformance/cross-language-vector-catalog.toml", "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md", "packages/identus-sdk/tests/browser-runtime.mjs", "packages/identus-sdk/tests/node-runtime.test.mjs", "packages/identus-sdk/tests/react-runtime.test.mjs" ]
+owner_issue         = 492
+next_action         = "Complete external SDK-TS canary and rollback rehearsals plus fresh facade quality evidence before activation."
+consumer            = "SDK-TS DID syntax canary"
+rollback            = "Disable the Rust-backed facade and restore the existing TypeScript parser route."
+non_claims          = [ "all DID bindings", "default SDK-TS activation" ]

@@ -1,6 +1,7 @@
 {
   imports = [
     ./bindings.nix
+    ./typescript.nix
     ./wasm.nix
   ];
 

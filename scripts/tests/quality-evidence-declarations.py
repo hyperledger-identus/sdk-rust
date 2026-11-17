@@ -145,7 +145,16 @@ def main() -> int:
 
         did_syntax = declaration_block(baseline, "did.syntax.quality.v1")
         satisfied_fuzz = obligation_block(did_syntax, "fuzz", "satisfied")
-        stale_fuzz = replace_field(satisfied_fuzz, "recorded_at", '"2026-09-01"')
+        expiring_fuzz = replace_field(satisfied_fuzz, "receipt_kind", '"github-run"')
+        expiring_fuzz = replace_field(
+            expiring_fuzz,
+            "receipt",
+            '"https://github.com/hyperledger-identus/sdk-rust/actions/runs/40888621367"',
+        )
+        expiring_fuzz = replace_field(expiring_fuzz, "freshness", '"max-age-days"')
+        expiring_fuzz = replace_field(expiring_fuzz, "freshness_days", "8")
+        expiring_fuzz = replace_field(expiring_fuzz, "recorded_at", '"2026-11-10"')
+        stale_fuzz = replace_field(expiring_fuzz, "recorded_at", '"2026-09-01"')
         stale_receipt = replace_once(baseline, satisfied_fuzz, stale_fuzz)
         expect_failure(
             source_root,

@@ -1,0 +1,12 @@
+DidError
+DidErrorCode
+DidMappingId
+DidObservation
+DidObserver
+DidOperation
+DidProvider
+DidProviderFactory
+DidProviderOptions
+DidProviderRoute
+DidUrlValue
+DidValue

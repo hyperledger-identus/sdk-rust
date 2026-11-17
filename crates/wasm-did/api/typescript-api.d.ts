@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 /**
- * Closed browser failure carrying only a stable SDK-owned code.
+ * Closed JavaScript failure carrying only a stable SDK-owned code.
  */
 export class DidParseError {
     private constructor();
@@ -73,7 +73,7 @@ export class DidView {
 }
 
 /**
- * Return the browser binding contract version.
+ * Return the binding contract version.
  */
 export function bindingApiVersion(): number;
 

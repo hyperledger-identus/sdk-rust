@@ -1,4 +1,4 @@
-//! Experimental browser WASM facade for bounded DID and DID URL parsing.
+//! Experimental WASM facade for bounded DID and DID URL parsing.
 //!
 //! This unpublished outer boundary exposes only owned public identifier values
 //! and stable error codes. `identus-did` remains binding-framework-free.
@@ -6,7 +6,7 @@
 use identus_did::{Did, DidUrl};
 use wasm_bindgen::prelude::*;
 
-/// Version of the browser JavaScript value and error contract.
+/// Version of the JavaScript value and error contract.
 pub const BINDING_API_VERSION: u32 = 1;
 
 const INVALID_DID_CODE: &str = "did.invalid_did";
@@ -100,7 +100,7 @@ impl DidUrlView {
     }
 }
 
-/// Closed browser failure carrying only a stable SDK-owned code.
+/// Closed JavaScript failure carrying only a stable SDK-owned code.
 #[derive(Debug)]
 #[wasm_bindgen]
 pub struct DidParseError {
@@ -130,7 +130,7 @@ impl DidParseError {
     }
 }
 
-/// Return the browser binding contract version.
+/// Return the binding contract version.
 #[wasm_bindgen(js_name = bindingApiVersion)]
 pub fn binding_api_version() -> u32 {
     BINDING_API_VERSION

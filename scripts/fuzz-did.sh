@@ -58,7 +58,7 @@ for target in "${targets[@]}"; do
   mkdir -p "$artifact_dir"
 
   common=(
-    -max_len=8192
+    -max_len=139264
     -timeout=5
     -rss_limit_mb=1024
     -reload=0

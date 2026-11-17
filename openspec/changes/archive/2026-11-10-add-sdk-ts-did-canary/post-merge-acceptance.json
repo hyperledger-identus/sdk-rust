@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "issue": 492,
+  "disposition": "deferred",
+  "rationale": "The repository-local TypeScript DID canary is complete, but external SDK-TS rehearsal, the named-consumer rollback decision, accepted support and performance budgets, publication authority, and a separate React Native package decision require post-merge ownership and evidence.",
+  "acceptance": [
+    "external-sdk-ts-rehearsal",
+    "named-consumer-rollback",
+    "default-and-support-decision",
+    "accepted-performance-budgets",
+    "npm-publication-authority",
+    "react-native-package"
+  ]
+}

@@ -59,7 +59,7 @@ repeat identity/digest and expected-cursor checks inside one atomic commit.
 - [NeoPRISM fixed-boundary summary](https://github.com/hyperledger-identus/neoprism/pull/327#issuecomment-6441647413) pins candidate revision `ffaeafe9af35dc420c446b5f99d708cd2f9fe9db`, Preprod slot `10,723,321`, both independent passing runs, and canonical manifest SHA-256 `1b4fd7cbaaf46fcb23e3c9878facb8a28b1b861374177b866fbb6d88bd39419f`.
 - [Run 1](https://github.com/hyperledger-identus/neoprism/pull/327#issuecomment-6441647927) and [run 2](https://github.com/hyperledger-identus/neoprism/pull/327#issuecomment-6441648520) retain the exact image identities, drain receipts, semantic comparison, and diagnostic QoS results.
 
-NeoPRISM PR #324 currently adopts generic SDK cryptography and DID components;
+NeoPRISM PR #324 merged the adoption of generic SDK cryptography and DID components;
 it does **not** yet replace its PRISM method, Cardano, persistence, or runtime
 implementation with these three crates. Its parity evidence is an immutable
 compatibility baseline for a later, separately reviewed adoption—not proof that

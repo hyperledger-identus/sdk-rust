@@ -59,7 +59,7 @@ NeoPRISM provides a broader source-pinned cryptography integration reference.
 The portable PRISM method/VDR/indexer crates have a separate
 [adoption walkthrough](architecture/prism-portable-stack.md). Its in-memory
 scenario proves composition and effect seams; it is not a Cardano or production
-storage adapter. NeoPRISM's current open SDK adoption keeps PRISM/Cardano
+storage adapter. NeoPRISM's merged SDK adoption keeps PRISM/Cardano
 implementation downstream, so later replacement of that code requires a new
 immutable pin and its own old/new parity receipt.
 

@@ -57,7 +57,7 @@
       complete `nix flake check --print-build-logs` locally.
 - [x] 5.3 Complete distinct fresh-context architecture/security review,
       resolve blocking findings, and verify signed+DCO commits.
-- [ ] 5.4 Prepare the exact locally validated candidate and issue-linked,
+- [x] 5.4 Prepare the exact locally validated candidate and issue-linked,
       merge-ready PR metadata; hosted CI/review/merge remain delivery evidence.
 - [ ] 5.5 Guardedly archive the synchronized contract with retained receipts;
       owned rebuildable target/worktree cleanup remains post-integration.

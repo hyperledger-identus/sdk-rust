@@ -964,20 +964,10 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         subprocess.run(["git", "add", "."], cwd=root, check=True)
         subprocess.run(["git", "commit", "-qm", "move source"], cwd=root, check=True)
         registry_path = root / "docs/architecture/language-adapter-mappings.toml"
-        fixture_registry = replace_once(
+        fixture_registry = re.sub(
+            r'(?m)^canonical_revision = "[0-9a-f]{40}"$',
+            f'canonical_revision = "{revision}"',
             registry_path.read_text(encoding="utf-8"),
-            canonical_revision_line,
-            f'canonical_revision = "{revision}"',
-        )
-        fixture_registry = replace_once(
-            fixture_registry,
-            'canonical_revision = "f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8"',
-            f'canonical_revision = "{revision}"',
-        )
-        fixture_registry = replace_once(
-            fixture_registry,
-            'canonical_revision = "d3cdc6719fb040da2753dbfde9c3a784c85dafb2"',
-            f'canonical_revision = "{revision}"',
         )
         registry_path.write_text(fixture_registry, encoding="utf-8")
 

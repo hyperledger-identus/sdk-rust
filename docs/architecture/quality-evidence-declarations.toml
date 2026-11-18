@@ -1490,25 +1490,25 @@ details           = [ "harness=Canonical Rust peer parser/create/resolve boundar
 
 [[declarations.obligations]]
 class             = "benchmark"
-disposition       = "required"
+disposition       = "satisfied"
 risk              = "The added peer dependency, target packaging, initialization, projection, or near-limit values can introduce material size, latency, or retained-memory growth."
 selectors         = [ "packages/identus-sdk/tests/measurements.mjs#measurement", "docs/conformance/sdk-ts-peer-did-quality.md#Local gates" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements"
 lane              = "slow"
 cadence           = "weekly-or-manual"
 targets           = [ "package:identus-typescript-sdk", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
-freshness         = "pending"
+freshness         = "source-bound"
 freshness_days    = 0
 budget            = "Measure deterministic artifact bytes plus cold/warm initialization and representative parse latency without activating a support threshold."
-receipt_kind      = "none"
-receipt           = ""
-evidence_revision = ""
-recorded_at       = ""
-artifact          = ""
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/sdk-ts-peer-did-quality.md"
+evidence_revision = "0adedba281c956f1e648b056b09024679e19a5dd"
+recorded_at       = "2026-11-18"
+artifact          = "docs/conformance/sdk-ts-peer-did-quality.md"
 owner             = "SDK-Rust TypeScript binding maintainers"
 owner_issue       = 603
-debt_status       = "open"
-debt_issue        = 603
+debt_status       = "none"
+debt_issue        = 0
 rationale         = ""
 details           = [ "operation=Build/load API-v4 artifacts and exercise selected peer profiles", "fixture=Ordinary selected-profile vectors and deterministic browser/Node artifacts", "environment=Pinned Nix Rust 1.99.1, Node 24, wasm-pack 0.15.0 and wasm-bindgen-cli 0.2.121", "statistic=Artifact bytes and directional latency/memory", "samples=At least 101 measured parses after 21 warm-up iterations where the existing harness supports the operation", "threshold=Measurement-only; support budgets require a later target decision" ]
 

@@ -48,9 +48,13 @@ explicitly inapplicable for this private web canary.
 The deterministic target assembly SHA-256 is
 `dba4b96e0a81f5e0df9ffe1ba33e0e2a4075157105987c0c38cd27ad138c6da6`;
 the generated WASM module is 507,249 bytes. These measurements are descriptive,
-not an accepted support or performance budget. The issue-owned 300-second fuzz
-run and a peer-specific performance baseline remain follow-up evidence and are
-not claimed by this receipt.
+not an accepted support or performance budget. On Apple arm64 with Node 24.19.0,
+101 samples after 21 warm-ups measured ordinary numalgo-4 creation at 0.034 ms
+p50 / 0.047 ms p95 and exact-limit creation at 392.121 ms p50 / 413.593 ms p95.
+The respective normalized inputs were 17 and 16,384 bytes; projected outputs
+were 1,013 and 161,874 bytes; process RSS after the complete measurement set was
+87,687,168 bytes. The issue-owned 300-second fuzz run remains follow-up evidence
+and is not claimed by this receipt.
 
 ## Security and ownership
 

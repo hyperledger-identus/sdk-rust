@@ -474,7 +474,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #603 |
 | `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #603 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #603 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #603 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #603 |
 
 ### `property`
@@ -496,9 +496,8 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
 - Budget: Measure deterministic artifact bytes plus cold/warm initialization and representative parse latency without activating a support threshold.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #603
+- Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
+- Evidence revision: `0adedba281c956f1e648b056b09024679e19a5dd`
 
 ### `differential`
 

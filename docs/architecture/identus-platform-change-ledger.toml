@@ -1059,7 +1059,7 @@ replaced_by                       = ""
 [[changes]]
 id                                = "did.peer.profiles.typescript-migration.v1"
 capability                        = "did.peer.profiles"
-lifecycle_state                   = "proposed"
+lifecycle_state                   = "active"
 issue                             = 603
 pull_request                      = 604
 change_class                      = "additive"

@@ -39,7 +39,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `did.peer.profiles.typescript-migration.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade creates, parses, and locally resolves bounded numalgo-4 current-profile and explicit numalgo-2 compatibility peer DIDs through capability-named TypeScript values across browser, Node.js, and React web targets.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade creates, parses, and locally resolves bounded numalgo-4 current-profile and explicit numalgo-2 compatibility peer DIDs through capability-named TypeScript values across browser, Node.js, and React web targets.
 
 ### `did.peer.profiles.v1`
 

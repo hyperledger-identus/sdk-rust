@@ -239,9 +239,19 @@ def bind_source_evidence(
 
 
 def main() -> None:
-    registry = REGISTRY.read_text(encoding="utf-8")
+    current_registry = REGISTRY.read_text(encoding="utf-8")
     rendered = RENDERED.read_text(encoding="utf-8")
     catalog = CATALOG.read_text(encoding="utf-8")
+    active_state_line = 'state              = "active"'
+    pending_state_line = 'state              = "pending-revision"'
+    # Lifecycle mutation tests need an active synthetic baseline even when the
+    # checked-in repository is carrying a valid pending source transition.
+    # Keep the actual registry for render-integrity checks below.
+    registry = (
+        replace_first(current_registry, pending_state_line, active_state_line)
+        if pending_state_line in current_registry
+        else current_registry
+    )
     revision_match = re.search(
         r'(?m)^canonical_revision = "([0-9a-f]{40})"$', registry
     )
@@ -250,12 +260,10 @@ def main() -> None:
     canonical_revision_line = (
         f'canonical_revision = "{revision_match.group(1)}"'
     )
-    active_state_line = 'state              = "active"'
-    pending_state_line = 'state              = "pending-revision"'
     pending_registry = replace_first(registry, active_state_line, pending_state_line)
 
-    run(registry, rendered, True)
-    run(registry, rendered, True, check_rendered=True)
+    run(current_registry, rendered, True)
+    run(current_registry, rendered, True, check_rendered=True)
 
     # Closed schemas and malformed structures produce diagnostics, never tracebacks.
     run(
@@ -1196,9 +1204,9 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
             raise AssertionError(f"rendered review surface is missing {required!r}")
     if "identus-did::identus_did" in rendered:
         raise AssertionError("rendered Rust API must not duplicate the Cargo package")
-    run(registry, rendered + "\n", False, check_rendered=True)
+    run(current_registry, rendered + "\n", False, check_rendered=True)
     run(
-        registry,
+        current_registry,
         rendered.replace(
             "Validated immutable DID preserving the exact serialized value",
             "Validated immutable DID with changed review semantics",

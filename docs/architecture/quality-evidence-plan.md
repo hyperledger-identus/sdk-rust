@@ -489,21 +489,21 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak`
 - Budget: Reuse the canonical peer DID fuzz target with max_len=131072, timeout=5, rss_limit_mb=1024, and 300 seconds total time.
 - Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
+- Evidence revision: `5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`
 
 ### `benchmark`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
 - Budget: Measure deterministic artifact bytes plus cold/warm initialization and representative parse latency without activating a support threshold.
 - Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
+- Evidence revision: `5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`
 
 ### `differential`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
 - Budget: Compare exact selected-profile identifiers and normalized document relationships/services through Rust and every applicable TypeScript target.
 - Receipt: `source:docs/conformance/fixtures/did-peer/v1/vectors.json`
-- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
+- Evidence revision: `5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`
 
 ## `siopv2.did-authentication.quality.v1`
 

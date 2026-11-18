@@ -38,29 +38,38 @@ authoritative malformed-input and cross-implementation evidence for the Rust
 core.
 
 The reviewed implementation boundary is commit
-`761fa01adcf593af8517d4b03ff28f5d5414d5a7`. At that revision, the pinned
+`5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`. At that revision, the pinned
 Rust 1.99.1 environment passed 29 `identus-did-peer` unit tests, the portable
 peer packet, and 17 `identus-wasm-did` tests. The isolated TypeScript target
 gate passed package/type checks plus the same 13 peer vectors in browser,
 Node.js ESM/CommonJS, React SSR, and hydrated React. React Native remains
 explicitly inapplicable for this private web canary.
 
+The retained exact-head target receipt digests are `8bad9557` for package/types,
+`3503a29c` for browser, `7b1cc25d` for Node.js, and `09071a97` for React web.
+The standalone Rust/WASM browser fixture compiled after its canonical/legacy
+numalgo-2 assertion was repaired, but local execution did not start because the
+available Chrome 157 binary did not match ChromeDriver 152; Firefox was absent.
+This local driver limitation does not replace the passing browser target receipt
+and must be rechecked by the isolated hosted browser lane.
+
 The deterministic target assembly SHA-256 is
 `13c003e72af9af636fabb53f6ec8e323d57d7d69ce0d376c77497fee64d8d60c`;
 the generated WASM module is 507,680 bytes. These measurements are descriptive,
 not an accepted support or performance budget. On Apple arm64 with Node 24.19.0,
-101 samples after 21 warm-ups measured ordinary numalgo-4 creation at 0.032 ms
-p50 / 0.040 ms p95 and exact-limit creation at 392.198 ms p50 / 406.023 ms p95.
+101 samples after 21 warm-ups measured ordinary numalgo-4 creation at 0.033 ms
+p50 / 0.043 ms p95 and exact-limit creation at 602.257 ms p50 / 772.474 ms p95.
 The respective normalized inputs were 17 and 16,384 bytes; projected outputs
 were 1,013 and 161,874 bytes; process RSS after the complete measurement set was
-88,342,528 bytes. The exact Rust 1.99.1 ASAN peer-DID soak completed 6,784,994
+86,130,688 bytes. The exact Rust 1.99.1 ASAN peer-DID soak completed 6,784,994
 executions in 301 seconds at seed 4279326073, with 22,541 average executions per
 second, 695 MiB peak RSS, and no crash or timeout.
 
 ## Security and ownership
 
 The TypeScript ingress rejects accessors, exotic prototypes, cycles, unknown
-fields, and unsafe integers before serialization. Rust independently rejects
+fields, unsafe integers, and over-limit JSON byte budgets before serialization.
+Rust independently rejects
 secret-shaped numalgo-4 members and revalidates all domain invariants and
 resource ceilings.
 Generated WASM values are copied and freed exactly once, projections are frozen,

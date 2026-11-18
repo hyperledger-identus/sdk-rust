@@ -53,7 +53,7 @@
       receipts, isolated failure-domain tests, and fail-closed aggregation;
       repair the stale standalone browser fixture from Rust 1.98.1/API v2 to
       exact Rust 1.99.1/API v4 before using it as evidence.
-- [ ] 5.2 Run focused Rust/WASM/package/target/fuzz/evidence/factory gates and
+- [x] 5.2 Run focused Rust/WASM/package/target/fuzz/evidence/factory gates and
       complete `nix flake check --print-build-logs` locally.
 - [x] 5.3 Complete distinct fresh-context architecture/security review,
       resolve blocking findings, and verify signed+DCO commits.

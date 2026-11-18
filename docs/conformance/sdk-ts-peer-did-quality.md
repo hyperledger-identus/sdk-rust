@@ -37,6 +37,21 @@ The existing peer DID fuzz target and native conformance packet remain the
 authoritative malformed-input and cross-implementation evidence for the Rust
 core.
 
+The implementation boundary is commit
+`a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0`. At that revision, the pinned
+Rust 1.99.1 environment passed 28 `identus-did-peer` unit tests, the portable
+peer packet, and 17 `identus-wasm-did` tests. The isolated TypeScript target
+gate passed package/type checks plus the same 13 peer vectors in browser,
+Node.js ESM/CommonJS, React SSR, and hydrated React. React Native remains
+explicitly inapplicable for this private web canary.
+
+The deterministic target assembly SHA-256 is
+`dba4b96e0a81f5e0df9ffe1ba33e0e2a4075157105987c0c38cd27ad138c6da6`;
+the generated WASM module is 507,249 bytes. These measurements are descriptive,
+not an accepted support or performance budget. The issue-owned 300-second fuzz
+run and a peer-specific performance baseline remain follow-up evidence and are
+not claimed by this receipt.
+
 ## Security and ownership
 
 The TypeScript ingress rejects accessors, exotic prototypes, cycles, unknown

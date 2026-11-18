@@ -4,7 +4,7 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-11-17`
+- Evidence evaluated: `2026-11-18`
 - Declaration count: `24`
 
 ## `oid4vp.redirect-response.quality.v1`
@@ -467,14 +467,14 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Owner: SDK-Rust TypeScript binding maintainers (issue #603)
 - Risk: A language facade can drift from selected peer profiles, accept secret-shaped or unbounded input, leak generated ownership, expose caller values in diagnostics, or behave differently across target loaders.
 - Targets: `package:identus-typescript-sdk`, `package:identus-wasm-did`, `package:identus-did-peer`, `consumer:sdk-ts`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
-- Vector IDs: `2` local catalog entries
+- Vector IDs: `13` local catalog entries
 - Limitations: Private additive public-material facade only; no key generation, custody, networking, persistence, DIDComm engine, historical numalgos 0/1/3, React Native, external adoption, publication, support, accepted budget, certification, or stable API.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #603 |
-| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #603 |
-| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #603 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #603 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #603 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #603 |
 
 ### `property`
@@ -482,28 +482,30 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
 - Budget: Execute both selected profiles, pairwise values, strict ingress, exact-free, redaction, rollback, module formats, SSR and hydration through the shared facade.
 - Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `bd1981372fcb08772d1196131a0cf26291fad9cb`
+- Evidence revision: `a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak`
 - Budget: Reuse the canonical peer DID fuzz target with max_len=131072, timeout=5, rss_limit_mb=1024, and 300 seconds total time.
-- Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `fcf7083d712baa1c4ff45c2933b7bec48c44531e`
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #523
 
 ### `benchmark`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
 - Budget: Measure deterministic artifact bytes plus cold/warm initialization and representative parse latency without activating a support threshold.
-- Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `bd1981372fcb08772d1196131a0cf26291fad9cb`
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #603
 
 ### `differential`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
 - Budget: Compare exact selected-profile identifiers and normalized document relationships/services through Rust and every applicable TypeScript target.
 - Receipt: `source:docs/conformance/fixtures/did-peer/v1/vectors.json`
-- Evidence revision: `bd1981372fcb08772d1196131a0cf26291fad9cb`
+- Evidence revision: `a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0`
 
 ## `siopv2.did-authentication.quality.v1`
 

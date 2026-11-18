@@ -172,7 +172,16 @@ case "$mode" in
   measurements)
     (cd "$package_root" && npm run test:measurements)
     ;;
-  all | differential)
+  all)
+    run_package_types
+    run_browser
+    run_nodejs
+    run_react_web
+    write_receipt react-native inapplicable inapplicable none
+    ;;
+  differential)
+    cargo test --locked -p identus-did-peer --test conformance \
+      portable_peer_did_packet_matches_both_profiles
     run_package_types
     run_browser
     run_nodejs

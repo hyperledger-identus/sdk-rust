@@ -78,7 +78,7 @@ fn portable_peer_did_packet_matches_both_profiles() {
                 };
                 let input = InputDocument::from_json_str(&source).expect("input");
                 let actual = LongForm::create(input).expect("create");
-                if let Some(expected) = case.expected.fields["did"].as_str() {
+                if let Some(expected) = case.expected.fields.get("did").and_then(Value::as_str) {
                     assert_eq!(actual.did().as_str(), expected);
                 } else {
                     assert_eq!(case.expected.fields["resultKind"], "success");

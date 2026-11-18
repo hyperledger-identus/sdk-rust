@@ -9,7 +9,7 @@ use identus_did::{
     Did, DidDocument, JsonWireError, JsonWireLimits, MAX_DID_BYTES, MAX_DID_DOCUMENT_BYTES, Uri,
     validate_unique_object_names,
 };
-use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeMap};
 use serde_json::{Value, json};
 
 use crate::Error;
@@ -85,18 +85,48 @@ impl PublicKey {
 }
 
 /// Compact DIDComm service input used by the Identus compatibility profile.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
-#[serde(deny_unknown_fields)]
+///
+/// The canonical in-memory type is `DIDCommMessaging`; wire serialization uses
+/// the SDK-TS compact spelling `dm`. Deserialization accepts either spelling
+/// and restores the canonical in-memory value. A historical DID that encoded
+/// the long spelling remains parseable, but creating a new DID from the same
+/// public material intentionally emits the compact canonical spelling.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Service {
     /// Service type (`DIDCommMessaging` in normal Identus use).
-    #[serde(rename = "t")]
     pub type_: String,
     /// Service endpoint value, using the pinned compact shape.
-    #[serde(rename = "s")]
     pub endpoint: ServiceEndpoint,
     /// Optional relative fragment identifier.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ServiceWire {
+    #[serde(rename = "t")]
+    type_: String,
+    #[serde(rename = "s")]
+    endpoint: ServiceEndpoint,
+    id: Option<String>,
+}
+
+impl<'de> Deserialize<'de> for Service {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let wire = ServiceWire::deserialize(deserializer)?;
+        Ok(Self {
+            type_: if wire.type_ == "dm" {
+                "DIDCommMessaging".to_owned()
+            } else {
+                wire.type_
+            },
+            endpoint: wire.endpoint,
+            id: wire.id,
+        })
+    }
 }
 
 impl Serialize for Service {
@@ -724,6 +754,25 @@ mod tests {
     }
 
     #[test]
+    fn service_serde_round_trip_restores_the_canonical_type() {
+        let service = Service {
+            type_: "DIDCommMessaging".into(),
+            endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
+                uri: "https://example.com/didcomm".into(),
+                accept: Some(vec!["didcomm/v2".into()]),
+                routing_keys: Some(vec![]),
+            }),
+            id: None,
+        };
+        let encoded = serde_json::to_string(&service).expect("serialize service");
+        assert!(encoded.contains("\"t\":\"dm\""));
+        assert_eq!(
+            serde_json::from_str::<Service>(&encoded).expect("deserialize service"),
+            service
+        );
+    }
+
+    #[test]
     fn creates_parses_and_resolves_multiple_endpoint_maps() {
         let key = PublicKey::new(Purpose::Verification, VERIFICATION_KEY).expect("key");
         let endpoint = |uri: &str| ServiceEndpointMap {
@@ -949,13 +998,20 @@ mod tests {
     }
 
     #[test]
-    fn parses_affinidi_numalgo2_compatibility_vector() {
+    fn parses_legacy_affinidi_vector_and_canonically_recreates_it() {
         const VECTOR: &str = "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19";
         let peer = PeerDid::parse(VECTOR).expect("oracle vector");
         assert_eq!(peer.did().as_str(), VECTOR);
         let document = peer.resolve().expect("resolve");
         assert_eq!(document.verification_methods().expect("methods").len(), 2);
         assert_eq!(document.services().expect("services").len(), 1);
+        let recreated = PeerDid::create(peer.keys.clone(), peer.services.clone())
+            .expect("canonical recreation");
+        assert_ne!(recreated.did().as_str(), VECTOR);
+        assert_eq!(
+            PeerDid::parse(recreated.did().as_str()).expect("parse canonical recreation"),
+            recreated
+        );
     }
 
     #[test]

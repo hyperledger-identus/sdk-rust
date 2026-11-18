@@ -73,9 +73,9 @@ unsupported codec, unsupported purpose, invalid input document, hash mismatch,
 long-form required, resource limit, and projection failure. Binding-contract
 drift remains distinct. Messages are constant and contain no input.
 
-Observations add explicit create/parse/resolve operation names and a versioned
-peer-method mapping ID. They contain route, result, stable code, artifact
-identity, and bounded duration only. Observer failure occurs after generated
+Observations add explicit create/parse/resolve operation names and versioned
+profile mapping IDs. They contain route, result, stable code, and bounded
+duration only. Observer failure occurs after generated
 ownership closes and never retries, changes profile, or selects a fallback.
 
 ## Donor dispositions and pairwise fixture

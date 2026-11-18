@@ -56,12 +56,13 @@ function receiptsFor(bindingPlan) {
 test("Cargo dependency closure is derived transitively", () => {
   const metadata = {
     packages: [
-      { name: "identus-wasm-did", manifest_path: "/repo/crates/wasm-did/Cargo.toml", dependencies: [{ name: "identus-did" }, { name: "wasm-bindgen" }] },
+      { name: "identus-wasm-did", manifest_path: "/repo/crates/wasm-did/Cargo.toml", dependencies: [{ name: "identus-did" }, { name: "identus-did-peer" }, { name: "wasm-bindgen" }] },
       { name: "identus-did", manifest_path: "/repo/crates/did/Cargo.toml", dependencies: [{ name: "identus-core" }] },
+      { name: "identus-did-peer", manifest_path: "/repo/crates/did-peer/Cargo.toml", dependencies: [{ name: "identus-did" }] },
       { name: "identus-core", manifest_path: "/repo/crates/core/Cargo.toml", dependencies: [] },
     ],
   };
-  assert.deepEqual(deriveCargoDependencyPaths(metadata, "identus-wasm-did", "/repo"), ["crates/core", "crates/did", "crates/wasm-did"]);
+  assert.deepEqual(deriveCargoDependencyPaths(metadata, "identus-wasm-did", "/repo"), ["crates/core", "crates/did", "crates/did-peer", "crates/wasm-did"]);
 });
 
 test("binding schema, dependency, locks, mappings, vectors and contracts select every target", () => {
@@ -76,13 +77,18 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "docs/conformance/fixtures/did/v1/vectors.json",
     "docs/conformance/fixtures/did-document/v1/vectors.json",
     "docs/conformance/fixtures/did-resolution/v1/vectors.json",
+    "docs/conformance/fixtures/did-peer/v1/vectors.json",
     "docs/conformance/sdk-ts-did-document-quality.md",
     "docs/conformance/sdk-ts-did-resolution-quality.md",
+    "docs/conformance/sdk-ts-peer-did-quality.md",
+    "docs/conformance/sdk-ts-peer-did-donor.toml",
     "fuzz/fuzz_targets/did_document.rs",
     "fuzz/fuzz_targets/did_resolution.rs",
+    "fuzz/fuzz_targets/peer_did.rs",
     "openspec/changes/add-sdk-ts-did-canary/specs/sdk-ts-did-facade/spec.md",
     "openspec/specs/sdk-ts-did-document/spec.md",
     "openspec/specs/sdk-ts-did-resolution/spec.md",
+    "openspec/changes/add-sdk-ts-peer-did-method/specs/sdk-ts-peer-did-method/spec.md",
     "nix/devshells/typescript.nix",
     "scripts/assemble-sdk-ts-did-artifacts.mjs",
     "scripts/build-sdk-ts-did-artifacts.sh",
@@ -143,6 +149,14 @@ test("document quality evidence remains a closed planner and aggregator signal",
 test("resolution quality evidence remains a closed planner and aggregator signal", () => {
   const bindingPlan = plan(["docs/conformance/sdk-ts-did-resolution-quality.md"]);
   assert.deepEqual(bindingPlan.signals, ["resolution-quality-evidence"]);
+  assert.deepEqual(bindingTargets.filter((target) => bindingPlan.targets[target].selected), bindingTargets);
+  assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
+  assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");
+});
+
+test("peer quality evidence remains a closed planner and aggregator signal", () => {
+  const bindingPlan = plan(["docs/conformance/sdk-ts-peer-did-quality.md"]);
+  assert.deepEqual(bindingPlan.signals, ["peer-quality-evidence"]);
   assert.deepEqual(bindingTargets.filter((target) => bindingPlan.targets[target].selected), bindingTargets);
   assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
   assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");

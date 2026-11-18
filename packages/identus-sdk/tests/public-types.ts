@@ -32,6 +32,16 @@ import type {
   DidValue,
   DidVerificationMethodValue,
   DidVerificationRelationshipValue,
+  PeerDidNumalgo2CompatibilityInput,
+  PeerDidNumalgo2CompatibilityValue,
+  PeerDidNumalgo2PublicKeyInput,
+  PeerDidNumalgo2Purpose,
+  PeerDidNumalgo2ServiceEndpointInput,
+  PeerDidNumalgo2ServiceEndpointMapInput,
+  PeerDidNumalgo2ServiceInput,
+  PeerDidNumalgo4InputDocument,
+  PeerDidNumalgo4ShortValue,
+  PeerDidNumalgo4Value,
 } from "../src/index.js";
 import { createDidProvider as createBrowserDidProvider } from "../src/browser.js";
 import { createDidProvider as createNodeDidProvider } from "../src/node.js";
@@ -76,6 +86,16 @@ type FactoryIsNotAny = AssertFalse<IsAny<DidProviderFactory>>;
 type BrowserFactoryIsNotAny = AssertFalse<IsAny<typeof createBrowserDidProvider>>;
 type NodeFactoryIsNotAny = AssertFalse<IsAny<typeof createNodeDidProvider>>;
 type ReactStateIsNotAny = AssertFalse<IsAny<DidProviderState>>;
+type PeerNumalgo2InputIsNotAny = AssertFalse<IsAny<PeerDidNumalgo2CompatibilityInput>>;
+type PeerNumalgo2ValueIsNotAny = AssertFalse<IsAny<PeerDidNumalgo2CompatibilityValue>>;
+type PeerPublicKeyIsNotAny = AssertFalse<IsAny<PeerDidNumalgo2PublicKeyInput>>;
+type PeerPurposeIsNotAny = AssertFalse<IsAny<PeerDidNumalgo2Purpose>>;
+type PeerEndpointIsNotAny = AssertFalse<IsAny<PeerDidNumalgo2ServiceEndpointInput>>;
+type PeerEndpointMapIsNotAny = AssertFalse<IsAny<PeerDidNumalgo2ServiceEndpointMapInput>>;
+type PeerServiceIsNotAny = AssertFalse<IsAny<PeerDidNumalgo2ServiceInput>>;
+type PeerNumalgo4InputIsNotAny = AssertFalse<IsAny<PeerDidNumalgo4InputDocument>>;
+type PeerNumalgo4ShortIsNotAny = AssertFalse<IsAny<PeerDidNumalgo4ShortValue>>;
+type PeerNumalgo4ValueIsNotAny = AssertFalse<IsAny<PeerDidNumalgo4Value>>;
 
 const compileAssertions: readonly [
   DidIsNotAny,
@@ -114,7 +134,27 @@ const compileAssertions: readonly [
   BrowserFactoryIsNotAny,
   NodeFactoryIsNotAny,
   ReactStateIsNotAny,
+  PeerNumalgo2InputIsNotAny,
+  PeerNumalgo2ValueIsNotAny,
+  PeerPublicKeyIsNotAny,
+  PeerPurposeIsNotAny,
+  PeerEndpointIsNotAny,
+  PeerEndpointMapIsNotAny,
+  PeerServiceIsNotAny,
+  PeerNumalgo4InputIsNotAny,
+  PeerNumalgo4ShortIsNotAny,
+  PeerNumalgo4ValueIsNotAny,
 ] = [
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
   false,
   false,
   false,

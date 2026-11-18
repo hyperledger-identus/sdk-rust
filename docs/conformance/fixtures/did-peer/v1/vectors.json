@@ -30,6 +30,137 @@
           "did": "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19"
         }
       }
+    },
+    {
+      "id": "did.peer.numalgo2.sdk-ts-pairwise",
+      "operation": "did-peer.numalgo2.create-pairwise",
+      "input": { "literal": "{\"keys\":[{\"purpose\":\"encryption\",\"multibase\":\"z6LSoHkfN1Y4nK9RCjx7vopWsLrMGNFNgTNZgoCNQrTzmb1n\"},{\"purpose\":\"verification\",\"multibase\":\"z6MknRZmapV7uYZQuZez9n9N3tQotjRN18UGS68Vcfo6gR4h\"}],\"services\":[{\"type\":\"DIDCommMessaging\",\"endpoint\":{\"uri\":\"https://example.com/endpoint\",\"accept\":[],\"routingKeys\":[\"did:example:somemediator#somekey\"]}}]}" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "did": "did:peer:2.Ez6LSoHkfN1Y4nK9RCjx7vopWsLrMGNFNgTNZgoCNQrTzmb1n.Vz6MknRZmapV7uYZQuZez9n9N3tQotjRN18UGS68Vcfo6gR4h.SeyJ0IjoiZG0iLCJzIjp7InVyaSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vZW5kcG9pbnQiLCJyIjpbImRpZDpleGFtcGxlOnNvbWVtZWRpYXRvciNzb21la2V5Il0sImEiOltdfX0",
+          "authentication": "#key-2",
+          "keyAgreement": "#key-1",
+          "serviceType": "DIDCommMessaging",
+          "serviceUri": "https://example.com/endpoint",
+          "routingKey": "did:example:somemediator#somekey",
+          "acceptCount": 0
+        }
+      }
+    },
+    {
+      "id": "did.peer.numalgo4.wrong-profile",
+      "operation": "did-peer.numalgo4.parse-long",
+      "input": { "literal": "did:example:123" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.peer.wrong_profile",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.peer.numalgo4.unsupported-algorithm",
+      "operation": "did-peer.numalgo4.parse-long",
+      "input": { "literal": "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.peer.unsupported_algorithm",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.peer.numalgo2.malformed-encoding",
+      "operation": "did-peer.numalgo2.parse-resolve",
+      "input": { "literal": "did:peer:2.V!" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.peer.malformed_encoding",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.peer.numalgo4.hash-mismatch",
+      "operation": "did-peer.numalgo4.parse-long",
+      "input": {
+        "literal": "did:peer:4zQmb7xLdVY9TXx8oov5XgpGUmGELgqiAV2699s43i6Qdm3M:zQSJgiFTYiCHjQ9MktwNThRXM71"
+      },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.peer.hash_mismatch",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.peer.numalgo4.long-form-required",
+      "operation": "did-peer.numalgo4.resolve-short",
+      "input": { "literal": "did:peer:4zQmb7xLdVY9TXx8oov5XgpGUmGELgqiAV2699s43i6Qdm3M" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.peer.long_form_required",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.peer.numalgo4.secret-shaped-input",
+      "operation": "did-peer.numalgo4.create",
+      "input": { "literal": "{\"extension\":{\"jwk\":{\"d\":\"private-scalar\"}}}" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.peer.invalid_input_document",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.peer.numalgo2.unsupported-codec",
+      "operation": "did-peer.numalgo2.create",
+      "input": { "literal": "{\"keys\":[{\"purpose\":\"verification\",\"multibase\":\"z1111\"}],\"services\":[]}" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.peer.unsupported_codec",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.peer.numalgo2.invalid-service-id",
+      "operation": "did-peer.numalgo2.create",
+      "input": { "literal": "{\"keys\":[{\"purpose\":\"verification\",\"multibase\":\"z6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv\"}],\"services\":[{\"type\":\"DIDCommMessaging\",\"endpoint\":\"https://example.com\",\"id\":\"didcomm\"}]}" },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.peer.invalid_input_document",
+        "redacted": true,
+        "fields": {}
+      }
+    },
+    {
+      "id": "did.peer.numalgo4.exact-input-limit",
+      "operation": "did-peer.numalgo4.create",
+      "input": { "generated": { "prefix": "{\"claim\":\"", "repeat": "a", "count": 16372, "suffix": "\"}" } },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": { "resultKind": "success" }
+      }
+    },
+    {
+      "id": "did.peer.numalgo4.over-input-limit",
+      "operation": "did-peer.numalgo4.create",
+      "input": { "generated": { "prefix": "{\"claim\":\"", "repeat": "a", "count": 16373, "suffix": "\"}" } },
+      "expected": {
+        "kind": "error",
+        "errorCode": "did.peer.resource_limit",
+        "redacted": true,
+        "fields": {}
+      }
     }
   ]
 }

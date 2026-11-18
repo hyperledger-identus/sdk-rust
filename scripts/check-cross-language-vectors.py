@@ -39,8 +39,8 @@ GENERATED_KEYS = {"prefix", "repeat", "count", "suffix"}
 FIELD_KEYS = {
     "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment",
     "operationKind", "operationId", "operationHash", "canonicalDid", "curve",
-    "relationshipCount", "url",
-    "resultKind",
+    "relationshipCount", "url", "resultKind", "authentication", "keyAgreement",
+    "serviceType", "serviceUri", "routingKey", "acceptCount",
 }
 AUTHORITIES = {
     "normative", "identus-contract", "consumer-regression", "implementation-regression", "exploratory"
@@ -59,7 +59,11 @@ OPERATIONS = {
     "crypto.secp256k1.verify",
     "did-prism-vdr.operation.parse",
     "did-peer.numalgo4.create",
+    "did-peer.numalgo4.parse-long",
+    "did-peer.numalgo4.resolve-short",
     "did-peer.numalgo2.parse-resolve",
+    "did-peer.numalgo2.create",
+    "did-peer.numalgo2.create-pairwise",
     "did-key.parse",
     "did-key.parse-resolve",
     "did-jwk.parse-resolve",
@@ -80,6 +84,7 @@ CONSUMER_SELECTORS = {
     "sdk-ts.did-parser": "DIDParser.test.ts:should test valid DIDs",
     "sdk-swift.did-parser": "DIDParserTests.swift:testValidDIDs",
     "sdk-kmp.did-parser": "DIDParserTest.kt:it_should_test_valid_DIDs",
+    "typescript.sdk-ts-peer": "PeerDID.test.ts:Should create the peerDID correctly",
 }
 MAX_GENERATED_REPEAT = 262_144
 
@@ -250,8 +255,19 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 allowed_fields = {
                     "serialized", "did", "method", "methodSpecificId", "path", "query", "fragment"
                 }
-            elif operation in {"did-peer.numalgo4.create", "did-peer.numalgo2.parse-resolve"}:
-                allowed_fields = {"did"}
+            elif operation in {
+                "did-peer.numalgo4.create",
+                "did-peer.numalgo4.parse-long",
+                "did-peer.numalgo4.resolve-short",
+                "did-peer.numalgo2.parse-resolve",
+                "did-peer.numalgo2.create",
+            }:
+                allowed_fields = {"did", "resultKind"}
+            elif operation == "did-peer.numalgo2.create-pairwise":
+                allowed_fields = {
+                    "did", "authentication", "keyAgreement", "serviceType", "serviceUri",
+                    "routingKey", "acceptCount",
+                }
             elif operation == "did-key.parse":
                 allowed_fields = {"curve"}
             elif operation in {"did-key.parse-resolve", "did-jwk.parse-resolve"}:
@@ -269,7 +285,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
             if set(fields) - allowed_fields:
                 errors.append(f"{identifier}.expected.fields contains fields unsupported by {operation}")
             for field, value in fields.items():
-                if field == "relationshipCount":
+                if field in {"relationshipCount", "acceptCount"}:
                     if not isinstance(value, int) or isinstance(value, bool) or value < 0:
                         errors.append(f"{identifier}.expected.fields.{field} must be a non-negative integer")
                     continue
@@ -305,8 +321,25 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 "did-prism.state.reduce": "did-prism.invalid_state",
                 "crypto.secp256k1.verify": "crypto.signature_invalid",
                 "did-prism-vdr.operation.parse": "did-prism-vdr.invalid_operation",
-                "did-peer.numalgo4.create": "did-peer.invalid_input_document",
-                "did-peer.numalgo2.parse-resolve": "did-peer.malformed_encoding",
+                "did-peer.numalgo4.create": {
+                    "did-peer.invalid_input_document",
+                    "did.peer.invalid_input_document",
+                    "did.peer.resource_limit",
+                },
+                "did-peer.numalgo4.parse-long": {
+                    "did.peer.wrong_profile",
+                    "did.peer.unsupported_algorithm",
+                    "did.peer.hash_mismatch",
+                },
+                "did-peer.numalgo4.resolve-short": "did.peer.long_form_required",
+                "did-peer.numalgo2.parse-resolve": {
+                    "did-peer.malformed_encoding",
+                    "did.peer.malformed_encoding",
+                },
+                "did-peer.numalgo2.create": {
+                    "did.peer.unsupported_codec",
+                    "did.peer.invalid_input_document",
+                },
                 "did-key.parse": {
                     "did-key.malformed_encoding",
                     "did-key.unsupported_codec",

@@ -16,6 +16,7 @@ import { DidProviderBoundary, useDidProvider } from "../dist/react.js";
 import { loadVectors } from "./vector-loader.mjs";
 import { loadDocumentVectors } from "./document-vector-loader.mjs";
 import { loadResolutionVectors } from "./resolution-vector-loader.mjs";
+import { loadPeerVectors } from "./peer-vector-loader.mjs";
 
 const reactDocument = '{"id":"did:example:react-hydration"}';
 
@@ -52,6 +53,7 @@ const nodeProvider = await createNodeDidProvider();
 const vectors = await loadVectors();
 const documentVectors = await loadDocumentVectors();
 const resolutionVectors = await loadResolutionVectors();
+const peerVectors = await loadPeerVectors();
 const markup = renderToString(createElement(
   DidProviderBoundary,
   { factory: async () => nodeProvider, initialProvider: nodeProvider },
@@ -60,9 +62,10 @@ const markup = renderToString(createElement(
 const serializedVectors = JSON.stringify(vectors).replaceAll("<", "\\u003c");
 const serializedDocumentVectors = JSON.stringify(documentVectors).replaceAll("<", "\\u003c");
 const serializedResolutionVectors = JSON.stringify(resolutionVectors).replaceAll("<", "\\u003c");
+const serializedPeerVectors = JSON.stringify(peerVectors).replaceAll("<", "\\u003c");
 await writeFile(
   fixture,
-  `<!doctype html><html><body><div id="root">${markup}</div><script>window.__identusDidVectors=${serializedVectors};window.__identusDidDocumentVectors=${serializedDocumentVectors};window.__identusDidResolutionVectors=${serializedResolutionVectors}</script><script type="module" src="/tests/react-browser-fixture.tsx"></script></body></html>\n`,
+  `<!doctype html><html><body><div id="root">${markup}</div><script>window.__identusDidVectors=${serializedVectors};window.__identusDidDocumentVectors=${serializedDocumentVectors};window.__identusDidResolutionVectors=${serializedResolutionVectors};window.__identusPeerDidVectors=${serializedPeerVectors}</script><script type="module" src="/tests/react-browser-fixture.tsx"></script></body></html>\n`,
   { flag: "wx" },
 );
 

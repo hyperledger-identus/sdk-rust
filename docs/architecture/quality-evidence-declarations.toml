@@ -23,14 +23,14 @@ replaced_by = ""
 
 [[declarations.obligations]]
 class             = "property"
-disposition       = "satisfied"
+disposition       = "required"
 risk              = "Mode/destination combinations, escaping, collisions, and boundary arithmetic can create ambiguous or unbounded output."
 selectors         = [ "docs/adr/0185-support-effect-neutral-oid4vp-redirect-responses.md#Decision" ]
 command           = "cargo test -p identus-oid4vp --test redirect_response property"
 lane              = "focused"
 cadence           = "on-change"
 targets           = [ "package:identus-oid4vp", "host:rust" ]
-freshness         = "source-bound"
+freshness         = "pending"
 freshness_days    = 0
 budget            = "Sweep every supported mode, query/fragment output boundaries, form-post collision bounds, all reserved fields, and the exact acknowledgement body boundary."
 receipt_kind      = "source"
@@ -47,14 +47,14 @@ details           = [ "invariant=Only exact authorized mode/destination pairs pr
 
 [[declarations.obligations]]
 class             = "fuzz"
-disposition       = "satisfied"
+disposition       = "required"
 risk              = "Hostile acknowledgement JSON or URI components can panic, amplify work, bypass bounds, or mint navigation evidence."
 selectors         = [ "fuzz/fuzz_targets/direct_post_response.rs#fuzz_target!", "scripts/fuzz-oid4vp.sh#direct_post_response" ]
 command           = "nix develop .#fuzz --command ./scripts/fuzz-oid4vp.sh soak direct_post_response"
 lane              = "slow"
 cadence           = "weekly-or-manual"
 targets           = [ "package:identus-oid4vp", "host:linux", "sanitizer:address" ]
-freshness         = "source-bound"
+freshness         = "pending"
 freshness_days    = 0
 budget            = "Run for 300 seconds with max_len=131072, timeout=5 and rss_limit_mb=1024."
 receipt_kind      = "source"
@@ -1425,6 +1425,116 @@ details = [
   "normalization=Compare exact DID text and resolved semantic counts rather than foreign DTO or error shapes",
   "deviations=Numalgo-2 is explicitly compatibility-only; unsupported historical algorithms fail closed",
 ]
+
+[[declarations]]
+id          = "did.peer.typescript.quality.v1"
+capability  = "did.peer.profiles"
+slice       = "Private TypeScript peer DID method facade"
+owner       = "SDK-Rust TypeScript binding maintainers"
+owner_issue = 603
+risk        = "A language facade can drift from selected peer profiles, accept secret-shaped or unbounded input, leak generated ownership, expose caller values in diagnostics, or behave differently across target loaders."
+targets     = [ "package:identus-typescript-sdk", "package:identus-wasm-did", "package:identus-did-peer", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+vector_ids  = [ "did.peer.numalgo4.reference-minimal", "did.peer.numalgo2.affinidi-compat", "did.peer.numalgo2.sdk-ts-pairwise" ]
+limitations = "Private additive public-material facade only; no key generation, custody, networking, persistence, DIDComm engine, historical numalgos 0/1/3, React Native, external adoption, publication, support, accepted budget, certification, or stable API."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "required"
+risk              = "Closed input validation, profile selection, hash linkage, projection, ownership, rollback, or target loading can diverge."
+selectors         = [ "packages/identus-sdk/tests/provider.test.mjs#maps a peer hash mismatch", "packages/identus-sdk/tests/peer-vector-assertions.mjs#assertAllPeerVectors", "tests/wasm-did-browser/src/lib.rs#peer" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-typescript-sdk", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Execute both selected profiles, pairwise values, strict ingress, exact-free, redaction, rollback, module formats, SSR and hydration through the shared facade."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 603
+debt_status       = "open"
+debt_issue        = 603
+rationale         = ""
+details           = [ "invariant=Every target exposes the same frozen profile-specific values while Rust revalidates domain bounds and generated values are freed exactly once", "domain=numalgo-4 current profile and explicit numalgo-2 compatibility profile", "cases=create, parse, short/long resolve, pairwise value, hostile input, hash mismatch, observer failure, rollback and target lifecycle" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "required"
+risk              = "Arbitrary multibase, compact service JSON, nested input documents, or oversized values can panic, amplify work, or retain secret-shaped fields."
+selectors         = [ "fuzz/fuzz_targets/peer_did.rs#fuzz_target!", "scripts/fuzz-did-peer.sh#-max_total_time=300" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-did-peer", "host:linux", "sanitizer:address" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Reuse the canonical peer DID fuzz target with max_len=131072, timeout=5, rss_limit_mb=1024, and 300 seconds total time."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust peer DID maintainers"
+owner_issue       = 603
+debt_status       = "open"
+debt_issue        = 523
+rationale         = ""
+details           = [ "harness=Canonical Rust peer parser/create/resolve boundary consumed by the facade", "corpus=Pinned numalgo-4 and numalgo-2 packets plus promoted regressions", "seed=libFuzzer-managed reproducible failures promoted to checked-in regressions", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "required"
+risk              = "The added peer dependency, target packaging, initialization, projection, or near-limit values can introduce material size, latency, or retained-memory growth."
+selectors         = [ "packages/identus-sdk/tests/measurements.mjs#measurement", "docs/conformance/sdk-ts-peer-did-quality.md#Local gates" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-typescript-sdk", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Measure deterministic artifact bytes plus cold/warm initialization and representative parse latency without activating a support threshold."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 603
+debt_status       = "open"
+debt_issue        = 603
+rationale         = ""
+details           = [ "operation=Build/load API-v4 artifacts and exercise selected peer profiles", "fixture=Ordinary selected-profile vectors and deterministic browser/Node artifacts", "environment=Pinned Nix Rust 1.99.1, Node 24, wasm-pack 0.15.0 and wasm-bindgen-cli 0.2.121", "statistic=Artifact bytes and directional latency/memory", "samples=At least 101 measured parses after 21 warm-up iterations where the existing harness supports the operation", "threshold=Measurement-only; support budgets require a later target decision" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "required"
+risk              = "The facade can appear internally consistent while changing canonical peer DID output or the pinned SDK-TS numalgo-2 consumer journey."
+selectors         = [ "crates/did-peer/tests/conformance.rs#portable_peer_did_packet_matches_both_profiles", "packages/identus-sdk/tests/peer-vector-assertions.mjs#assertAllPeerVectors", "docs/conformance/fixtures/did-peer/v1/vectors.json#did.peer.numalgo4.reference-minimal" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-did-peer", "package:identus-typescript-sdk", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Compare exact selected-profile identifiers and normalized document relationships/services through Rust and every applicable TypeScript target."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 603
+debt_status       = "open"
+debt_issue        = 603
+rationale         = ""
+details           = [ "oracle=Canonical identus-did-peer plus pinned SDK-TS 8.1.4 numalgo-2 consumer behavior", "oracle-revision=SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e", "normalization=Compare exact DID text and normalized document relationships/services rather than donor classes or error text", "deviations=Numalgo-4 is a Rust-owned addition; numalgo-2 remains explicitly compatibility-only; historical numalgos fail closed" ]
 
 [[declarations]]
 id          = "siopv2.did-authentication.quality.v1"

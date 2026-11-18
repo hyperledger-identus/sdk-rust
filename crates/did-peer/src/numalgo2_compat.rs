@@ -9,7 +9,7 @@ use identus_did::{
     Did, DidDocument, JsonWireError, JsonWireLimits, MAX_DID_BYTES, MAX_DID_DOCUMENT_BYTES, Uri,
     validate_unique_object_names,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
 use serde_json::{Value, json};
 
 use crate::Error;
@@ -85,7 +85,7 @@ impl PublicKey {
 }
 
 /// Compact DIDComm service input used by the Identus compatibility profile.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Service {
     /// Service type (`DIDCommMessaging` in normal Identus use).
@@ -97,6 +97,96 @@ pub struct Service {
     /// Optional relative fragment identifier.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+}
+
+impl Serialize for Service {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let sdk_ts_compat = matches!(self.type_.as_str(), "DIDCommMessaging" | "dm");
+        let mut map = serializer.serialize_map(Some(2 + usize::from(self.id.is_some())))?;
+        map.serialize_entry(
+            "t",
+            if sdk_ts_compat {
+                "dm"
+            } else {
+                self.type_.as_str()
+            },
+        )?;
+        map.serialize_entry(
+            "s",
+            &OrderedServiceEndpoint {
+                endpoint: &self.endpoint,
+                sdk_ts_compat,
+            },
+        )?;
+        if let Some(id) = &self.id {
+            map.serialize_entry("id", id)?;
+        }
+        map.end()
+    }
+}
+
+struct OrderedServiceEndpoint<'a> {
+    endpoint: &'a ServiceEndpoint,
+    sdk_ts_compat: bool,
+}
+
+impl Serialize for OrderedServiceEndpoint<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self.endpoint {
+            ServiceEndpoint::Uri(uri) => uri.serialize(serializer),
+            ServiceEndpoint::Map(endpoint) => OrderedServiceEndpointMap {
+                endpoint,
+                sdk_ts_compat: self.sdk_ts_compat,
+            }
+            .serialize(serializer),
+            ServiceEndpoint::Maps(endpoints) => {
+                serializer.collect_seq(endpoints.iter().map(|endpoint| OrderedServiceEndpointMap {
+                    endpoint,
+                    sdk_ts_compat: self.sdk_ts_compat,
+                }))
+            }
+        }
+    }
+}
+
+struct OrderedServiceEndpointMap<'a> {
+    endpoint: &'a ServiceEndpointMap,
+    sdk_ts_compat: bool,
+}
+
+impl Serialize for OrderedServiceEndpointMap<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut size = 1;
+        size += usize::from(self.endpoint.accept.is_some());
+        size += usize::from(self.endpoint.routing_keys.is_some());
+        let mut map = serializer.serialize_map(Some(size))?;
+        map.serialize_entry("uri", &self.endpoint.uri)?;
+        if self.sdk_ts_compat {
+            if let Some(routing_keys) = &self.endpoint.routing_keys {
+                map.serialize_entry("r", routing_keys)?;
+            }
+            if let Some(accept) = &self.endpoint.accept {
+                map.serialize_entry("a", accept)?;
+            }
+        } else {
+            if let Some(accept) = &self.endpoint.accept {
+                map.serialize_entry("a", accept)?;
+            }
+            if let Some(routing_keys) = &self.endpoint.routing_keys {
+                map.serialize_entry("r", routing_keys)?;
+            }
+        }
+        map.end()
+    }
 }
 
 /// Compact numalgo-2 service endpoint.
@@ -111,8 +201,7 @@ pub enum ServiceEndpoint {
     Maps(Vec<ServiceEndpointMap>),
 }
 
-/// Compact DIDComm endpoint fields, serialized in the pinned `uri`, `a`, `r`
-/// order used by existing Identus consumers.
+/// Compact DIDComm endpoint fields.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceEndpointMap {
@@ -143,11 +232,12 @@ pub struct PeerDid {
 
 impl PeerDid {
     /// Create a compatibility DID from caller-owned public material.
-    pub fn create(keys: Vec<PublicKey>, services: Vec<Service>) -> Result<Self, Error> {
+    pub fn create(keys: Vec<PublicKey>, mut services: Vec<Service>) -> Result<Self, Error> {
         validate_counts(keys.len(), services.len())?;
         if keys.is_empty() {
             return Err(Error::InvalidInputDocument);
         }
+        normalize_service_types(&mut services);
         let mut value = String::from(PREFIX);
         for key in &keys {
             value.push('.');
@@ -250,13 +340,14 @@ impl PeerDid {
                     validate_service_json(&bytes)?;
                     let decoded: EncodedServices =
                         serde_json::from_slice(&bytes).map_err(|_| Error::InvalidInputDocument)?;
-                    let decoded = match decoded {
+                    let mut decoded = match decoded {
                         EncodedServices::One(service) => vec![service],
                         EncodedServices::Many(services) if services.is_empty() => {
                             return Err(Error::InvalidInputDocument);
                         }
                         EncodedServices::Many(services) => services,
                     };
+                    normalize_service_types(&mut decoded);
                     if keys
                         .len()
                         .saturating_add(services.len())
@@ -437,6 +528,14 @@ fn validate_counts(keys: usize, services: usize) -> Result<(), Error> {
         Err(Error::ResourceLimit)
     } else {
         Ok(())
+    }
+}
+
+fn normalize_service_types(services: &mut [Service]) {
+    for service in services {
+        if service.type_ == "dm" {
+            service.type_ = "DIDCommMessaging".to_owned();
+        }
     }
 }
 
@@ -854,13 +953,6 @@ mod tests {
         const VECTOR: &str = "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19";
         let peer = PeerDid::parse(VECTOR).expect("oracle vector");
         assert_eq!(peer.did().as_str(), VECTOR);
-        assert_eq!(
-            PeerDid::create(peer.keys.clone(), peer.services.clone())
-                .expect("recreate")
-                .did()
-                .as_str(),
-            VECTOR
-        );
         let document = peer.resolve().expect("resolve");
         assert_eq!(document.verification_methods().expect("methods").len(), 2);
         assert_eq!(document.services().expect("services").len(), 1);

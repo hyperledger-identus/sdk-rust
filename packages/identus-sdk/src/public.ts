@@ -12,6 +12,16 @@ export type DidErrorCode =
   | "did.dereferencing_provider_unavailable"
   | "did.operation_aborted"
   | "did.observer_failure"
+  | "did.peer.wrong_profile"
+  | "did.peer.unsupported_algorithm"
+  | "did.peer.malformed_encoding"
+  | "did.peer.unsupported_codec"
+  | "did.peer.unsupported_purpose"
+  | "did.peer.invalid_input_document"
+  | "did.peer.hash_mismatch"
+  | "did.peer.long_form_required"
+  | "did.peer.resource_limit"
+  | "did.peer.projection_failure"
   | "adapter.binding_contract"
   | "adapter.unsupported_lossy_mapping";
 
@@ -96,6 +106,61 @@ export interface DidDocumentValue {
   readonly capabilityDelegation: readonly DidVerificationRelationshipValue[] | undefined;
   readonly service: readonly DidServiceValue[] | undefined;
   readonly properties: DidDocumentExtensionMapValue;
+}
+
+export type PeerDidNumalgo4InputDocument = DidDocumentExtensionMapValue;
+
+export type PeerDidNumalgo2Purpose =
+  | "verification"
+  | "encryption"
+  | "assertion"
+  | "capabilityInvocation"
+  | "capabilityDelegation";
+
+export interface PeerDidNumalgo2PublicKeyInput {
+  readonly purpose: PeerDidNumalgo2Purpose;
+  readonly multibase: string;
+}
+
+export interface PeerDidNumalgo2ServiceEndpointMapInput {
+  readonly uri: string;
+  readonly accept?: readonly string[];
+  readonly routingKeys?: readonly string[];
+}
+
+export type PeerDidNumalgo2ServiceEndpointInput =
+  | string
+  | PeerDidNumalgo2ServiceEndpointMapInput
+  | readonly PeerDidNumalgo2ServiceEndpointMapInput[];
+
+export interface PeerDidNumalgo2ServiceInput {
+  readonly type: string;
+  readonly endpoint: PeerDidNumalgo2ServiceEndpointInput;
+  readonly id?: string;
+}
+
+export interface PeerDidNumalgo2CompatibilityInput {
+  readonly keys: readonly PeerDidNumalgo2PublicKeyInput[];
+  readonly services?: readonly PeerDidNumalgo2ServiceInput[];
+}
+
+export interface PeerDidNumalgo4Value {
+  readonly profile: "numalgo4";
+  readonly longForm: DidValue;
+  readonly shortForm: DidValue;
+  readonly inputDocument: PeerDidNumalgo4InputDocument;
+  readonly document: DidDocumentValue;
+}
+
+export interface PeerDidNumalgo4ShortValue {
+  readonly profile: "numalgo4";
+  readonly shortForm: DidValue;
+}
+
+export interface PeerDidNumalgo2CompatibilityValue {
+  readonly profile: "numalgo2-compatibility";
+  readonly did: DidValue;
+  readonly document: DidDocumentValue;
 }
 
 export type DidResolutionStandardErrorKind =
@@ -240,7 +305,13 @@ export type DidOperation =
   | "did-url.parse"
   | "did-document.parse"
   | "did.resolve"
-  | "did-url.dereference";
+  | "did-url.dereference"
+  | "did.peer.numalgo4.create"
+  | "did.peer.numalgo4.parse-long"
+  | "did.peer.numalgo4.parse-short"
+  | "did.peer.numalgo4.resolve-short"
+  | "did.peer.numalgo2-compatibility.create"
+  | "did.peer.numalgo2-compatibility.parse";
 
 export type DidProviderRoute = "browser-wasm" | "node-wasm" | "legacy";
 
@@ -249,6 +320,8 @@ export type DidMappingId =
   | "did-url.value.typescript.legacy-v1"
   | "did.document.typescript.legacy-v1"
   | "did.resolution.typescript.host-v1"
+  | "did.peer.typescript.numalgo4-v1"
+  | "did.peer.typescript.numalgo2-compat-v1"
   | "did.error.invalid-did.typescript.legacy-v1"
   | "did.error.invalid-did-url.typescript.legacy-v1";
 
@@ -271,6 +344,19 @@ export interface DidProvider {
   parseDid(value: string): DidValue;
   parseDidUrl(value: string): DidUrlValue;
   parseDidDocument(value: string): DidDocumentValue;
+  createPeerDidNumalgo4(input: PeerDidNumalgo4InputDocument): PeerDidNumalgo4Value;
+  parsePeerDidNumalgo4Long(value: string): PeerDidNumalgo4Value;
+  parsePeerDidNumalgo4Short(value: string): PeerDidNumalgo4ShortValue;
+  resolvePeerDidNumalgo4Short(
+    shortForm: string,
+    longForm: string,
+  ): PeerDidNumalgo4Value;
+  createPeerDidNumalgo2Compatibility(
+    input: PeerDidNumalgo2CompatibilityInput,
+  ): PeerDidNumalgo2CompatibilityValue;
+  parsePeerDidNumalgo2Compatibility(
+    value: string,
+  ): PeerDidNumalgo2CompatibilityValue;
 }
 
 export interface DidResolutionProvider extends DidProvider {
@@ -315,6 +401,16 @@ const ERROR_MESSAGES: Readonly<Record<DidErrorCode, string>> = Object.freeze({
   "did.dereferencing_provider_unavailable": "DID dereferencing provider is unavailable",
   "did.operation_aborted": "DID operation was aborted",
   "did.observer_failure": "DID observation failed",
+  "did.peer.wrong_profile": "Peer DID profile is invalid for this operation",
+  "did.peer.unsupported_algorithm": "Peer DID algorithm is unsupported",
+  "did.peer.malformed_encoding": "Peer DID encoding is malformed",
+  "did.peer.unsupported_codec": "Peer DID codec is unsupported",
+  "did.peer.unsupported_purpose": "Peer DID key purpose is unsupported",
+  "did.peer.invalid_input_document": "Peer DID input document is invalid",
+  "did.peer.hash_mismatch": "Peer DID long and short forms do not match",
+  "did.peer.long_form_required": "Peer DID long form is required",
+  "did.peer.resource_limit": "Peer DID resource limit was exceeded",
+  "did.peer.projection_failure": "Peer DID projection failed",
   "adapter.binding_contract": "DID binding contract failed",
   "adapter.unsupported_lossy_mapping": "DID document cannot be projected safely",
 });

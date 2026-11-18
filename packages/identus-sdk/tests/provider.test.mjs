@@ -25,7 +25,7 @@ function owned(fields) {
 
 function binding(overrides = {}) {
   return {
-    bindingApiVersion: () => 3,
+    bindingApiVersion: () => 4,
     isParseError: (error) => error?.kind === "parse",
     parseDid: () => {
       throw new Error("parseDid mock is missing");
@@ -47,6 +47,24 @@ function binding(overrides = {}) {
     },
     parseDidDereferencingResult: () => {
       throw new Error("parseDidDereferencingResult mock is missing");
+    },
+    createPeerDidNumalgo4: () => {
+      throw new Error("createPeerDidNumalgo4 mock is missing");
+    },
+    parsePeerDidNumalgo4Long: () => {
+      throw new Error("parsePeerDidNumalgo4Long mock is missing");
+    },
+    parsePeerDidNumalgo4Short: () => {
+      throw new Error("parsePeerDidNumalgo4Short mock is missing");
+    },
+    resolvePeerDidNumalgo4Short: () => {
+      throw new Error("resolvePeerDidNumalgo4Short mock is missing");
+    },
+    createPeerDidNumalgo2Compatibility: () => {
+      throw new Error("createPeerDidNumalgo2Compatibility mock is missing");
+    },
+    parsePeerDidNumalgo2Compatibility: () => {
+      throw new Error("parsePeerDidNumalgo2Compatibility mock is missing");
     },
     ...overrides,
   };
@@ -571,6 +589,144 @@ test("explicit rollback selection never falls through after Rust rejection", () 
   assert.equal(legacyCalls, 0);
   assert.equal(select("legacy").parseDid("legacy-value").method, "legacy");
   assert.equal(legacyCalls, 1);
+});
+
+test("projects a numalgo-4 value and frees every generated owner exactly once", () => {
+  const peer = owned({
+    profile: "numalgo4",
+    longForm: "did:peer:4long:input",
+    shortForm: "did:peer:4short",
+    inputDocument: '{"hello":"world"}',
+    resolvedDocument: '{"id":"did:peer:4long:input","hello":"world"}',
+  });
+  const long = owned({
+    value: "did:peer:4long:input",
+    method: "peer",
+    methodSpecificId: "4long:input",
+  });
+  const short = owned({
+    value: "did:peer:4short",
+    method: "peer",
+    methodSpecificId: "4short",
+  });
+  const document = owned({
+    serialized: '{"id":"did:peer:4long:input","hello":"world"}',
+    id: "did:peer:4long:input",
+  });
+  const dids = [long.value, short.value];
+  const provider = createRustDidProvider(binding({
+    createPeerDidNumalgo4: () => peer.value,
+    parseDid: () => dids.shift(),
+    parseDidDocument: () => document.value,
+  }), "node-wasm");
+
+  const value = provider.createPeerDidNumalgo4({ hello: "world" });
+
+  assert.equal(value.profile, "numalgo4");
+  assert.equal(value.longForm.serialized, "did:peer:4long:input");
+  assert.equal(value.shortForm.serialized, "did:peer:4short");
+  assert.deepEqual(value.inputDocument, { hello: "world" });
+  assert.equal(Object.isFrozen(value), true);
+  assert.equal(Object.isFrozen(value.inputDocument), true);
+  assert.equal(peer.freeCount(), 1);
+  assert.equal(long.freeCount(), 1);
+  assert.equal(short.freeCount(), 1);
+  assert.equal(document.freeCount(), 1);
+});
+
+test("rejects secret-shaped numalgo-2 input before entering the binding", () => {
+  let called = false;
+  const provider = createRustDidProvider(binding({
+    createPeerDidNumalgo2Compatibility: () => {
+      called = true;
+      throw new Error("must not run");
+    },
+  }), "node-wasm");
+
+  assert.throws(
+    () => provider.createPeerDidNumalgo2Compatibility({
+      keys: [{
+        purpose: "verification",
+        multibase: "z6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv",
+        privateKey: "do-not-retain",
+      }],
+    }),
+    (error) => error instanceof DidError
+      && error.code === "did.peer.invalid_input_document"
+      && !error.message.includes("do-not-retain"),
+  );
+  assert.equal(called, false);
+});
+
+test("maps a peer hash mismatch with redaction and exact error disposal", () => {
+  let freeCount = 0;
+  const rawError = {
+    kind: "parse",
+    code: "did.peer.hash_mismatch",
+    free() {
+      freeCount += 1;
+    },
+  };
+  const provider = createRustDidProvider(binding({
+    resolvePeerDidNumalgo4Short: () => { throw rawError; },
+  }), "browser-wasm");
+  const canary = "did:peer:4do-not-reflect";
+
+  assert.throws(
+    () => provider.resolvePeerDidNumalgo4Short(canary, `${canary}:long`),
+    (error) => error instanceof DidError
+      && error.code === "did.peer.hash_mismatch"
+      && error.stack === undefined
+      && !JSON.stringify(error).includes(canary),
+  );
+  assert.equal(freeCount, 1);
+});
+
+test("requires numalgo-4 long-form material before entering the binding", () => {
+  let called = false;
+  const provider = createRustDidProvider(binding({
+    resolvePeerDidNumalgo4Short: () => {
+      called = true;
+      throw new Error("must not run");
+    },
+  }), "browser-wasm");
+
+  assert.throws(
+    () => provider.resolvePeerDidNumalgo4Short("did:peer:4short", undefined),
+    (error) => error instanceof DidError
+      && error.code === "did.peer.long_form_required"
+      && error.stack === undefined,
+  );
+  assert.equal(called, false);
+});
+
+test("peer observation failure is terminal after generated ownership closes", () => {
+  const raw = owned({
+    profile: "numalgo4",
+    shortForm: "did:peer:4short",
+  });
+  const did = owned({
+    value: "did:peer:4short",
+    method: "peer",
+    methodSpecificId: "4short",
+  });
+  const provider = createRustDidProvider(binding({
+    parsePeerDidNumalgo4Short: () => raw.value,
+    parseDid: () => did.value,
+  }), "browser-wasm", {
+    observer() {
+      assert.equal(raw.freeCount(), 1);
+      assert.equal(did.freeCount(), 1);
+      throw new Error("observer detail");
+    },
+  });
+
+  assert.throws(
+    () => provider.parsePeerDidNumalgo4Short("did:peer:4short"),
+    (error) => error instanceof DidError
+      && error.code === "did.observer_failure"
+      && !error.message.includes("observer detail"),
+  );
 });
 
 test("resolves through one injected host after closing request ownership", async () => {

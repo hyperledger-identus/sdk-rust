@@ -17,7 +17,7 @@ import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseJsonWithoutDuplicates } from "./factory-tools/strict-json.mjs";
 
-const bindingApiVersion = 3;
+const bindingApiVersion = 4;
 const artifactBase = "identus_wasm_did";
 const artifactFiles = Object.freeze([
   `${artifactBase}.d.ts`,
@@ -36,12 +36,21 @@ const requiredBindingSymbols = Object.freeze([
   "DidResolutionResultView",
   "DidUrlView",
   "DidView",
+  "PeerDidNumalgo2CompatibilityView",
+  "PeerDidNumalgo4ShortView",
+  "PeerDidNumalgo4View",
   "bindingApiVersion",
   "parseDid",
   "parseDidDocument",
   "parseDidDereferencingResult",
   "parseDidResolutionResult",
   "parseDidUrl",
+  "createPeerDidNumalgo2Compatibility",
+  "createPeerDidNumalgo4",
+  "parsePeerDidNumalgo2Compatibility",
+  "parsePeerDidNumalgo4Long",
+  "parsePeerDidNumalgo4Short",
+  "resolvePeerDidNumalgo4Short",
   "prepareDidDereferencing",
   "prepareDidResolution",
 ]);

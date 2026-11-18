@@ -53,8 +53,9 @@ not an accepted support or performance budget. On Apple arm64 with Node 24.19.0,
 p50 / 0.040 ms p95 and exact-limit creation at 392.198 ms p50 / 406.023 ms p95.
 The respective normalized inputs were 17 and 16,384 bytes; projected outputs
 were 1,013 and 161,874 bytes; process RSS after the complete measurement set was
-88,342,528 bytes. The issue-owned 300-second fuzz run remains follow-up evidence
-and is not claimed by this receipt.
+88,342,528 bytes. The exact Rust 1.99.1 ASAN peer-DID soak completed 6,784,994
+executions in 301 seconds at seed 4279326073, with 22,541 average executions per
+second, 695 MiB peak RSS, and no crash or timeout.
 
 ## Security and ownership
 

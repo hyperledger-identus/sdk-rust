@@ -1466,27 +1466,27 @@ details           = [ "invariant=Every target exposes the same frozen profile-sp
 
 [[declarations.obligations]]
 class             = "fuzz"
-disposition       = "required"
+disposition       = "satisfied"
 risk              = "Arbitrary multibase, compact service JSON, nested input documents, or oversized values can panic, amplify work, or retain secret-shaped fields."
 selectors         = [ "fuzz/fuzz_targets/peer_did.rs#fuzz_target!", "scripts/fuzz-did-peer.sh#-max_total_time=300" ]
 command           = "nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak"
 lane              = "slow"
 cadence           = "weekly-or-manual"
 targets           = [ "package:identus-did-peer", "host:linux", "sanitizer:address" ]
-freshness         = "pending"
+freshness         = "source-bound"
 freshness_days    = 0
 budget            = "Reuse the canonical peer DID fuzz target with max_len=131072, timeout=5, rss_limit_mb=1024, and 300 seconds total time."
-receipt_kind      = "none"
-receipt           = ""
-evidence_revision = ""
-recorded_at       = ""
-artifact          = ""
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/sdk-ts-peer-did-quality.md"
+evidence_revision = "761fa01adcf593af8517d4b03ff28f5d5414d5a7"
+recorded_at       = "2026-11-18"
+artifact          = "docs/conformance/sdk-ts-peer-did-quality.md"
 owner             = "SDK-Rust peer DID maintainers"
 owner_issue       = 603
-debt_status       = "open"
-debt_issue        = 523
+debt_status       = "none"
+debt_issue        = 0
 rationale         = ""
-details           = [ "harness=Canonical Rust peer parser/create/resolve boundary consumed by the facade", "corpus=Pinned numalgo-4 and numalgo-2 packets plus promoted regressions", "seed=libFuzzer-managed reproducible failures promoted to checked-in regressions", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+details           = [ "harness=Canonical Rust peer parser/create/resolve boundary consumed by the facade", "corpus=Pinned numalgo-4 and numalgo-2 packets plus promoted regressions; 6784994 executions; 22541 average executions per second; 695 MiB peak RSS; no crash or timeout", "seed=4279326073", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
 
 [[declarations.obligations]]
 class             = "benchmark"

@@ -473,7 +473,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #603 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #603 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #603 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #603 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #603 |
 
@@ -488,9 +488,8 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak`
 - Budget: Reuse the canonical peer DID fuzz target with max_len=131072, timeout=5, rss_limit_mb=1024, and 300 seconds total time.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #523
+- Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
+- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
 
 ### `benchmark`
 

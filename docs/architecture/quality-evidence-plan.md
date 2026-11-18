@@ -482,14 +482,14 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
 - Budget: Execute both selected profiles, pairwise values, strict ingress, exact-free, redaction, rollback, module formats, SSR and hydration through the shared facade.
 - Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
+- Evidence revision: `5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak`
 - Budget: Reuse the canonical peer DID fuzz target with max_len=131072, timeout=5, rss_limit_mb=1024, and 300 seconds total time.
 - Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`
+- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
 
 ### `benchmark`
 

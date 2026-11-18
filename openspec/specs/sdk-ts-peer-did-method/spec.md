@@ -199,4 +199,3 @@ or mdoc work.
 - **THEN** the capability remains partial until separately authorized
   consumer, native-target, accepted-budget, support, publication, and release
   decisions are accepted
-

@@ -1,0 +1,6 @@
+schema_version = 1
+issue = 603
+disposition = "consumer-visible"
+scope = "consumer-contract"
+rationale = "The private TypeScript facade adds typed peer DID construction, parsing, and local-resolution behavior plus stable adapter errors across the supported web targets."
+ledger_ids = [ "did.peer.profiles.typescript-migration.v1" ]

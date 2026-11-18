@@ -111,15 +111,18 @@ fn browser_executes_explicit_peer_profiles_and_ownership() {
     assert!(consumed.starts_with("numalgo4|did:peer:4"));
     assert!(consumed.contains("|{\"hello\":\"world\"}|"));
 
-    const DID: &str = "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19";
+    const CANONICAL_DID: &str = "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiZG0iLCJzIjp7InVyaSI6Imh0dHBzOi8vMTI3LjAuMC4xOjcwMzciLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19fQ";
+    const LEGACY_DID: &str = "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19";
     let compatibility = create_peer_did_numalgo2_compatibility(
         r#"{"keys":[{"purpose":"verification","multibase":"z6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv"},{"purpose":"encryption","multibase":"zQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s"}],"services":[{"type":"DIDCommMessaging","endpoint":{"uri":"https://127.0.0.1:7037","accept":["didcomm/v2"],"routingKeys":[]}}]}"#,
     )
     .unwrap();
-    assert_eq!(compatibility.did(), DID);
+    assert_eq!(compatibility.did(), CANONICAL_DID);
     assert_eq!(
-        parse_peer_did_numalgo2_compatibility(DID).unwrap().did(),
-        DID
+        parse_peer_did_numalgo2_compatibility(LEGACY_DID)
+            .unwrap()
+            .did(),
+        LEGACY_DID
     );
     let consumed = consume_peer2(JsValue::from(compatibility));
     assert!(consumed.starts_with("numalgo2-compatibility|did:peer:2."));

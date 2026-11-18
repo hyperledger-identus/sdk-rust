@@ -247,10 +247,11 @@ def main() -> None:
     # Lifecycle mutation tests need an active synthetic baseline even when the
     # checked-in repository is carrying a valid pending source transition.
     # Keep the actual registry for render-integrity checks below.
+    canonical_sources, mappings = current_registry.split("\n[[mappings]]", 1)
     registry = (
-        replace_first(current_registry, pending_state_line, active_state_line)
-        if pending_state_line in current_registry
-        else current_registry
+        canonical_sources.replace(pending_state_line, active_state_line)
+        + "\n[[mappings]]"
+        + mappings
     )
     revision_match = re.search(
         r'(?m)^canonical_revision = "([0-9a-f]{40})"$', registry

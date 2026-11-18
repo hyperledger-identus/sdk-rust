@@ -4,6 +4,10 @@ import { test } from "node:test";
 import { DidError } from "../dist/public.js";
 import { retryableSingleton } from "../dist/internal/initialization.js";
 import {
+  serializePeerDidNumalgo2Input,
+  serializePeerDidNumalgo4Input,
+} from "../dist/internal/peer-input.js";
+import {
   createRustDidProvider,
   createRustDidQueryProvider,
 } from "../dist/internal/provider.js";
@@ -656,6 +660,42 @@ test("rejects secret-shaped numalgo-2 input before entering the binding", () => 
       && !error.message.includes("do-not-retain"),
   );
   assert.equal(called, false);
+});
+
+test("rejects oversized peer input before JSON serialization", () => {
+  const originalStringify = JSON.stringify;
+  let stringifyCalls = 0;
+  JSON.stringify = (...args) => {
+    stringifyCalls += 1;
+    return originalStringify(...args);
+  };
+  try {
+    assert.throws(
+      () => serializePeerDidNumalgo4Input({ payload: "x".repeat(16 * 1_024) }),
+      (error) => error instanceof DidError
+        && error.code === "did.peer.resource_limit",
+    );
+    assert.throws(
+      () => serializePeerDidNumalgo2Input({
+        keys: [{ purpose: "verification", multibase: "z".repeat(24 * 1_024) }],
+      }),
+      (error) => error instanceof DidError
+        && error.code === "did.peer.resource_limit",
+    );
+    assert.equal(stringifyCalls, 0);
+  } finally {
+    JSON.stringify = originalStringify;
+  }
+});
+
+test("accepts the exact numalgo-4 serialized byte limit and rejects one over", () => {
+  const exact = serializePeerDidNumalgo4Input({ x: "x".repeat(16_376) });
+  assert.equal(Buffer.byteLength(exact, "utf8"), 16 * 1_024);
+  assert.throws(
+    () => serializePeerDidNumalgo4Input({ x: "x".repeat(16_377) }),
+    (error) => error instanceof DidError
+      && error.code === "did.peer.resource_limit",
+  );
 });
 
 test("maps a peer hash mismatch with redaction and exact error disposal", () => {

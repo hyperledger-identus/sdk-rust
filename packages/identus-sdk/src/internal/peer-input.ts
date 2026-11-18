@@ -130,13 +130,55 @@ function utf8Length(value: string, limit: number): number {
   return bytes;
 }
 
-function assertBoundedJsonTree(root: unknown): void {
+function assertBoundedJsonTree(root: unknown, byteLimit: number): void {
   const pending: { readonly value: unknown; readonly depth: number }[] = [{
     value: root,
     depth: 0,
   }];
   const seen = new WeakSet<object>();
   let nodes = 0;
+  let bytes = 0;
+  const consume = (amount: number): void => {
+    bytes += amount;
+    if (bytes > byteLimit) {
+      throw resourceLimit();
+    }
+  };
+  const consumeJsonString = (value: string): void => {
+    consume(2);
+    for (let index = 0; index < value.length; index += 1) {
+      const codeUnit = value.charCodeAt(index);
+      if (
+        codeUnit === 0x22
+        || codeUnit === 0x5c
+        || codeUnit === 0x08
+        || codeUnit === 0x09
+        || codeUnit === 0x0a
+        || codeUnit === 0x0c
+        || codeUnit === 0x0d
+      ) {
+        consume(2);
+      } else if (codeUnit <= 0x1f) {
+        consume(6);
+      } else if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+        const next = value.charCodeAt(index + 1);
+        if (next >= 0xdc00 && next <= 0xdfff) {
+          consume(4);
+          index += 1;
+        } else {
+          consume(6);
+        }
+      } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+        consume(6);
+      } else if (codeUnit <= 0x7f) {
+        consume(1);
+      } else if (codeUnit <= 0x7ff) {
+        consume(2);
+      } else {
+        consume(3);
+      }
+    }
+  };
   while (pending.length > 0) {
     const frame = pending.pop();
     if (frame === undefined) {
@@ -147,11 +189,16 @@ function assertBoundedJsonTree(root: unknown): void {
       throw resourceLimit();
     }
     const value = frame.value;
-    if (
-      value === null
-      || typeof value === "string"
-      || typeof value === "boolean"
-    ) {
+    if (value === null) {
+      consume(4);
+      continue;
+    }
+    if (typeof value === "string") {
+      consumeJsonString(value);
+      continue;
+    }
+    if (typeof value === "boolean") {
+      consume(value ? 4 : 5);
       continue;
     }
     if (typeof value === "number") {
@@ -161,6 +208,7 @@ function assertBoundedJsonTree(root: unknown): void {
       ) {
         throw invalidInput();
       }
+      consume(String(value).length);
       continue;
     }
     if (typeof value !== "object" || seen.has(value)) {
@@ -172,6 +220,7 @@ function assertBoundedJsonTree(root: unknown): void {
       if (array.length > MAX_MEMBERS) {
         throw resourceLimit();
       }
+      consume(2 + Math.max(0, array.length - 1));
       for (let index = array.length - 1; index >= 0; index -= 1) {
         pending.push({ value: array[index], depth: frame.depth + 1 });
       }
@@ -181,11 +230,14 @@ function assertBoundedJsonTree(root: unknown): void {
       if (entries.length > MAX_MEMBERS) {
         throw resourceLimit();
       }
+      consume(2 + Math.max(0, entries.length - 1));
       for (let index = entries.length - 1; index >= 0; index -= 1) {
         const entry = entries[index];
         if (entry === undefined) {
           throw invalidInput();
         }
+        consumeJsonString(entry[0]);
+        consume(1);
         pending.push({ value: entry[1], depth: frame.depth + 1 });
       }
     }
@@ -195,7 +247,7 @@ function assertBoundedJsonTree(root: unknown): void {
 export function serializePeerDidNumalgo4Input(
   input: PeerDidNumalgo4InputDocument,
 ): string {
-  assertBoundedJsonTree(input);
+  assertBoundedJsonTree(input, MAX_NUMALGO4_INPUT_BYTES);
   const cloned = requireMap(cloneFrozenJson(input, FORBIDDEN_KEYS));
   if (Object.hasOwn(cloned, "id")) {
     throw invalidInput();
@@ -263,6 +315,7 @@ function copyService(value: unknown): PeerDidNumalgo2ServiceInput {
 export function serializePeerDidNumalgo2Input(
   input: PeerDidNumalgo2CompatibilityInput,
 ): string {
+  assertBoundedJsonTree(input, MAX_NUMALGO2_INPUT_BYTES);
   const object = requireExactObject(
     input,
     new Set(["keys", "services"]),

@@ -37,23 +37,23 @@ The existing peer DID fuzz target and native conformance packet remain the
 authoritative malformed-input and cross-implementation evidence for the Rust
 core.
 
-The implementation boundary is commit
-`a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0`. At that revision, the pinned
-Rust 1.99.1 environment passed 28 `identus-did-peer` unit tests, the portable
+The reviewed implementation boundary is commit
+`761fa01adcf593af8517d4b03ff28f5d5414d5a7`. At that revision, the pinned
+Rust 1.99.1 environment passed 29 `identus-did-peer` unit tests, the portable
 peer packet, and 17 `identus-wasm-did` tests. The isolated TypeScript target
 gate passed package/type checks plus the same 13 peer vectors in browser,
 Node.js ESM/CommonJS, React SSR, and hydrated React. React Native remains
 explicitly inapplicable for this private web canary.
 
 The deterministic target assembly SHA-256 is
-`dba4b96e0a81f5e0df9ffe1ba33e0e2a4075157105987c0c38cd27ad138c6da6`;
-the generated WASM module is 507,249 bytes. These measurements are descriptive,
+`13c003e72af9af636fabb53f6ec8e323d57d7d69ce0d376c77497fee64d8d60c`;
+the generated WASM module is 507,680 bytes. These measurements are descriptive,
 not an accepted support or performance budget. On Apple arm64 with Node 24.19.0,
-101 samples after 21 warm-ups measured ordinary numalgo-4 creation at 0.034 ms
-p50 / 0.047 ms p95 and exact-limit creation at 392.121 ms p50 / 413.593 ms p95.
+101 samples after 21 warm-ups measured ordinary numalgo-4 creation at 0.032 ms
+p50 / 0.040 ms p95 and exact-limit creation at 392.198 ms p50 / 406.023 ms p95.
 The respective normalized inputs were 17 and 16,384 bytes; projected outputs
 were 1,013 and 161,874 bytes; process RSS after the complete measurement set was
-87,687,168 bytes. The issue-owned 300-second fuzz run remains follow-up evidence
+88,342,528 bytes. The issue-owned 300-second fuzz run remains follow-up evidence
 and is not claimed by this receipt.
 
 ## Security and ownership

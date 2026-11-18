@@ -61,13 +61,13 @@ id                 = "did-peer-numalgo2.source.identus-did-peer.v1"
 owner_issue        = 512
 state              = "active"
 canonical_crate    = "identus-did-peer"
-canonical_revision = "a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0"
+canonical_revision = "761fa01adcf593af8517d4b03ff28f5d5414d5a7"
 path               = "crates/did-peer/src/numalgo2_compat.rs"
 file_mode          = "100644"
-byte_length        = 36517
-sha256             = "cc73b4d8279fd44e33dffe0ff6a8a28686f7258656781af0898996f8a546b6db"
+byte_length        = 38481
+sha256             = "19fcb5d80b3ea7a807d75357d13a7d0c027a80a035541d83a4f17858d37a018f"
 git_object_format  = "sha1"
-git_blob_oid       = "326cd74608da725d87670c167febb7f24e23d7e6"
+git_blob_oid       = "e9d1c5f214ce358fb92b8729f7dfad01f25af6f8"
 
 [[mappings]]
 id = "did.value.typescript.legacy-v1"

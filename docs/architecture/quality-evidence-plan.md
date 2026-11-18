@@ -482,7 +482,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
 - Budget: Execute both selected profiles, pairwise values, strict ingress, exact-free, redaction, rollback, module formats, SSR and hydration through the shared facade.
 - Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0`
+- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
 
 ### `fuzz`
 
@@ -497,14 +497,14 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
 - Budget: Measure deterministic artifact bytes plus cold/warm initialization and representative parse latency without activating a support threshold.
 - Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `0adedba281c956f1e648b056b09024679e19a5dd`
+- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
 
 ### `differential`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
 - Budget: Compare exact selected-profile identifiers and normalized document relationships/services through Rust and every applicable TypeScript target.
 - Receipt: `source:docs/conformance/fixtures/did-peer/v1/vectors.json`
-- Evidence revision: `a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0`
+- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
 
 ## `siopv2.did-authentication.quality.v1`
 

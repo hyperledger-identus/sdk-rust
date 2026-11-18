@@ -16,7 +16,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `did-document.source.identus-did.v1` | `active` | `identus-did` | `f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8` | `crates/did/src/document.rs` | 3202 | `9dc6010e8b9ede3e5da14b78444c20f7ceaafb30ca7c1d9dadfb47adc09ed293` | `sha1:9deb6e0d769c188f87e6a1aa23a924babfd98bb2` |
 | `did-resolution.source.identus-did.v1` | `active` | `identus-did` | `d3cdc6719fb040da2753dbfde9c3a784c85dafb2` | `crates/did/src/resolution/wire.rs` | 1826 | `8383078cee088b9625c142fa650ace84137df5ee3eeae2906c974ef20aee19b7` | `sha1:b928986219a26d07dcbcffcb77cbbf920b435be0` |
 | `did-peer.source.identus-did-peer.v1` | `active` | `identus-did-peer` | `bd1981372fcb08772d1196131a0cf26291fad9cb` | `crates/did-peer/src/numalgo4.rs` | 28041 | `d71712f2c0f81adb9b20a78fc7fa0f924c764095c10c7855e5c8bc3633b9066f` | `sha1:4403dd928cfab3658dd35d4914f49cb62c5f47a3` |
-| `did-peer-numalgo2.source.identus-did-peer.v1` | `active` | `identus-did-peer` | `a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0` | `crates/did-peer/src/numalgo2_compat.rs` | 36517 | `cc73b4d8279fd44e33dffe0ff6a8a28686f7258656781af0898996f8a546b6db` | `sha1:326cd74608da725d87670c167febb7f24e23d7e6` |
+| `did-peer-numalgo2.source.identus-did-peer.v1` | `active` | `identus-did-peer` | `761fa01adcf593af8517d4b03ff28f5d5414d5a7` | `crates/did-peer/src/numalgo2_compat.rs` | 38481 | `19fcb5d80b3ea7a807d75357d13a7d0c027a80a035541d83a4f17858d37a018f` | `sha1:e9d1c5f214ce358fb92b8729f7dfad01f25af6f8` |
 
 ## Mappings
 
@@ -324,7 +324,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.peer.profiles`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
 - Cargo package: `identus-did-peer`.
-- Rust API: `identus_did_peer::numalgo2_compat::PeerDid` from source `did-peer-numalgo2.source.identus-did-peer.v1` at `a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did_peer::numalgo2_compat::PeerDid` from source `did-peer-numalgo2.source.identus-did-peer.v1` at `761fa01adcf593af8517d4b03ff28f5d5414d5a7` (unreleased-workspace-0.0.0).
 - Canonical semantics: Explicit bounded numalgo-2 compatibility creation, parsing, and local resolution from caller-owned public keys and services.
 - Canonical bound: `MAX_SERVICE_BYTES` in `crates/did-peer/src/numalgo2_compat.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `browser-node-react-web`, symbol `DidProvider`, version `0.0.0` at `a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0`, path `packages/identus-sdk/src/public.ts`.

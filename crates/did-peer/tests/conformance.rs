@@ -89,9 +89,8 @@ fn portable_peer_did_packet_matches_both_profiles() {
                     .expect("resolve");
             }
             "did-peer.numalgo2.parse-resolve" => {
-                let actual =
-                    PeerDid::parse(case.input["literal"].as_str().expect("literal input"))
-                        .expect("parse");
+                let actual = PeerDid::parse(case.input["literal"].as_str().expect("literal input"))
+                    .expect("parse");
                 actual.resolve().expect("resolve");
                 assert_eq!(
                     actual.did().as_str(),
@@ -99,10 +98,9 @@ fn portable_peer_did_packet_matches_both_profiles() {
                 );
             }
             "did-peer.numalgo2.create-pairwise" => {
-                let input: Value = serde_json::from_str(
-                    case.input["literal"].as_str().expect("literal input"),
-                )
-                .expect("pairwise input JSON");
+                let input: Value =
+                    serde_json::from_str(case.input["literal"].as_str().expect("literal input"))
+                        .expect("pairwise input JSON");
                 let keys = input
                     .get("keys")
                     .and_then(Value::as_array)
@@ -114,11 +112,8 @@ fn portable_peer_did_packet_matches_both_profiles() {
                             "encryption" => Purpose::Encryption,
                             value => panic!("unsupported fixture purpose {value}"),
                         };
-                        PublicKey::new(
-                            purpose,
-                            key["multibase"].as_str().expect("multibase"),
-                        )
-                        .expect("public key")
+                        PublicKey::new(purpose, key["multibase"].as_str().expect("multibase"))
+                            .expect("public key")
                     })
                     .collect();
                 let services = input
@@ -146,9 +141,7 @@ fn portable_peer_did_packet_matches_both_profiles() {
                                     .as_array()
                                     .expect("routing keys")
                                     .iter()
-                                    .map(|value| {
-                                        value.as_str().expect("routing key").to_owned()
-                                    })
+                                    .map(|value| value.as_str().expect("routing key").to_owned())
                                     .collect(),
                             ),
                         }),

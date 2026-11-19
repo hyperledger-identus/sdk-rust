@@ -3,7 +3,7 @@
 ## 1. Contract
 
 - [x] 1.1 Record the exact donor, fuzz-boundary, and differential dispositions.
-- [ ] 1.2 Pass research, constraints, strict validation, and planning preflight.
+- [x] 1.2 Pass research, constraints, strict validation, and planning preflight.
 
 ## 2. Evidence repair
 

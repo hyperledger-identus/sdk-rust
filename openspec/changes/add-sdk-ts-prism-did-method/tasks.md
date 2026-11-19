@@ -48,7 +48,7 @@
 - [x] 4.3 Record source-bound SDK-TS donor dispositions and NeoPRISM differential
       evidence without importing Cardano, storage, indexing, timestamps, or
       agent policy.
-- [ ] 4.4 Record deterministic artifacts, property/fuzz/mutation evidence,
+- [x] 4.4 Record deterministic artifacts, property/fuzz/mutation evidence,
       target receipts, artifact delta, measurement-only latency/bytes/RSS,
       and explicit React Native inapplicability.
 

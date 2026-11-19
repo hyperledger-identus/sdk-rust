@@ -52,6 +52,27 @@ The web and Node target digests are respectively
 `8c7a785c9f5455c9a3ff76f4a1da914f835330f1c79ed89204dfec5a688e56ab`.
 These are deterministic build evidence, not accepted size or latency budgets.
 
+The retained measurement compares the pre-facade baseline
+`bd1981372fcb08772d1196131a0cf26291fad9cb` with candidate
+`cac2e4305b060d217aaa51d9391acc5ffcac42b8`; its SHA-256 is
+`dab3c455e8fe677ccd345cc3fc4cdaeb1e9e66a90bd9b92bb7e679ef67d3d697`.
+The candidate adds the complete peer and PRISM trains, so the directional
+artifact delta is 520,356 raw/181,060 deterministic-gzip bytes for web and
+518,364 raw/180,992 gzip bytes for Node. On Apple arm64 with Node 24.19.0,
+PRISM public-material create p50/p95 was 0.122/0.173 ms for one key and
+4.368/4.555 ms for the 50-key profile; authenticated public signed-history
+reduction was 0.254/0.304 ms. Process RSS after the complete measurement was
+105,316,352 bytes. These single-host numbers are measurement-only and are not
+support or regression thresholds.
+
+The deterministic adapter fuzz executes 2,048 cases at seed `0x605f0078`
+through the PRISM creation/history serializers and generated DID/state
+projection functions. It covers accessors, cycles, exotic prototypes, unsafe
+numbers, unknown fields, malformed base64url, bounded arrays, malformed
+generated fields, frozen output, stable redaction, and exact-once release. It
+found and closed a generated-document callback sanitization gap before this
+receipt was recorded.
+
 ## Security and rollback
 
 TypeScript preflights closed plain objects and arrays, forbidden prototype

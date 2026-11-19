@@ -381,8 +381,8 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #610 |
-| `fuzz` | `required` | `focused` | `on-change` | `pending` | #610 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #610 |
+| `fuzz` | `satisfied` | `focused` | `on-change` | `source-bound` | #610 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #610 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #610 |
 
 ### `property`
@@ -394,19 +394,17 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `fuzz`
 
-- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh prism-adapter-fuzz`
-- Budget: Add deterministic bounded hostile-object and history cases over both PRISM serializers and both generated projections.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #610
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh adapter-fuzz`
+- Budget: Execute 2048 deterministic hostile cases across PRISM create/history serializers and generated DID/state projections with bounded strings and collections.
+- Receipt: `source:docs/conformance/sdk-ts-prism-did-quality.md`
+- Evidence revision: `a76772a05fc2d76dea63addbda84572f3e27f77f`
 
 ### `benchmark`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
-- Budget: Extend the exact-revision measurement lane with representative and near-limit PRISM create/history cases before any support budget is accepted.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #610
+- Budget: Measure exact artifact deltas plus representative and maximum-key-profile PRISM creation and public signed-history reduction without activating a support threshold.
+- Receipt: `source:docs/conformance/sdk-ts-prism-did-quality.md`
+- Evidence revision: `cac2e4305b060d217aaa51d9391acc5ffcac42b8`
 
 ### `differential`
 

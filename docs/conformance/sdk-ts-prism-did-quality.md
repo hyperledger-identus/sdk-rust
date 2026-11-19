@@ -15,8 +15,9 @@ the pinned canonical and long-form identifier, local document subject,
 immutable projections, a published signed create envelope, the frozen injected
 request, and authenticated active-state projection. Provider tests separately
 cover hostile/secret-shaped closed input, unavailable or rejected history,
-malformed base64url, cancellation before allocation, redaction, bounded input,
-observer behavior, exact generated ownership, and API-version drift.
+malformed base64url, cancellation before allocation and during the injected
+effect, redaction, bounded input, observer behavior, exact generated ownership,
+and API-version drift.
 
 The donor ledger classifies every pinned SDK-TS PRISM source as adapted,
 superseded, platform-owned, or conformance-only. Cardano observation and
@@ -72,6 +73,18 @@ numbers, unknown fields, malformed base64url, bounded arrays, malformed
 generated fields, frozen output, stable redaction, and exact-once release. It
 found and closed a generated-document callback sanitization gap before this
 receipt was recorded.
+
+## Distinct local review
+
+The architecture/security re-review traced public inputs through TypeScript
+preflight, generated ownership, Rust parsing/reduction, immutable projection,
+observation, and every terminal failure path. It found one evidence gap: the
+implementation checked cancellation after the injected history effect, but the
+provider suite proved only cancellation before allocation. The review added an
+in-effect abort case that returns a host result, then proves the stable abort
+category, exact generated-owner cleanup, and zero calls to Rust history
+reduction. The 52-test package suite passes with that remediation. No blocking
+architecture, security, compatibility, provenance, or evidence finding remains.
 
 ## Security and rollback
 

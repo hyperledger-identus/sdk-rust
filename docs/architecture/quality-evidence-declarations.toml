@@ -1496,21 +1496,21 @@ selectors         = [ "packages/identus-sdk/tests/measurements.mjs#measurement",
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements"
 lane              = "slow"
 cadence           = "weekly-or-manual"
-targets           = [ "package:identus-typescript-sdk", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+targets           = [ "package:identus-typescript-sdk", "runtime:nodejs" ]
 freshness         = "source-bound"
 freshness_days    = 0
 budget            = "Measure deterministic artifact bytes plus cold/warm initialization and representative parse latency without activating a support threshold."
 receipt_kind      = "source"
 receipt           = "source:docs/conformance/sdk-ts-peer-did-quality.md"
-evidence_revision = "5fb02d1bf7507adbdf8bd0255ebe15c2ea146756"
-recorded_at       = "2026-11-18"
+evidence_revision = "b1ea7101655f0a29964df9a35bfc8be312162fde"
+recorded_at       = "2026-11-19"
 artifact          = "docs/conformance/sdk-ts-peer-did-quality.md"
 owner             = "SDK-Rust TypeScript binding maintainers"
 owner_issue       = 603
 debt_status       = "none"
 debt_issue        = 0
 rationale         = ""
-details           = [ "operation=Build/load API-v4 artifacts and exercise selected peer profiles", "fixture=Ordinary selected-profile vectors and deterministic browser/Node artifacts", "environment=Pinned Nix Rust 1.99.1, Node 24, wasm-pack 0.15.0 and wasm-bindgen-cli 0.2.121", "statistic=Artifact bytes and directional latency/memory", "samples=At least 101 measured parses after 21 warm-up iterations where the existing harness supports the operation", "threshold=Measurement-only; support budgets require a later target decision" ]
+details           = [ "operation=Compare the exact pre-peer PR base with the peer-enabled candidate, then exercise selected peer profiles", "fixture=Identical manifest-ordered browser/Node artifact inventories built with one pinned toolchain", "environment=Pinned Nix Rust 1.99.1, Node 24, wasm-pack 0.15.0 and wasm-bindgen-cli 0.2.121 on one host", "statistic=Per-target uncompressed and deterministic per-file gzip bytes with signed candidate-minus-baseline deltas; p50/p95 Node latency; process RSS", "samples=11 isolated cold import-plus-provider samples; 101 warm import-plus-provider, initialized provider-construction and operation samples after 21 warm-ups", "threshold=Measurement-only; browser/React receipts are functional evidence and support budgets require a later target decision" ]
 
 [[declarations.obligations]]
 class             = "differential"

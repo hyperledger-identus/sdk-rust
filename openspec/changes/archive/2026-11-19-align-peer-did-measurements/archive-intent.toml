@@ -1,0 +1,5 @@
+[[modified_requirement]]
+capability       = "sdk-ts-peer-did-method"
+requirement      = "Peer adapter quality evidence is source-bound and local-first"
+canonical_sha256 = "f2d463b3d567dbaee8383f130d37d982bd9908456fce5b7d171de7f9dad73004"
+reason           = "The review-directed repair strengthens the existing measurement contract with matched baseline/candidate artifacts, import-inclusive Node initialization, exact benchmark applicability, and partial private target labels while preserving every existing product non-claim."

@@ -496,7 +496,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
 - Budget: Measure deterministic artifact bytes plus cold/warm initialization and representative parse latency without activating a support threshold.
 - Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`
+- Evidence revision: `b1ea7101655f0a29964df9a35bfc8be312162fde`
 
 ### `differential`
 

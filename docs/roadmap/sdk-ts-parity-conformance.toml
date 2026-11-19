@@ -284,7 +284,7 @@ rationale           = "Selected peer DID profiles require the same deterministic
 rust_surface        = "Bounded experimental SDK-Rust support for peer DID numalgo 4 and opt-in numalgo 2 creation, parsing, local resolution, and generic DID-document projection."
 target_surface      = "Rust-owned deterministic creation and resolution for explicitly selected peer DID profiles with a thin TypeScript facade."
 applicable_targets  = [ "browser", "nodejs", "react-web" ]
-target_states       = { browser = "delivered", nodejs = "delivered", react-web = "delivered", react-native = "not-applicable" }
+target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "not-applicable" }
 missing_dimensions  = [ "consumer-proof", "rollback" ]
 missing_proof       = "External SDK-TS adoption, accepted target support/budgets, publication, and React Native remain outside this private canary."
 required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]

@@ -1,21 +1,57 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
 
-import { performance } from "node:perf_hooks";
+import { execFile } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { performance } from "node:perf_hooks";
+import { promisify } from "node:util";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { gzipSync } from "node:zlib";
 
-import { createDidProvider, createDidQueryProvider } from "../dist/node.js";
-
+const runFile = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const output = path.resolve(process.env.SDK_TS_DID_MEASUREMENTS ?? path.join(root, "../../target/sdk-ts-did-measurements.json"));
+const output = path.resolve(
+  process.env.SDK_TS_DID_MEASUREMENTS
+    ?? path.join(root, "../../target/sdk-ts-did-measurements.json"),
+);
+const baselineRoot = requireAbsoluteDirectory("SDK_TS_DID_BASELINE_PACKAGE_ROOT");
+const baselineRevision = requireRevision("SDK_TS_DID_BASELINE_REVISION");
+const candidateRevision = requireRevision("SDK_TS_DID_CANDIDATE_REVISION");
 const warmup = 21;
 const samples = 101;
+const coldSamples = 11;
+const execOptions = Object.freeze({ encoding: "utf8", maxBuffer: 64 * 1_024 });
+
+function requireAbsoluteDirectory(name) {
+  const value = process.env[name];
+  if (typeof value !== "string" || !path.isAbsolute(value)) {
+    throw new Error(`${name} must be an absolute package root`);
+  }
+  return path.resolve(value);
+}
+
+function requireRevision(name) {
+  const value = process.env[name];
+  if (typeof value !== "string" || !/^[0-9a-f]{40}$/u.test(value)) {
+    throw new Error(`${name} must be an exact lowercase Git SHA`);
+  }
+  return value;
+}
 
 function percentile(values, fraction) {
   const sorted = [...values].sort((left, right) => left - right);
   return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * fraction))];
+}
+
+function summary(durations, measuredSamples, measuredWarmup) {
+  return Object.freeze({
+    samples: measuredSamples,
+    warmup: measuredWarmup,
+    aggregation: "nearest-rank over ascending milliseconds",
+    p50Milliseconds: percentile(durations, 0.5),
+    p95Milliseconds: percentile(durations, 0.95),
+  });
 }
 
 function measure(operation) {
@@ -26,12 +62,7 @@ function measure(operation) {
     operation();
     durations.push(performance.now() - start);
   }
-  return Object.freeze({
-    samples,
-    warmup,
-    p50Milliseconds: percentile(durations, 0.5),
-    p95Milliseconds: percentile(durations, 0.95),
-  });
+  return summary(durations, samples, warmup);
 }
 
 async function measureAsync(operation) {
@@ -42,17 +73,134 @@ async function measureAsync(operation) {
     await operation();
     durations.push(performance.now() - start);
   }
+  return summary(durations, samples, warmup);
+}
+
+async function artifactMeasurement(packageRoot) {
+  const manifest = JSON.parse(
+    await readFile(path.join(packageRoot, "artifacts/manifest.json"), "utf8"),
+  );
+  const targets = {};
+  for (const target of ["web", "nodejs"]) {
+    const artifacts = [...manifest.targets[target].artifacts]
+      .sort((left, right) => left.path.localeCompare(right.path));
+    let uncompressedBytes = 0;
+    let gzipBytes = 0;
+    for (const artifact of artifacts) {
+      const bytes = await readFile(path.join(packageRoot, "artifacts", artifact.path));
+      if (bytes.byteLength !== artifact.bytes) {
+        throw new Error(`${target} artifact byte mismatch: ${artifact.path}`);
+      }
+      uncompressedBytes += bytes.byteLength;
+      gzipBytes += gzipSync(bytes, { level: 9, mtime: 0 }).byteLength;
+    }
+    targets[target] = Object.freeze({
+      targetSha256: manifest.targets[target].targetSha256,
+      paths: Object.freeze(artifacts.map((artifact) => artifact.path)),
+      uncompressedBytes,
+      gzipBytes,
+    });
+  }
   return Object.freeze({
-    samples,
-    warmup,
-    p50Milliseconds: percentile(durations, 0.5),
-    p95Milliseconds: percentile(durations, 0.95),
+    assemblySha256: manifest.assemblySha256,
+    bindingApiVersion: manifest.bindingApiVersion,
+    generator: Object.freeze({ ...manifest.generator }),
+    targets: Object.freeze(targets),
   });
 }
 
-const coldStart = performance.now();
+async function verifyPackageRevision(packageRoot, expectedRevision, label) {
+  const repositoryRoot = path.resolve(packageRoot, "../..");
+  const { stdout: head } = await runFile(
+    "git",
+    ["-C", repositoryRoot, "rev-parse", "HEAD"],
+    execOptions,
+  );
+  if (head.trim() !== expectedRevision) {
+    throw new Error(`${label} package root does not match its declared revision`);
+  }
+  const { stdout: status } = await runFile(
+    "git",
+    ["-C", repositoryRoot, "status", "--porcelain=v1", "--untracked-files=no"],
+    execOptions,
+  );
+  if (status !== "") {
+    throw new Error(`${label} package root has tracked modifications`);
+  }
+}
+
+function artifactDelta(baseline, candidate) {
+  const targets = {};
+  for (const target of ["web", "nodejs"]) {
+    if (JSON.stringify(baseline.targets[target].paths)
+      !== JSON.stringify(candidate.targets[target].paths)) {
+      throw new Error(`${target} baseline and candidate artifact inventories differ`);
+    }
+    targets[target] = Object.freeze({
+      uncompressedBytes: candidate.targets[target].uncompressedBytes - baseline.targets[target].uncompressedBytes,
+      gzipBytes: candidate.targets[target].gzipBytes - baseline.targets[target].gzipBytes,
+    });
+  }
+  return Object.freeze(targets);
+}
+
+const coldScript = `
+  import { performance } from "node:perf_hooks";
+  const start = performance.now();
+  const module = await import(process.argv[1]);
+  await module.createDidProvider();
+  process.stdout.write(JSON.stringify({ milliseconds: performance.now() - start }));
+`;
+
+async function measureColdInitialization(moduleUrl) {
+  const durations = [];
+  for (let index = 0; index < coldSamples; index += 1) {
+    const { stdout } = await runFile(
+      process.execPath,
+      ["--input-type=module", "--eval", coldScript, moduleUrl],
+      execOptions,
+    );
+    const value = JSON.parse(stdout);
+    if (typeof value.milliseconds !== "number" || !Number.isFinite(value.milliseconds) || value.milliseconds < 0) {
+      throw new Error("cold initialization child returned an invalid duration");
+    }
+    durations.push(value.milliseconds);
+  }
+  return summary(durations, coldSamples, 0);
+}
+
+async function toolVersion(command, args = ["--version"]) {
+  const { stdout } = await runFile(command, args, execOptions);
+  return stdout.trim();
+}
+
+async function measureInitialization(packageRoot) {
+  const moduleUrl = pathToFileURL(path.join(packageRoot, "dist/node.js")).href;
+  const coldImportAndProvider = await measureColdInitialization(moduleUrl);
+  const module = await import(moduleUrl);
+  await module.createDidProvider();
+  const warmImportAndProvider = await measureAsync(async () => {
+    const cached = await import(moduleUrl);
+    await cached.createDidProvider();
+  });
+  const providerConstruction = await measureAsync(() => module.createDidProvider());
+  return Object.freeze({ module, coldImportAndProvider, warmImportAndProvider, providerConstruction });
+}
+
+await verifyPackageRevision(baselineRoot, baselineRevision, "baseline");
+await verifyPackageRevision(root, candidateRevision, "candidate");
+const baselineArtifact = await artifactMeasurement(baselineRoot);
+const candidateArtifact = await artifactMeasurement(root);
+const artifact = Object.freeze({
+  definition: "sum of identical manifest-ordered regular files; gzip is per-file RFC 1952 level 9 with mtime 0",
+  baseline: baselineArtifact,
+  candidate: candidateArtifact,
+  candidateMinusBaseline: artifactDelta(baselineArtifact, candidateArtifact),
+});
+const baselineInitialization = await measureInitialization(baselineRoot);
+const candidateInitialization = await measureInitialization(root);
+const { createDidProvider, createDidQueryProvider } = candidateInitialization.module;
 const provider = await createDidProvider();
-const initializationMilliseconds = performance.now() - coldStart;
 const ordinary = measure(() => provider.parseDid("did:example:measurement"));
 const nearLimitValue = `did:example:${"a".repeat(131_000)}`;
 const nearLimit = measure(() => provider.parseDid(nearLimitValue));
@@ -87,8 +235,6 @@ const ordinaryResolutionValue = JSON.stringify({
 const nearLimitResolutionValue = JSON.stringify({
   didResolutionMetadata: {
     contentType: "application/did+json",
-    // Exercise the bounded open-extension path immediately below the
-    // canonical 64 KiB per-string ceiling.
     measurementPadding: "a".repeat((64 * 1_024) - 64),
   },
   didDocument: { id: resolutionDid },
@@ -110,63 +256,83 @@ const ordinaryResolutionOutputBytes = Buffer.byteLength(
 const nearLimitResolutionOutputBytes = Buffer.byteLength(
   (await nearLimitQueryProvider.resolveDid(resolutionDid)).serialized,
 );
-const manifest = JSON.parse(await readFile(new URL("../artifacts/manifest.json", import.meta.url), "utf8"));
+
+function initializationReport(measurement) {
+  return Object.freeze({
+    coldImportAndProvider: measurement.coldImportAndProvider,
+    warmImportAndProvider: measurement.warmImportAndProvider,
+    providerConstruction: measurement.providerConstruction,
+  });
+}
 
 const report = Object.freeze({
-  schemaVersion: 1,
-  status: "target-not-supported",
+  schemaVersion: 2,
+  status: "measurement-only",
+  measuredTargets: Object.freeze(["package:identus-typescript-sdk", "runtime:nodejs"]),
+  revisions: Object.freeze({ baseline: baselineRevision, candidate: candidateRevision }),
   environment: Object.freeze({
     node: process.version,
     platform: process.platform,
     architecture: process.arch,
+    cpu: process.env.SDK_TS_DID_CPU_DESCRIPTION ?? "unrecorded",
   }),
-  artifact: Object.freeze({
-    assemblySha256: manifest.assemblySha256,
-    webBytes: manifest.targets.web.artifacts.reduce((total, entry) => total + entry.bytes, 0),
-    nodejsBytes: manifest.targets.nodejs.artifacts.reduce((total, entry) => total + entry.bytes, 0),
+  toolchain: Object.freeze({
+    rustc: await toolVersion("rustc", ["--version", "--verbose"]),
+    wasmPack: await toolVersion("wasm-pack"),
+    wasmBindgen: await toolVersion("wasm-bindgen"),
   }),
-  initializationMilliseconds,
-  ordinary,
-  nearLimit,
-  document: Object.freeze({
-    ordinary: Object.freeze({
-      ...ordinaryDocument,
-      inputBytes: Buffer.byteLength(ordinaryDocumentValue),
-      outputBytes: ordinaryDocumentOutputBytes,
-    }),
-    nearLimit: Object.freeze({
-      ...nearLimitDocument,
-      inputBytes: Buffer.byteLength(nearLimitDocumentValue),
-      outputBytes: nearLimitDocumentOutputBytes,
-    }),
+  artifact,
+  initialization: Object.freeze({
+    definition: "cold includes dynamic import plus first provider in an isolated Node process; warm repeats cached dynamic import plus provider in one process; provider construction follows initialized binding",
+    baseline: initializationReport(baselineInitialization),
+    candidate: initializationReport(candidateInitialization),
   }),
-  peer: Object.freeze({
-    profile: "numalgo4",
-    ordinary: Object.freeze({
-      ...ordinaryPeer,
-      inputBytes: Buffer.byteLength(JSON.stringify(ordinaryPeerInput)),
-      outputBytes: ordinaryPeerOutputBytes,
+  operations: Object.freeze({
+    parseDid: Object.freeze({ ordinary, nearLimit }),
+    document: Object.freeze({
+      ordinary: Object.freeze({
+        ...ordinaryDocument,
+        inputBytes: Buffer.byteLength(ordinaryDocumentValue),
+        outputBytes: ordinaryDocumentOutputBytes,
+      }),
+      nearLimit: Object.freeze({
+        ...nearLimitDocument,
+        inputBytes: Buffer.byteLength(nearLimitDocumentValue),
+        outputBytes: nearLimitDocumentOutputBytes,
+      }),
     }),
-    nearLimit: Object.freeze({
-      ...nearLimitPeer,
-      inputBytes: Buffer.byteLength(JSON.stringify(nearLimitPeerInput)),
-      outputBytes: nearLimitPeerOutputBytes,
+    peer: Object.freeze({
+      profile: "numalgo4",
+      ordinary: Object.freeze({
+        ...ordinaryPeer,
+        inputBytes: Buffer.byteLength(JSON.stringify(ordinaryPeerInput)),
+        outputBytes: ordinaryPeerOutputBytes,
+      }),
+      nearLimit: Object.freeze({
+        ...nearLimitPeer,
+        inputBytes: Buffer.byteLength(JSON.stringify(nearLimitPeerInput)),
+        outputBytes: nearLimitPeerOutputBytes,
+      }),
     }),
-  }),
-  resolution: Object.freeze({
-    ordinary: Object.freeze({
-      ...ordinaryResolution,
-      inputBytes: Buffer.byteLength(ordinaryResolutionValue),
-      outputBytes: ordinaryResolutionOutputBytes,
-    }),
-    nearLimit: Object.freeze({
-      ...nearLimitResolution,
-      inputBytes: Buffer.byteLength(nearLimitResolutionValue),
-      outputBytes: nearLimitResolutionOutputBytes,
+    resolution: Object.freeze({
+      ordinary: Object.freeze({
+        ...ordinaryResolution,
+        inputBytes: Buffer.byteLength(ordinaryResolutionValue),
+        outputBytes: ordinaryResolutionOutputBytes,
+      }),
+      nearLimit: Object.freeze({
+        ...nearLimitResolution,
+        inputBytes: Buffer.byteLength(nearLimitResolutionValue),
+        outputBytes: nearLimitResolutionOutputBytes,
+      }),
     }),
   }),
   rssBytes: process.memoryUsage().rss,
-  limitations: "Directional local measurement only; no accepted support or regression budget.",
+  limitations: Object.freeze([
+    "Directional local Node measurement only; browser and React receipts are functional evidence, not performance measurements.",
+    "No accepted support, regression budget, external adoption, publication, stable API, or release claim.",
+    "Cold timing starts immediately before module import and excludes Node process launch.",
+  ]),
 });
 
 await writeFile(output, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 });

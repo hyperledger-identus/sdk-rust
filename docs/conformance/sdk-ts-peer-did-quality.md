@@ -30,7 +30,18 @@ nix develop --command cargo test -p identus-wasm-did
 nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all
 nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh adapter-fuzz
 nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential
+nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements
 ```
+
+The measurement command additionally requires
+`SDK_TS_DID_BASELINE_PACKAGE_ROOT` to name a clean, already built worktree at
+`bd1981372fcb08772d1196131a0cf26291fad9cb`,
+`SDK_TS_DID_BASELINE_REVISION` to contain that SHA, and
+`SDK_TS_DID_CANDIDATE_REVISION` to contain the clean current checkout SHA.
+The baseline and candidate package roots must each contain artifacts and
+`dist/node.js` produced by the pinned TypeScript Nix environment. The runner
+verifies both worktree revisions and rejects tracked modifications before
+measuring.
 
 The target gate builds deterministic API-version-4 browser and Node artifacts,
 checks declarations and package boundaries, executes the shared peer vector
@@ -73,15 +84,23 @@ available Chrome 157 binary did not match ChromeDriver 152; Firefox was absent.
 This local driver limitation does not replace the passing browser target receipt
 and must be rechecked by the isolated hosted browser lane.
 
-The deterministic target assembly SHA-256 is
-`13c003e72af9af636fabb53f6ec8e323d57d7d69ce0d376c77497fee64d8d60c`;
-the generated WASM module is 507,680 bytes. These measurements are descriptive,
-not an accepted support or performance budget. On Apple arm64 with Node 24.19.0,
-101 samples after 21 warm-ups measured ordinary numalgo-4 creation at 0.033 ms
-p50 / 0.043 ms p95 and exact-limit creation at 602.257 ms p50 / 772.474 ms p95.
-The respective normalized inputs were 17 and 16,384 bytes; projected outputs
-were 1,013 and 161,874 bytes; process RSS after the complete measurement set was
-86,130,688 bytes. The exact Rust 1.99.1 ASAN peer-DID soak completed 6,784,994
+The measurement lane compares the exact pre-peer PR #604 base
+`bd1981372fcb08772d1196131a0cf26291fad9cb` with a caller-declared exact
+candidate revision built on the same host and pinned toolchain. For each web
+and Node target it sums the identical manifest-ordered files both uncompressed
+and as individual deterministic RFC 1952 level-9 streams with zero mtime, then
+records signed candidate-minus-baseline deltas. Cold Node initialization is
+dynamic module import plus first provider creation in 11 isolated processes;
+warm initialization is cached dynamic import plus provider creation in one
+process, with provider construction measured separately over 101 samples after
+21 warm-ups. The receipt also retains p50/p95 operation latency, input/output
+bytes, RSS, exact revisions, environment, aggregation, and limitations.
+
+The final exact-revision receipt is private local evidence and its digest and
+summary are published with the pull request. Browser and React receipts remain
+functional proof only; this Node measurement does not establish their runtime
+performance. No value is an accepted support or regression budget. The exact
+Rust 1.99.1 ASAN peer-DID soak completed 6,784,994
 executions in 301 seconds at seed 4279326073, with 22,541 average executions per
 second, 695 MiB peak RSS, and no crash or timeout.
 

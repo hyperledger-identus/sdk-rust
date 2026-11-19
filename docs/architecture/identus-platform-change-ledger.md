@@ -55,7 +55,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `did.prism.typescript-migration.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade creates and parses bounded public-material long-form PRISM DIDs, projects their local initial state, and resolves canonical signed history through an injected effect and canonical Rust reduction across Browser, Node.js, and React Web.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade creates and parses bounded public-material long-form PRISM DIDs, projects their local initial state, and resolves canonical signed history through an injected effect and canonical Rust reduction across Browser, Node.js, and React Web.
 
 ### `did.prism.vdr-indexing.portable-core.v1`
 

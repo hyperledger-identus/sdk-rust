@@ -4,6 +4,9 @@ import { test } from "node:test";
 import { DidError } from "../dist/public.js";
 import { retryableSingleton } from "../dist/internal/initialization.js";
 import {
+  requirePeerDidNumalgo2Input,
+  requirePeerDidNumalgo4LongInput,
+  requirePeerDidNumalgo4ShortInput,
   serializePeerDidNumalgo2Input,
   serializePeerDidNumalgo4Input,
 } from "../dist/internal/peer-input.js";
@@ -696,6 +699,103 @@ test("accepts the exact numalgo-4 serialized byte limit and rejects one over", (
     (error) => error instanceof DidError
       && error.code === "did.peer.resource_limit",
   );
+});
+
+test("bounds peer DID strings before entering the generated binding", () => {
+  let calls = 0;
+  const provider = createRustDidProvider(binding({
+    parsePeerDidNumalgo4Long: () => {
+      calls += 1;
+      throw new Error("must not run");
+    },
+    parsePeerDidNumalgo4Short: () => {
+      calls += 1;
+      throw new Error("must not run");
+    },
+    resolvePeerDidNumalgo4Short: () => {
+      calls += 1;
+      throw new Error("must not run");
+    },
+    parsePeerDidNumalgo2Compatibility: () => {
+      calls += 1;
+      throw new Error("must not run");
+    },
+  }), "browser-wasm");
+
+  assert.throws(
+    () => provider.parsePeerDidNumalgo4Long(`did:peer:4${"1".repeat(24_626)}`),
+    (error) => error instanceof DidError && error.code === "did.peer.resource_limit",
+  );
+  assert.throws(
+    () => provider.parsePeerDidNumalgo4Short(`did:peer:4${"1".repeat(49)}`),
+    (error) => error instanceof DidError && error.code === "did.peer.resource_limit",
+  );
+  assert.throws(
+    () => provider.resolvePeerDidNumalgo4Short(
+      "did:peer:4short",
+      `did:peer:4${"1".repeat(24_626)}`,
+    ),
+    (error) => error instanceof DidError && error.code === "did.peer.resource_limit",
+  );
+  assert.throws(
+    () => provider.parsePeerDidNumalgo2Compatibility(
+      `did:peer:2${"1".repeat(128 * 1_024 - 9)}`,
+    ),
+    (error) => error instanceof DidError && error.code === "did.peer.resource_limit",
+  );
+  assert.throws(
+    () => provider.parsePeerDidNumalgo4Long("did:example:123"),
+    (error) => error instanceof DidError && error.code === "did.peer.wrong_profile",
+  );
+  assert.throws(
+    () => provider.parsePeerDidNumalgo4Long("did:peer:2.Vz6Mk"),
+    (error) => error instanceof DidError && error.code === "did.peer.unsupported_algorithm",
+  );
+  assert.equal(calls, 0);
+});
+
+test("accepts exact peer DID pre-binding byte ceilings", () => {
+  const long = `did:peer:4${"1".repeat(24_625)}`;
+  const short = `did:peer:4${"1".repeat(48)}`;
+  const compatibility = `did:peer:2${"1".repeat(128 * 1_024 - 10)}`;
+
+  assert.equal(Buffer.byteLength(long), 24_635);
+  assert.equal(Buffer.byteLength(short), 58);
+  assert.equal(Buffer.byteLength(compatibility), 128 * 1_024);
+  assert.equal(requirePeerDidNumalgo4LongInput(long), long);
+  assert.equal(requirePeerDidNumalgo4ShortInput(short), short);
+  assert.equal(requirePeerDidNumalgo2Input(compatibility), compatibility);
+});
+
+test("rejects excessive peer cardinality before descriptor inspection", () => {
+  let arrayDescriptorChecks = 0;
+  const oversizedKeys = new Proxy(new Array(33).fill(undefined), {
+    getOwnPropertyDescriptor(target, key) {
+      arrayDescriptorChecks += 1;
+      return Reflect.getOwnPropertyDescriptor(target, key);
+    },
+  });
+  assert.throws(
+    () => serializePeerDidNumalgo2Input({ keys: oversizedKeys }),
+    (error) => error instanceof DidError && error.code === "did.peer.resource_limit",
+  );
+  assert.equal(arrayDescriptorChecks, 0);
+
+  let objectDescriptorChecks = 0;
+  const oversizedDocument = new Proxy(
+    Object.fromEntries(Array.from({ length: 129 }, (_, index) => [`k${index}`, index])),
+    {
+      getOwnPropertyDescriptor(target, key) {
+        objectDescriptorChecks += 1;
+        return Reflect.getOwnPropertyDescriptor(target, key);
+      },
+    },
+  );
+  assert.throws(
+    () => serializePeerDidNumalgo4Input(oversizedDocument),
+    (error) => error instanceof DidError && error.code === "did.peer.resource_limit",
+  );
+  assert.equal(objectDescriptorChecks, 0);
 });
 
 test("maps a peer hash mismatch with redaction and exact error disposal", () => {

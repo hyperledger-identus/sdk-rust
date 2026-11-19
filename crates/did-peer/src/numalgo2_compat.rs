@@ -390,14 +390,13 @@ impl PeerDid {
                     validate_service_json(&bytes)?;
                     let decoded: EncodedServices =
                         serde_json::from_slice(&bytes).map_err(|_| Error::InvalidInputDocument)?;
-                    let mut decoded = match decoded {
+                    let decoded = match decoded {
                         EncodedServices::One(service) => vec![service],
                         EncodedServices::Many(services) if services.is_empty() => {
                             return Err(Error::InvalidInputDocument);
                         }
                         EncodedServices::Many(services) => services,
                     };
-                    normalize_service_types(&mut decoded);
                     if keys
                         .len()
                         .saturating_add(services.len())

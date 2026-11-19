@@ -344,6 +344,10 @@ export interface DidProvider {
   parseDid(value: string): DidValue;
   parseDidUrl(value: string): DidUrlValue;
   parseDidDocument(value: string): DidDocumentValue;
+}
+
+/** Explicit peer DID capability layered over the stable core provider seam. */
+export interface PeerDidProvider extends DidProvider {
   createPeerDidNumalgo4(input: PeerDidNumalgo4InputDocument): PeerDidNumalgo4Value;
   parsePeerDidNumalgo4Long(value: string): PeerDidNumalgo4Value;
   parsePeerDidNumalgo4Short(value: string): PeerDidNumalgo4ShortValue;
@@ -358,6 +362,23 @@ export interface DidProvider {
     value: string,
   ): PeerDidNumalgo2CompatibilityValue;
 }
+
+export interface InjectedDidProviderSelection<
+  Provider extends DidProvider = DidProvider,
+> {
+  readonly kind: "injected";
+  readonly provider: Provider;
+}
+
+export interface PeerWasmDidProviderSelection {
+  readonly kind: "peer-wasm";
+  readonly options?: DidProviderOptions;
+}
+
+/** A provider choice made once, before any selected WASM initialization. */
+export type DidProviderSelection =
+  | InjectedDidProviderSelection
+  | PeerWasmDidProviderSelection;
 
 export interface DidResolutionProvider extends DidProvider {
   resolveDid(
@@ -378,14 +399,26 @@ export interface DidUrlDereferencingProvider extends DidProvider {
 export interface DidQueryProvider
   extends DidResolutionProvider, DidUrlDereferencingProvider {}
 
+export interface PeerDidQueryProvider
+  extends DidQueryProvider, PeerDidProvider {}
+
 export type DidProviderFactory = (
   options?: DidProviderOptions,
 ) => Promise<DidProvider>;
+
+export type PeerDidProviderFactory = (
+  options?: DidProviderOptions,
+) => Promise<PeerDidProvider>;
 
 export type DidQueryProviderFactory = (
   effects: DidQueryEffects,
   options?: DidProviderOptions,
 ) => Promise<DidQueryProvider>;
+
+export type PeerDidQueryProviderFactory = (
+  effects: DidQueryEffects,
+  options?: DidProviderOptions,
+) => Promise<PeerDidQueryProvider>;
 
 const ERROR_MESSAGES: Readonly<Record<DidErrorCode, string>> = Object.freeze({
   "did.invalid_did": "DID value is invalid",

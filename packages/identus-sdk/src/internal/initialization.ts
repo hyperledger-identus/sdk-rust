@@ -11,10 +11,10 @@ export function initializationFailure(): Error {
 }
 
 /** Keep one target initializer in flight and permit a retry only after failure. */
-export function retryableSingleton(
-  initialize: () => Promise<void>,
-): () => Promise<void> {
-  let current: Promise<void> | undefined;
+export function retryableSingleton<Value>(
+  initialize: () => Promise<Value>,
+): () => Promise<Value> {
+  let current: Promise<Value> | undefined;
   return () => {
     current ??= initialize().catch(() => {
       current = undefined;

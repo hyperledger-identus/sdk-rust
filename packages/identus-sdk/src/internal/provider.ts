@@ -3,15 +3,15 @@ import {
   type DidDereferencingRequestValue,
   type DidDereferencingOptions,
   type DidQueryEffects,
-  type DidQueryProvider,
   type DidDocumentValue,
   type DidErrorCode,
   type DidMappingId,
   type DidObservation,
   type DidOperation,
-  type DidProvider,
   type DidProviderOptions,
   type DidProviderRoute,
+  type PeerDidProvider,
+  type PeerDidQueryProvider,
   type DidOperationContext,
   type DidResolutionOptions,
   type DidResolutionRequestValue,
@@ -391,7 +391,7 @@ export function createRustDidProvider(
   route: Exclude<DidProviderRoute, "legacy">,
   options: DidProviderOptions = {},
   internals: ProviderInternals = {},
-): DidProvider {
+): PeerDidProvider {
   if (binding.bindingApiVersion() !== BINDING_API_VERSION) {
     throw bindingFailure();
   }
@@ -591,7 +591,7 @@ export function createRustDidQueryProvider(
   effects: DidQueryEffects,
   options: DidProviderOptions = {},
   internals: ProviderInternals = {},
-): DidQueryProvider {
+): PeerDidQueryProvider {
   const base = createRustDidProvider(binding, route, options, internals);
   const now = internals.now ?? Date.now;
 

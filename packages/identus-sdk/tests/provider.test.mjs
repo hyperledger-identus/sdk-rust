@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import { DidError } from "../dist/public.js";
 import { retryableSingleton } from "../dist/internal/initialization.js";
+import { selectDidProviderWith } from "../dist/internal/selection.js";
 import {
   requirePeerDidNumalgo2Input,
   requirePeerDidNumalgo4LongInput,
@@ -596,6 +597,49 @@ test("explicit rollback selection never falls through after Rust rejection", () 
   assert.equal(legacyCalls, 0);
   assert.equal(select("legacy").parseDid("legacy-value").method, "legacy");
   assert.equal(legacyCalls, 1);
+});
+
+test("provider capability selection is terminal and initializes only the chosen route", async () => {
+  let peerInitializations = 0;
+  const peerless = Object.freeze({
+    parseDid: (value) => Object.freeze({
+      serialized: value,
+      method: "example",
+      methodSpecificId: "injected",
+    }),
+    parseDidUrl: () => { throw new Error("unused injected URL path"); },
+    parseDidDocument: () => { throw new Error("unused injected document path"); },
+  });
+
+  const injected = await selectDidProviderWith(
+    { kind: "injected", provider: peerless },
+    async () => {
+      peerInitializations += 1;
+      throw new Error("unselected peer initializer");
+    },
+  );
+  assert.strictEqual(injected, peerless);
+  assert.equal(peerInitializations, 0);
+
+  const rawError = {
+    kind: "parse",
+    code: "did.invalid_did",
+    free() {},
+  };
+  const peer = createRustDidProvider(
+    binding({ parseDid: () => { throw rawError; } }),
+    "node-wasm",
+  );
+  const selectedPeer = await selectDidProviderWith(
+    { kind: "peer-wasm" },
+    async () => {
+      peerInitializations += 1;
+      return peer;
+    },
+  );
+  assert.throws(() => selectedPeer.parseDid("invalid"), DidError);
+  assert.equal(peerInitializations, 1);
+  assert.strictEqual(selectedPeer, peer);
 });
 
 test("projects a numalgo-4 value and frees every generated owner exactly once", () => {

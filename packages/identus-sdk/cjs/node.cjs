@@ -9,6 +9,11 @@ module.exports = Object.freeze({
       module.createDidProvider(options),
     );
   },
+  selectDidProvider(selection) {
+    return import("../dist/node.js").then((module) =>
+      module.selectDidProvider(selection),
+    );
+  },
   createDidQueryProvider(effects, options) {
     return import("../dist/node.js").then((module) =>
       module.createDidQueryProvider(effects, options),

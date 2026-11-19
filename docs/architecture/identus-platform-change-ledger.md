@@ -65,6 +65,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic DID and URI values admit the measured finite long-form envelope while the independent method and cache limits remain bounded; a valid oversized cache identity bypasses retention observably.
 
+### `did.syntax.typescript-adoption-rehearsal.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. One pinned pairwise DID journey composes syntax, documents, resolution, dereferencing, peer creation and local resolution through legacy and Rust-backed providers across Node.js, browser, React SSR, and hydrated client targets with terminal pre-initialization selection.
+
 ### `did.syntax.typescript-migration.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. A private additive TypeScript facade projects target-specific Rust WASM values into frozen plain DID and DID URL values with stable redacted errors, explicit provider selection, browser and Node loaders, React web lifecycle integration, shared vector evidence, and isolated exact-head target receipts.
@@ -170,6 +174,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `did.syntax.long-form-resource-policy.v1`
 
 `0.1.0-rc.1` → `unreleased` for sdk-rust-adopters. Use the exported constants rather than copied literals, handle KeyBudgetBypass as an uncached successful resolution path, and keep external transport limits explicit.
+
+### `did.syntax.typescript-adoption-rehearsal.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Keep the legacy provider explicitly selectable; adopt the Rust-backed route only through the private pre-initialization selection boundary.
 
 ### `did.syntax.typescript-migration.v1`
 
@@ -277,6 +285,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The release-candidate line documents the new limits before a stable 0.1.0 contract is declared.
 
+### `did.syntax.typescript-adoption-rehearsal.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The package remains private, opt-in, non-default, and unpublished; no external migration window is activated.
+
 ### `did.syntax.typescript-migration.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The canary remains private, opt-in, non-default, and unpublished; a later SDK-TS change owns any supported migration window or default switch.
@@ -383,6 +395,10 @@ Fallback: No automatic transport, retry, method, parser, or legacy resolver fall
 
 Fallback: Bypass cache retention for valid oversized identities; do not truncate keys or fall back to a second parser. Rollback: Restore the prior lexical constants and cache outcome before publication while retaining issue and measurement evidence. Removal gate: Not applicable; this is an expansion of a bounded public envelope rather than a deprecated facade.
 
+### `did.syntax.typescript-adoption-rehearsal.v1`
+
+Fallback: Selection is explicit before initialization; a selected provider rejection is terminal and never invokes the other route. Rollback: Select the injected legacy provider at a fresh pre-initialization boundary and rerun the same consumer journey; remove the private rehearsal without changing canonical Rust or external SDK-TS behavior. Removal gate: External default activation remains prohibited until separately authorized adoption, support, budget, publication, and compatibility gates pass.
+
 ### `did.syntax.typescript-migration.v1`
 
 Fallback: No automatic parser fallback; rollback selects the legacy provider before initialization and a Rust rejection remains terminal. Rollback: Remove the private facade, loaders, target fixtures, and target routing as one unreleased unit while preserving identus-did, identus-wasm-did API version 1, canonical mappings/vectors, and unchanged SDK-TS behavior. Removal gate: A separate consumer-visible change may retire the legacy route only after every supported SDK-TS consumer uses the Rust-backed facade, target budgets and support are accepted, rollback is rehearsed, and the announced compatibility window elapses.
@@ -488,6 +504,10 @@ Visibility: behavior, error, public-api, runtime-requirement, target-support, wi
 ### `did.syntax.long-form-resource-policy.v1`
 
 Visibility: behavior, public-api. The lexical envelope does not guarantee transportability through every host, cache retention, or acceptance by a method-specific semantic profile.
+
+### `did.syntax.typescript-adoption-rehearsal.v1`
+
+Visibility: behavior, target-support. Repository-local private rehearsal only; no external SDK-TS mutation, default switch, support, accepted budget, publication, stable API, React Native, DIDComm processing, credential workflow, release, or mdoc.
 
 ### `did.syntax.typescript-migration.v1`
 

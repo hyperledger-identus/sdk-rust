@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 609,
+  "change": "rehearse-sdk-ts-did-facade-adoption",
+  "branch": "codex/test/issue-609",
+  "baseRef": "origin/develop",
+  "baseSha": "f887135ba75880542eacaf80dd6363bd2a60502d",
+  "contractHeadSha": "6e36a0ea1f2603f0711865160060bb121d70b1b2",
+  "createdAt": "2026-11-19T20:33:15.375Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

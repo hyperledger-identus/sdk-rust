@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 609
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The private TypeScript facade gains one pinned consumer-shaped dual-provider rehearsal and explicit terminal rollback contract without changing the default SDK-TS route or any published surface."
+ledger_ids     = [ "did.syntax.typescript-adoption-rehearsal.v1" ]

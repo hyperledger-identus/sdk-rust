@@ -57,7 +57,7 @@ sha256          = "ffcdc8898f90dbc1cbc6a9a3c8132566297c1d503a72f516451b93708d7a6
 disposition     = "platform-owned"
 portable_part   = "A pairwise relationship consumes stable peer DID from/to values."
 excluded_part   = "Key generation, storage, mediator update, task scheduling, and agent lifecycle."
-replacement     = "Frozen pairwise from/to assertion; all effects remain host-owned."
+replacement     = "Frozen pairwise from/to assertions in adoption-journey.mjs; all effects remain host-owned."
 reconsideration = "Revisit when DIDComm application protocols and agent runtime have selected boundaries."
 
 [[records]]
@@ -79,7 +79,7 @@ sha256          = "79b369c453b0e96149ebc34635701a78a8e7b59b7e9b60cf2cc980ac6a989
 disposition     = "platform-owned"
 portable_part   = "Frozen from/to peer DID values survive a pairwise request-shaped boundary."
 excluded_part   = "DIDComm packing, transport, protocol execution, and agent lifecycle."
-replacement     = "Target-neutral pairwise value assertion in peer-vector-assertions.mjs."
+replacement     = "Provider-neutral request-shaped assertion in adoption-journey.mjs; peer-vector-assertions.mjs remains the canonical vector packet."
 reconsideration = "Revisit under a selected DIDComm application-protocol train."
 
 [[records]]

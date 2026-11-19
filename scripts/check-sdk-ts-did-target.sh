@@ -64,6 +64,24 @@ write_receipt() {
     --output "$receipt_dir/$target.json"
 }
 
+write_adoption_receipt() {
+  local target="$1"
+  local route_instances="$2"
+  local runtime_sources="$3"
+  local sources="$root/packages/identus-sdk/tests/adoption-journey.mjs"
+  local source
+  IFS=',' read -r -a adoption_sources <<< "$runtime_sources"
+  for source in "${adoption_sources[@]}"; do
+    sources+=",$root/$source"
+  done
+  node scripts/ci/write-adoption-receipt.mjs \
+    --head "$head_sha" \
+    --target "$target" \
+    --route-instances "$route_instances" \
+    --sources "$sources" \
+    --output "$receipt_dir/adoption-$target.json"
+}
+
 if [[ "$mode" == "react-native" ]]; then
   # ADR 0163 owns the later native New Architecture/TurboModule package. This
   # structural receipt deliberately installs and executes no native toolchain.
@@ -116,6 +134,7 @@ run_package_types() {
 
 run_browser() {
   (cd "$package_root" && npm run test:browser)
+  write_adoption_receipt browser 2 packages/identus-sdk/tests/browser-runtime.mjs
   local digest
   digest="$(target_contract_digest browser \
     docs/conformance/fixtures/did/v1/vectors.json \
@@ -126,12 +145,14 @@ run_browser() {
     packages/identus-sdk/tests/document-vector-assertions.mjs \
     packages/identus-sdk/tests/resolution-vector-assertions.mjs \
     packages/identus-sdk/tests/peer-vector-assertions.mjs \
+    packages/identus-sdk/tests/adoption-journey.mjs \
     packages/identus-sdk/tests/browser-runtime.mjs)"
   write_receipt browser selected success "$digest"
 }
 
 run_nodejs() {
   (cd "$package_root" && npm run test:node)
+  write_adoption_receipt nodejs 4 packages/identus-sdk/tests/node-runtime.test.mjs
   local digest
   digest="$(target_contract_digest nodejs \
     docs/conformance/fixtures/did/v1/vectors.json \
@@ -142,12 +163,14 @@ run_nodejs() {
     packages/identus-sdk/tests/document-vector-assertions.mjs \
     packages/identus-sdk/tests/resolution-vector-assertions.mjs \
     packages/identus-sdk/tests/peer-vector-assertions.mjs \
+    packages/identus-sdk/tests/adoption-journey.mjs \
     packages/identus-sdk/tests/node-runtime.test.mjs)"
   write_receipt nodejs selected success "$digest"
 }
 
 run_react_web() {
   (cd "$package_root" && npm run test:react)
+  write_adoption_receipt react-web 4 packages/identus-sdk/tests/react-runtime.test.mjs,packages/identus-sdk/tests/react-browser-fixture.tsx,packages/identus-sdk/tests/react-browser-runtime.mjs
   local digest
   digest="$(target_contract_digest react-web \
     docs/conformance/fixtures/did/v1/vectors.json \
@@ -158,6 +181,7 @@ run_react_web() {
     packages/identus-sdk/tests/document-vector-assertions.mjs \
     packages/identus-sdk/tests/resolution-vector-assertions.mjs \
     packages/identus-sdk/tests/peer-vector-assertions.mjs \
+    packages/identus-sdk/tests/adoption-journey.mjs \
     packages/identus-sdk/tests/react-runtime.test.mjs \
     packages/identus-sdk/tests/react-browser-fixture.tsx \
     packages/identus-sdk/tests/react-browser-runtime.mjs)"

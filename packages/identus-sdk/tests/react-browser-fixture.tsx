@@ -1,12 +1,17 @@
 import { createElement, useEffect } from "react";
 import { hydrateRoot } from "react-dom/client";
 
-import { createDidProvider, createDidQueryProvider } from "../dist/browser.js";
+import { createDidProvider, createDidQueryProvider, selectDidProvider } from "../dist/browser.js";
 import { DidProviderBoundary, useDidProvider } from "../dist/react.js";
 import { assertAllVectors } from "./vector-assertions.mjs";
 import { assertAllDocumentVectors } from "./document-vector-assertions.mjs";
 import { assertAllResolutionVectors } from "./resolution-vector-assertions.mjs";
 import { assertAllPeerVectors } from "./peer-vector-assertions.mjs";
+import {
+  DID_ADOPTION_JOURNEY,
+  createLegacyAdoptionFixture,
+  runDidAdoptionRehearsal,
+} from "./adoption-journey.mjs";
 
 declare global {
   interface Window {
@@ -28,13 +33,14 @@ function DidText({ onHydrated }: Readonly<{ onHydrated: () => void }>) {
     "span",
     { "data-state": state.status },
     state.status === "ready"
-      ? state.provider.parseDidDocument('{"id":"did:example:react-hydration"}').serialized
+      ? state.provider.parseDidDocument(DID_ADOPTION_JOURNEY.documentLiteral).serialized
       : state.status,
   );
 }
 
 try {
   const provider = await createDidProvider();
+  const legacy = createLegacyAdoptionFixture().provider;
   const vectors = window.__identusDidVectors;
   const documentVectors = window.__identusDidDocumentVectors;
   const resolutionVectors = window.__identusDidResolutionVectors;
@@ -43,28 +49,39 @@ try {
   if (documentVectors === undefined) throw new Error("document vectors missing");
   if (resolutionVectors === undefined) throw new Error("resolution vectors missing");
   if (peerVectors === undefined) throw new Error("peer vectors missing");
-  const root = document.getElementById("root");
-  if (root === null) throw new Error("root missing");
+  const rustRoot = document.getElementById("rust-root");
+  const legacyRoot = document.getElementById("legacy-root");
+  if (rustRoot === null || legacyRoot === null) throw new Error("root missing");
   const recoverable: string[] = [];
-  let resolveHydrated: (() => void) | undefined;
-  const hydrated = new Promise<void>((resolve) => { resolveHydrated = resolve; });
-  const onHydrated = () => resolveHydrated?.();
-  hydrateRoot(
-    root,
-    createElement(
-      DidProviderBoundary,
-      { factory: async () => provider, initialProvider: provider },
-      createElement(DidText, { onHydrated }),
-    ),
-    { onRecoverableError: () => recoverable.push("recoverable") },
-  );
-  await hydrated;
+  const hydrate = (root: HTMLElement, initialProvider: typeof provider | typeof legacy) => new Promise<void>((resolve) => {
+    const onHydrated = () => resolve();
+    hydrateRoot(
+      root,
+      createElement(
+        DidProviderBoundary,
+        { factory: async () => initialProvider, initialProvider },
+        createElement(DidText, { onHydrated }),
+      ),
+      { onRecoverableError: () => recoverable.push("recoverable") },
+    );
+  });
+  await Promise.all([hydrate(rustRoot, provider), hydrate(legacyRoot, legacy)]);
+  const rehearsal = await runDidAdoptionRehearsal({
+    target: "react-hydrated-client",
+    selectDidProvider,
+    createDidQueryProvider,
+  });
   assertAllVectors(provider, vectors);
   assertAllDocumentVectors(provider, documentVectors);
   assertAllPeerVectors(provider, peerVectors);
   await assertAllResolutionVectors(createDidQueryProvider, resolutionVectors);
-  const text = root.textContent ?? "";
-  if (text !== '{"id":"did:example:react-hydration"}' || recoverable.length !== 0) {
+  const text = rustRoot.textContent ?? "";
+  if (
+    text !== DID_ADOPTION_JOURNEY.documentLiteral
+    || legacyRoot.textContent !== text
+    || rehearsal.routes.length !== 2
+    || recoverable.length !== 0
+  ) {
     throw new Error("hydration mismatch");
   }
   window.__identusReactCanary = Object.freeze({ status: "success", detail: text });

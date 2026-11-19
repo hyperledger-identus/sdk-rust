@@ -3,7 +3,7 @@
 ## 1. Contract
 
 - [x] 1.1 Record the pinned journey, provider-neutral assertions, deviations, target receipts, and rollback boundary.
-- [ ] 1.2 Pass research, constraints, strict validation, and planning preflight.
+- [x] 1.2 Pass research, constraints, strict validation, and planning preflight.
 
 ## 2. Rehearsal
 

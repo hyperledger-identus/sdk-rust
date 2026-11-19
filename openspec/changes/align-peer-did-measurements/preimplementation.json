@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 607,
+  "change": "align-peer-did-measurements",
+  "branch": "codex/test/issue-607",
+  "baseRef": "origin/develop",
+  "baseSha": "840690e9dda8a0cbb3036aa2c02de5dabafa5811",
+  "contractHeadSha": "f71caaa414214fcfecab50059355042ef081e323",
+  "createdAt": "2026-11-19T19:54:05.236Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

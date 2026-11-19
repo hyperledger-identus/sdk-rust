@@ -10,6 +10,9 @@ import { cloneFrozenJson, requireMap } from "./document-projection.js";
 
 const MAX_NUMALGO4_INPUT_BYTES = 16 * 1_024;
 const MAX_NUMALGO2_INPUT_BYTES = 24 * 1_024;
+const MAX_NUMALGO4_LONG_FORM_BYTES = 24_635;
+const MAX_NUMALGO4_SHORT_FORM_BYTES = 58;
+const MAX_NUMALGO2_DID_BYTES = 128 * 1_024;
 const MAX_DEPTH = 32;
 const MAX_NODES = 4_096;
 const MAX_MEMBERS = 128;
@@ -33,7 +36,10 @@ function resourceLimit(): DidError {
   return new DidError("did.peer.resource_limit");
 }
 
-function requireClosedObject(value: unknown): ClosedObject {
+function requireClosedObject(
+  value: unknown,
+  memberLimit = MAX_MEMBERS,
+): ClosedObject {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     throw invalidInput();
   }
@@ -41,7 +47,11 @@ function requireClosedObject(value: unknown): ClosedObject {
   if (prototype !== Object.prototype && prototype !== null) {
     throw invalidInput();
   }
-  for (const key of Reflect.ownKeys(value)) {
+  const ownKeys = Reflect.ownKeys(value);
+  if (ownKeys.length > memberLimit) {
+    throw resourceLimit();
+  }
+  for (const key of ownKeys) {
     if (typeof key !== "string" || FORBIDDEN_KEYS.has(key)) {
       throw invalidInput();
     }
@@ -73,9 +83,15 @@ function requireExactObject(
   return object;
 }
 
-function requireArray(value: unknown): readonly unknown[] {
+function requireArray(
+  value: unknown,
+  elementLimit = MAX_MEMBERS,
+): readonly unknown[] {
   if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype) {
     throw invalidInput();
+  }
+  if (value.length > elementLimit) {
+    throw resourceLimit();
   }
   const ownKeys = Reflect.ownKeys(value);
   if (ownKeys.length !== value.length + 1 || ownKeys.at(-1) !== "length") {
@@ -128,6 +144,36 @@ function utf8Length(value: string, limit: number): number {
     }
   }
   return bytes;
+}
+
+function requirePeerDidString(
+  value: string,
+  algorithm: "2" | "4",
+  byteLimit: number,
+): string {
+  if (typeof value !== "string") {
+    throw new TypeError("peer DID input must be a string");
+  }
+  utf8Length(value, byteLimit);
+  if (!value.startsWith("did:peer:")) {
+    throw new DidError("did.peer.wrong_profile");
+  }
+  if (!value.startsWith(`did:peer:${algorithm}`)) {
+    throw new DidError("did.peer.unsupported_algorithm");
+  }
+  return value;
+}
+
+export function requirePeerDidNumalgo4LongInput(value: string): string {
+  return requirePeerDidString(value, "4", MAX_NUMALGO4_LONG_FORM_BYTES);
+}
+
+export function requirePeerDidNumalgo4ShortInput(value: string): string {
+  return requirePeerDidString(value, "4", MAX_NUMALGO4_SHORT_FORM_BYTES);
+}
+
+export function requirePeerDidNumalgo2Input(value: string): string {
+  return requirePeerDidString(value, "2", MAX_NUMALGO2_DID_BYTES);
 }
 
 function assertBoundedJsonTree(root: unknown, byteLimit: number): void {
@@ -216,29 +262,23 @@ function assertBoundedJsonTree(root: unknown, byteLimit: number): void {
     }
     seen.add(value);
     if (Array.isArray(value)) {
-      const array = requireArray(value);
-      if (array.length > MAX_MEMBERS) {
-        throw resourceLimit();
-      }
+      const array = requireArray(value, MAX_MEMBERS);
       consume(2 + Math.max(0, array.length - 1));
       for (let index = array.length - 1; index >= 0; index -= 1) {
         pending.push({ value: array[index], depth: frame.depth + 1 });
       }
     } else {
-      const object = requireClosedObject(value);
-      const entries = Object.entries(object);
-      if (entries.length > MAX_MEMBERS) {
-        throw resourceLimit();
-      }
-      consume(2 + Math.max(0, entries.length - 1));
-      for (let index = entries.length - 1; index >= 0; index -= 1) {
-        const entry = entries[index];
-        if (entry === undefined) {
+      const object = requireClosedObject(value, MAX_MEMBERS);
+      const keys = Object.keys(object);
+      consume(2 + Math.max(0, keys.length - 1));
+      for (let index = keys.length - 1; index >= 0; index -= 1) {
+        const key = keys[index];
+        if (key === undefined) {
           throw invalidInput();
         }
-        consumeJsonString(entry[0]);
+        consumeJsonString(key);
         consume(1);
-        pending.push({ value: entry[1], depth: frame.depth + 1 });
+        pending.push({ value: object[key], depth: frame.depth + 1 });
       }
     }
   }
@@ -258,10 +298,7 @@ export function serializePeerDidNumalgo4Input(
 }
 
 function stringArray(value: unknown): readonly string[] {
-  const array = requireArray(value);
-  if (array.length > MAX_ELEMENTS) {
-    throw resourceLimit();
-  }
+  const array = requireArray(value, MAX_ELEMENTS);
   return array.map(requireString);
 }
 
@@ -287,12 +324,9 @@ function copyEndpoint(value: unknown): unknown {
     return requireString(value);
   }
   if (Array.isArray(value)) {
-    const endpoints = requireArray(value);
+    const endpoints = requireArray(value, MAX_ELEMENTS);
     if (endpoints.length === 0) {
       throw invalidInput();
-    }
-    if (endpoints.length > MAX_ELEMENTS) {
-      throw resourceLimit();
     }
     return endpoints.map(copyEndpointMap);
   }
@@ -315,20 +349,22 @@ function copyService(value: unknown): PeerDidNumalgo2ServiceInput {
 export function serializePeerDidNumalgo2Input(
   input: PeerDidNumalgo2CompatibilityInput,
 ): string {
-  assertBoundedJsonTree(input, MAX_NUMALGO2_INPUT_BYTES);
   const object = requireExactObject(
     input,
     new Set(["keys", "services"]),
     new Set(["keys"]),
   );
-  const keys = requireArray(object.keys);
-  const services = object.services === undefined ? [] : requireArray(object.services);
+  const keys = requireArray(object.keys, MAX_ELEMENTS);
+  const services = object.services === undefined
+    ? []
+    : requireArray(object.services, MAX_ELEMENTS);
   if (keys.length === 0) {
     throw invalidInput();
   }
   if (keys.length + services.length > MAX_ELEMENTS) {
     throw resourceLimit();
   }
+  assertBoundedJsonTree(input, MAX_NUMALGO2_INPUT_BYTES);
   const copiedKeys = keys.map((value) => {
     const key = requireExactObject(
       value,

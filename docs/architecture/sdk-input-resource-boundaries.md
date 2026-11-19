@@ -63,6 +63,12 @@ calling it unbounded SDK behavior.
   automatic retry/fallback, or native non-JSON coercion.
 - UniFFI and WASM DID facades delegate to bounded DID parsing after their
   language bridges allocate input.
+- The private TypeScript peer DID adapter additionally checks selected profile,
+  UTF-8 byte ceilings, collection cardinality, descriptors, JSON depth and node
+  counts before JSON serialization or wasm-bindgen encoding. Its complete
+  numalgo-2 creation DTO ceiling is 24 KiB; the Rust-owned compact service JSON
+  ceiling remains a separate 16 KiB component limit. The JavaScript runtime
+  still owns allocation of raw caller values before adapter entry.
 - Hash/sign/verify primitives and injected resolver, registrar, verifier,
   trust, replay and storage adapters remain explicitly caller-budgeted.
 - BIP-39 now rejects impossible entropy, excess word count/word bytes and

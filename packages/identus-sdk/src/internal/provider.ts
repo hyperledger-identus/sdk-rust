@@ -51,6 +51,9 @@ import type {
 import {
   serializePeerDidNumalgo2Input,
   serializePeerDidNumalgo4Input,
+  requirePeerDidNumalgo2Input,
+  requirePeerDidNumalgo4LongInput,
+  requirePeerDidNumalgo4ShortInput,
 } from "./peer-input.js";
 import {
   projectPeerDidNumalgo2Compatibility,
@@ -495,7 +498,7 @@ export function createRustDidProvider(
         ));
     },
     parsePeerDidNumalgo4Long(value: string): PeerDidNumalgo4Value {
-      requireInput(value);
+      requirePeerDidNumalgo4LongInput(value);
       return runPeer("did.peer.numalgo4.parse-long", () =>
         projectPeerDidNumalgo4(
           binding.parsePeerDidNumalgo4Long(value),
@@ -503,7 +506,7 @@ export function createRustDidProvider(
         ));
     },
     parsePeerDidNumalgo4Short(value: string): PeerDidNumalgo4ShortValue {
-      requireInput(value);
+      requirePeerDidNumalgo4ShortInput(value);
       return runPeer("did.peer.numalgo4.parse-short", () =>
         projectPeerDidNumalgo4Short(
           binding.parsePeerDidNumalgo4Short(value),
@@ -514,11 +517,12 @@ export function createRustDidProvider(
       shortForm: string,
       longForm: string,
     ): PeerDidNumalgo4Value {
-      requireInput(shortForm);
+      requirePeerDidNumalgo4ShortInput(shortForm);
       return runPeer("did.peer.numalgo4.resolve-short", () => {
         if (typeof longForm !== "string" || longForm.length === 0) {
           throw new DidError("did.peer.long_form_required");
         }
+        requirePeerDidNumalgo4LongInput(longForm);
         return projectPeerDidNumalgo4(
           binding.resolvePeerDidNumalgo4Short(shortForm, longForm),
           peerCallbacks(),
@@ -539,7 +543,7 @@ export function createRustDidProvider(
     parsePeerDidNumalgo2Compatibility(
       value: string,
     ): PeerDidNumalgo2CompatibilityValue {
-      requireInput(value);
+      requirePeerDidNumalgo2Input(value);
       return runPeer("did.peer.numalgo2-compatibility.parse", () =>
         projectPeerDidNumalgo2Compatibility(
           binding.parsePeerDidNumalgo2Compatibility(value),

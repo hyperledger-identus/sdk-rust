@@ -345,6 +345,11 @@ def main() -> None:
         replace_first(registry, "max_input_bytes = 131072", "max_input_bytes = 0"),
         replace_first(
             registry,
+            "adapter_max_input_bytes = 131072",
+            "adapter_max_input_bytes = 0",
+        ),
+        replace_first(
+            registry,
             'canonical_bound_symbol = "MAX_DID_BYTES"',
             'canonical_bound_symbol = "MAX_UNKNOWN_BYTES"',
         ),

@@ -18,6 +18,7 @@ DidProvider
 DidProviderFactory
 DidProviderOptions
 DidProviderRoute
+DidProviderSelection
 DidQueryEffects
 DidQueryProvider
 DidQueryProviderFactory
@@ -42,6 +43,7 @@ DidDocumentMetadataValue
 DidValue
 DidVerificationMethodValue
 DidVerificationRelationshipValue
+InjectedDidProviderSelection
 PeerDidNumalgo2CompatibilityInput
 PeerDidNumalgo2CompatibilityValue
 PeerDidNumalgo2PublicKeyInput
@@ -52,3 +54,8 @@ PeerDidNumalgo2ServiceInput
 PeerDidNumalgo4InputDocument
 PeerDidNumalgo4ShortValue
 PeerDidNumalgo4Value
+PeerDidProvider
+PeerDidProviderFactory
+PeerDidQueryProvider
+PeerDidQueryProviderFactory
+PeerWasmDidProviderSelection

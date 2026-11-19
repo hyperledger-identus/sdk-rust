@@ -112,6 +112,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "did.peer.profiles.provider-selection.typescript.v1"
+capability                        = "did.peer.profiles"
+lifecycle_state                   = "active"
+issue                             = 608
+pull_request                      = 616
+change_class                      = "fix"
+release_note_class                = "fixed"
+visibility                        = [ "behavior", "public-api", "target-support" ]
+affected_packages                 = [ "identus-typescript-sdk" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "The private TypeScript facade requires peer methods on the base DidProvider, so previously valid three-method injected providers are no longer assignable and rollback is not a real target entry-point choice."
+new_behavior                      = "The base DidProvider remains a three-method seam, peer operations use a typed extension, and browser or Node selects an injected core provider or peer-WASM capability before generated artifact initialization without automatic fallback."
+migration_action                  = "Existing core-only providers remain unchanged; consumers that require peer operations use the PeerDidProvider returned by the peer-WASM factory."
+replacement                       = "Explicit core and peer provider capability types with terminal pre-initialization selection."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The package remains private, opt-in, non-default, and unpublished; this correction creates no external compatibility window."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "required"
+mapping_ids                       = [ "did.peer.typescript.numalgo2-compat-v1", "did.peer.typescript.numalgo4-v1" ]
+mapping_rationale                 = "Provider selection changes capability ownership and initialization only; the existing peer mappings remain authoritative and unchanged."
+vector_ids                        = [ "did.peer.numalgo2.sdk-ts-pairwise", "did.peer.numalgo4.reference-minimal", "did.peer.numalgo4.wrong-profile" ]
+quality_declaration_ids           = [ "did.peer.typescript.quality.v1" ]
+observability                     = "Record only selected route, operation, mapping ID, stable result or error category, and bounded duration; never record provider objects, DIDs, input material, generated errors, stacks, or WASM memory."
+fallback                          = "Selection is explicit before initialization; initialization and operation rejection are terminal and never select another provider."
+rollback                          = "Before publication remove the selection helper and peer extension split while retaining the merged Rust peer method engine, canonical mappings, vectors, and unchanged external SDK-TS behavior."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = ""
+evidence_selectors                = [ "docs/architecture/language-adapter-mappings.toml#did.peer.typescript.numalgo2-compat-v1", "docs/architecture/language-adapter-mappings.toml#did.peer.typescript.numalgo4-v1", "docs/architecture/quality-evidence-declarations.toml#did.peer.typescript.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.peer.numalgo4.reference-minimal" ]
+evidence_artifacts                = [ "docs/architecture/sdk-ts-did-provider-selection.md", "openspec/changes/archive/2026-11-19-preserve-sdk-ts-provider-compatibility/constraints.md", "openspec/changes/archive/2026-11-19-preserve-sdk-ts-provider-compatibility/design.md", "openspec/changes/archive/2026-11-19-preserve-sdk-ts-provider-compatibility/research.md", "packages/identus-sdk/tests/provider.test.mjs", "packages/identus-sdk/tests/public-types.ts" ]
+limitations                       = "Private browser, Node.js, CommonJS, and React Web correction only; no React Native/native binding, external adoption, support, publication, stable API, certification, release, DIDComm runtime, or mdoc."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "did.syntax.typescript-migration.v1"
 capability                        = "did.syntax"
 lifecycle_state                   = "active"

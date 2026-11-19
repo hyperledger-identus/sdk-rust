@@ -23,7 +23,24 @@ test("Node ESM executes every canonical DID vector", async () => {
 test("Node CommonJS shares the ESM facade and executes every canonical DID vector", async () => {
   const require = createRequire(import.meta.url);
   const entry = require("../cjs/node.cjs");
-  assert.deepEqual(Object.keys(entry), ["createDidProvider", "createDidQueryProvider"]);
+  assert.deepEqual(Object.keys(entry), [
+    "createDidProvider",
+    "selectDidProvider",
+    "createDidQueryProvider",
+  ]);
+  const peerless = Object.freeze({
+    parseDid: (value) => Object.freeze({
+      serialized: value,
+      method: "example",
+      methodSpecificId: "selected",
+    }),
+    parseDidUrl: () => { throw new Error("unused peerless URL path"); },
+    parseDidDocument: () => { throw new Error("unused peerless document path"); },
+  });
+  assert.strictEqual(
+    await entry.selectDidProvider({ kind: "injected", provider: peerless }),
+    peerless,
+  );
   const provider = await entry.createDidProvider();
   assertAllVectors(provider, await loadVectors());
   assertAllDocumentVectors(provider, await loadDocumentVectors());

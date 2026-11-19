@@ -42,9 +42,17 @@ import type {
   PeerDidNumalgo4InputDocument,
   PeerDidNumalgo4ShortValue,
   PeerDidNumalgo4Value,
+  PeerDidProvider,
+  PeerDidProviderFactory,
 } from "../src/index.js";
-import { createDidProvider as createBrowserDidProvider } from "../src/browser.js";
-import { createDidProvider as createNodeDidProvider } from "../src/node.js";
+import {
+  createDidProvider as createBrowserDidProvider,
+  selectDidProvider as selectBrowserDidProvider,
+} from "../src/browser.js";
+import {
+  createDidProvider as createNodeDidProvider,
+  selectDidProvider as selectNodeDidProvider,
+} from "../src/node.js";
 import type { DidProviderState } from "../src/react.js";
 
 type IsAny<T> = 0 extends (1 & T) ? true : false;
@@ -96,6 +104,8 @@ type PeerServiceIsNotAny = AssertFalse<IsAny<PeerDidNumalgo2ServiceInput>>;
 type PeerNumalgo4InputIsNotAny = AssertFalse<IsAny<PeerDidNumalgo4InputDocument>>;
 type PeerNumalgo4ShortIsNotAny = AssertFalse<IsAny<PeerDidNumalgo4ShortValue>>;
 type PeerNumalgo4ValueIsNotAny = AssertFalse<IsAny<PeerDidNumalgo4Value>>;
+type PeerProviderIsNotAny = AssertFalse<IsAny<PeerDidProvider>>;
+type PeerFactoryIsNotAny = AssertFalse<IsAny<PeerDidProviderFactory>>;
 
 const compileAssertions: readonly [
   DidIsNotAny,
@@ -144,6 +154,8 @@ const compileAssertions: readonly [
   PeerNumalgo4InputIsNotAny,
   PeerNumalgo4ShortIsNotAny,
   PeerNumalgo4ValueIsNotAny,
+  PeerProviderIsNotAny,
+  PeerFactoryIsNotAny,
 ] = [
   false,
   false,
@@ -191,7 +203,32 @@ const compileAssertions: readonly [
   false,
   false,
   false,
+  false,
+  false,
 ];
+
+declare const parseDid: DidProvider["parseDid"];
+declare const parseDidUrl: DidProvider["parseDidUrl"];
+declare const parseDidDocument: DidProvider["parseDidDocument"];
+const peerlessProvider: DidProvider = Object.freeze({
+  parseDid,
+  parseDidUrl,
+  parseDidDocument,
+});
+const peerlessFactory: DidProviderFactory = async () => peerlessProvider;
+const peerFactory: PeerDidProviderFactory = createNodeDidProvider;
+const browserPeerSelection: Promise<PeerDidProvider> = selectBrowserDidProvider({
+  kind: "peer-wasm",
+});
+const nodePeerlessSelection: Promise<DidProvider> = selectNodeDidProvider({
+  kind: "injected",
+  provider: peerlessProvider,
+});
+
+void peerlessFactory;
+void peerFactory;
+void browserPeerSelection;
+void nodePeerlessSelection;
 
 declare const document: DidDocumentValue;
 const documentId: string = document.id.serialized;

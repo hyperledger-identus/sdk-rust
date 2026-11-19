@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 608
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The private TypeScript facade restores assignability for existing three-method DID providers and adds an explicit terminal injected-versus-peer-WASM selection contract before generated artifact initialization."
+ledger_ids     = [ "did.peer.profiles.provider-selection.typescript.v1" ]

@@ -19,6 +19,7 @@ export {
   type DidProviderFactory,
   type DidProviderOptions,
   type DidProviderRoute,
+  type DidProviderSelection,
   type DidQueryEffects,
   type DidQueryProvider,
   type DidQueryProviderFactory,
@@ -53,4 +54,10 @@ export {
   type PeerDidNumalgo4InputDocument,
   type PeerDidNumalgo4ShortValue,
   type PeerDidNumalgo4Value,
+  type PeerDidProvider,
+  type PeerDidProviderFactory,
+  type PeerDidQueryProvider,
+  type PeerDidQueryProviderFactory,
+  type InjectedDidProviderSelection,
+  type PeerWasmDidProviderSelection,
 } from "./public.js";

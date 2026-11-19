@@ -59,9 +59,9 @@ git_blob_oid       = "4403dd928cfab3658dd35d4914f49cb62c5f47a3"
 [[canonical_sources]]
 id                 = "did-peer-numalgo2.source.identus-did-peer.v1"
 owner_issue        = 512
-state              = "pending-revision"
+state              = "active"
 canonical_crate    = "identus-did-peer"
-canonical_revision = "5a26290691c8fdd484217630825e7280f9e5627e"
+canonical_revision = "f7dc731108cfb7d160732dea9bed84c9d0b9cff7"
 path               = "crates/did-peer/src/numalgo2_compat.rs"
 file_mode          = "100644"
 byte_length        = 39912

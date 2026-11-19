@@ -37,6 +37,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-did-key crate creates, parses and locally resolves a bounded strict base58-btc profile for direct Ed25519, X25519, P-256 and secp256k1 public keys; identus-crypto exposes Ed25519 canonical-encoding and weak-point classification plus X25519 canonical-encoding and contributory classification so aliased or unusable identity keys are rejected.
 
+### `did.peer.profiles.provider-selection.typescript.v1`
+
+State: `active`. Class: `fix` / `fixed`. Target: `unreleased`. The base DidProvider remains a three-method seam, peer operations use a typed extension, and browser or Node selects an injected core provider or peer-WASM capability before generated artifact initialization without automatic fallback.
+
 ### `did.peer.profiles.typescript-migration.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade creates, parses, and locally resolves bounded numalgo-4 current-profile and explicit numalgo-2 compatibility peer DIDs through capability-named TypeScript values across browser, Node.js, and React web targets.
@@ -138,6 +142,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `did.key.profile.v1`
 
 `unreleased` → `unreleased` for sdk-rust-adopters, sdk-swift, sdk-ts. No migration action required.
+
+### `did.peer.profiles.provider-selection.typescript.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Existing core-only providers remain unchanged; consumers that require peer operations use the PeerDidProvider returned by the peer-WASM factory.
 
 ### `did.peer.profiles.typescript-migration.v1`
 
@@ -241,6 +249,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
+### `did.peer.profiles.provider-selection.typescript.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The package remains private, opt-in, non-default, and unpublished; this correction creates no external compatibility window.
+
 ### `did.peer.profiles.typescript-migration.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The facade remains private, opt-in, non-default, and unpublished; no external compatibility window starts in this train.
@@ -343,6 +355,10 @@ Fallback: Consumers retain their existing did:jwk implementation until they expl
 
 Fallback: Consumers retain their existing did:key implementation until they explicitly adopt the additive crate or a later language adapter. Rollback: Before publication remove the additive package and its evidence as one unreleased unit; generic SDK-Rust DID and crypto behavior remains unchanged. Removal gate: Not applicable.
 
+### `did.peer.profiles.provider-selection.typescript.v1`
+
+Fallback: Selection is explicit before initialization; initialization and operation rejection are terminal and never select another provider. Rollback: Before publication remove the selection helper and peer extension split while retaining the merged Rust peer method engine, canonical mappings, vectors, and unchanged external SDK-TS behavior. Removal gate: Not applicable.
+
 ### `did.peer.profiles.typescript-migration.v1`
 
 Fallback: No automatic profile, parser, resolver, or legacy implementation fallback; canonical rejection is terminal, and rollback selects the legacy provider before initialization. Rollback: Remove the unreleased provider, adapter mapping, vector additions, and target assertions while preserving the merged generic DID canary, Rust peer method crate, and unchanged external SDK-TS behavior. Removal gate: A separate consumer-visible change may retire the legacy route only after named consumers adopt the Rust-backed facade, accepted support and rollback evidence exists, and an announced migration window elapses.
@@ -444,6 +460,10 @@ Visibility: behavior, public-api, security, target-support, wire. No private key
 ### `did.key.profile.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. No private keys, generation, derivation, signing, custody, I/O, network resolution, persistence, runtime, binding, global registry, consumer mutation, JSON-LD processing or publication is included. The strict profile rejects base64url, unsupported curves, non-canonical or weak Ed25519 keys, non-canonical or low-order X25519 keys and implicit Ed25519-to-X25519 conversion.
+
+### `did.peer.profiles.provider-selection.typescript.v1`
+
+Visibility: behavior, public-api, target-support. Private browser, Node.js, CommonJS, and React Web correction only; no React Native/native binding, external adoption, support, publication, stable API, certification, release, DIDComm runtime, or mdoc.
 
 ### `did.peer.profiles.typescript-migration.v1`
 

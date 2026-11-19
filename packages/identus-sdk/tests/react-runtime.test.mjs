@@ -52,3 +52,42 @@ test("React SSR renders a typed loading state before asynchronous initialization
   ));
   assert.equal(markup, '<span data-state="loading">loading</span>');
 });
+
+test("React injects the original three-method provider without peer capability", () => {
+  const peerless = Object.freeze({
+    parseDid: (value) => Object.freeze({
+      serialized: value,
+      method: "example",
+      methodSpecificId: "react",
+    }),
+    parseDidUrl: () => { throw new Error("unused peerless URL path"); },
+    parseDidDocument: (value) => Object.freeze({
+      serialized: value,
+      id: Object.freeze({
+        serialized: "did:example:react-ssr",
+        method: "example",
+        methodSpecificId: "react-ssr",
+      }),
+      context: undefined,
+      controller: undefined,
+      alsoKnownAs: undefined,
+      verificationMethod: undefined,
+      authentication: undefined,
+      assertionMethod: undefined,
+      keyAgreement: undefined,
+      capabilityInvocation: undefined,
+      capabilityDelegation: undefined,
+      service: undefined,
+      properties: Object.freeze({}),
+    }),
+  });
+  const markup = renderToString(createElement(
+    DidProviderBoundary,
+    {
+      factory: async () => { throw new Error("peerless provider is preselected"); },
+      initialProvider: peerless,
+    },
+    createElement(DidText),
+  ));
+  assert.equal(markup, '<span data-state="ready">{&quot;id&quot;:&quot;did:example:react-ssr&quot;}</span>');
+});

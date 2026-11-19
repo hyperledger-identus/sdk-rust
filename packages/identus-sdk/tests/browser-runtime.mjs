@@ -64,11 +64,31 @@ try {
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${address.port}/`);
   const result = await page.evaluate(async ({ didVectors, documentVectors, resolutionVectors, peerVectors }) => {
-    const { createDidProvider, createDidQueryProvider } = await import("/dist/browser.js");
+    const {
+      createDidProvider,
+      createDidQueryProvider,
+      selectDidProvider,
+    } = await import("/dist/browser.js");
     const { assertAllVectors } = await import("/tests/vector-assertions.mjs");
     const { assertAllDocumentVectors } = await import("/tests/document-vector-assertions.mjs");
     const { assertAllResolutionVectors } = await import("/tests/resolution-vector-assertions.mjs");
     const { assertAllPeerVectors } = await import("/tests/peer-vector-assertions.mjs");
+    const peerless = Object.freeze({
+      parseDid: (value) => Object.freeze({
+        serialized: value,
+        method: "example",
+        methodSpecificId: "selected",
+      }),
+      parseDidUrl: () => { throw new Error("unused peerless URL path"); },
+      parseDidDocument: () => { throw new Error("unused peerless document path"); },
+    });
+    const selectedPeerless = await selectDidProvider({
+      kind: "injected",
+      provider: peerless,
+    });
+    if (selectedPeerless !== peerless) {
+      return { status: "failure", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length, peerCount: peerVectors.length };
+    }
     const provider = await createDidProvider();
     try {
       assertAllVectors(provider, didVectors);

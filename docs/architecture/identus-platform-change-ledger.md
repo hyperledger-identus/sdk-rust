@@ -39,7 +39,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `did.peer.profiles.provider-selection.typescript.v1`
 
-State: `proposed`. Class: `fix` / `fixed`. Target: `unreleased`. The base DidProvider remains a three-method seam, peer operations use a typed extension, and browser or Node selects an injected core provider or peer-WASM capability before generated artifact initialization without automatic fallback.
+State: `active`. Class: `fix` / `fixed`. Target: `unreleased`. The base DidProvider remains a three-method seam, peer operations use a typed extension, and browser or Node selects an injected core provider or peer-WASM capability before generated artifact initialization without automatic fallback.
 
 ### `did.peer.profiles.typescript-migration.v1`
 

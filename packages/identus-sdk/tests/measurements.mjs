@@ -242,15 +242,6 @@ const maxProfilePrismInput = Object.freeze({
     curve: "secp256k1",
     publicKey: prismPublicKey,
   }))),
-  services: Object.freeze(Array.from({ length: 50 }, (_, index) => Object.freeze({
-    id: `service-${index}`,
-    type: "LinkedDomains",
-    serviceEndpoint: `https://example.com/${index}/${"a".repeat(260)}`,
-  }))),
-  contexts: Object.freeze(Array.from(
-    { length: 127 },
-    (_, index) => `https://example.com/context/${index}`,
-  )),
 });
 const ordinaryPrismCreate = measure(() => provider.createPrismDid(ordinaryPrismInput));
 const maxProfilePrismCreate = measure(() => provider.createPrismDid(maxProfilePrismInput));

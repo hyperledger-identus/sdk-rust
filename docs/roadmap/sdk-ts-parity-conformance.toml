@@ -245,15 +245,15 @@ rust_surface        = "Mature DID and DID URL parsing, validation, component acc
 target_surface      = "Capability-named DID and DID URL TypeScript values backed by Rust semantics on supported targets."
 applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
 target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "blocked" }
-missing_dimensions  = [ "consumer-proof", "rollback" ]
-missing_proof       = "External SDK-TS consumer and named legacy-provider rollback rehearsals, default-switch and support decisions, accepted budgets, and a separate React Native native-binding package."
+missing_dimensions  = [ "target-runtime" ]
+missing_proof       = "External SDK-TS activation, default-switch and support decisions, accepted budgets, publication authority, and a separate React Native native-binding package remain open product gates."
 required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "target-runtime", "consumer-proof", "rollback" ]
 known_deviations    = [ "TypeScript constructors and error classes remain compatibility adapters.", "React Native requires a separate native binding and is not proven by the WASM canary." ]
-evidence            = [ "docs/conformance/cross-language-vector-catalog.toml", "docs/architecture/language-adapter-mappings.toml", "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md", "packages/identus-sdk/tests/vector-assertions.mjs", "packages/identus-sdk/tests/provider.test.mjs" ]
+evidence            = [ "docs/conformance/cross-language-vector-catalog.toml", "docs/architecture/language-adapter-mappings.toml", "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md", "docs/conformance/sdk-ts-did-adoption-rehearsal.md", "packages/identus-sdk/tests/adoption-journey.mjs", "packages/identus-sdk/tests/vector-assertions.mjs", "packages/identus-sdk/tests/provider.test.mjs" ]
 owner_issue         = 492
-next_action         = "Rehearse the opt-in facade in the external SDK-TS consumer and its named rollback path before any default or support claim."
-consumer            = "SDK-TS DID parser facade"
-rollback            = "Disable the opt-in Rust-backed facade and retain current parsing."
+next_action         = "Seek separate authority for external SDK-TS activation, support, budgets, publication, and the React Native binding; keep the local facade non-default."
+consumer            = "Pinned SDK-TS 8.1.4 pairwise DID journey through the private facade"
+rollback            = "Select the injected legacy compatibility provider at a fresh pre-initialization boundary; no Rust rejection activates fallback."
 non_claims          = [ "DID document parity", "default activation" ]
 
 [[capability]]
@@ -265,15 +265,15 @@ rust_surface        = "Substantial portable DID document, verification method, s
 target_surface      = "Rust-owned DID document semantics exposed through generated or versioned typed TypeScript DTO mappings."
 applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
 target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "blocked" }
-missing_dimensions  = [ "resource-security", "consumer-proof", "rollback" ]
-missing_proof       = "External SDK-TS consumer and named legacy-provider rollback rehearsals, accepted target budgets, default-switch and support decisions, resolver-consumer E2E evidence, publication authority, and a separate React Native native-binding package."
+missing_dimensions  = [ "resource-security" ]
+missing_proof       = "Accepted target resource budgets, external activation, default-switch and support decisions, publication authority, and a separate React Native native-binding package remain open."
 required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
 known_deviations    = [ "The strict projection preserves wire cardinality, unresolved relationship references, service endpoint variants, and bounded extensions that the legacy donor shape loses.", "JavaScript-unsafe integers are rejected with an explicit stable adapter error rather than rounded.", "Method-specific extensions remain versioned adapters.", "React Native requires a separate native binding and is not proven by the WASM canary." ]
-evidence            = [ "docs/conformance/fixtures/did-document/v1/vectors.json", "docs/conformance/sdk-ts-did-document-quality.md", "docs/architecture/language-adapter-mappings.toml", "packages/identus-sdk/tests/document-vector-assertions.mjs", "packages/identus-sdk/tests/provider.test.mjs", "fuzz/fuzz_targets/did_document.rs" ]
+evidence            = [ "docs/conformance/fixtures/did-document/v1/vectors.json", "docs/conformance/sdk-ts-did-document-quality.md", "docs/conformance/sdk-ts-did-adoption-rehearsal.md", "docs/architecture/language-adapter-mappings.toml", "packages/identus-sdk/tests/adoption-journey.mjs", "packages/identus-sdk/tests/document-vector-assertions.mjs", "packages/identus-sdk/tests/provider.test.mjs", "fuzz/fuzz_targets/did_document.rs" ]
 owner_issue         = 502
-next_action         = "Rehearse the opt-in document facade in an external SDK-TS resolver consumer and its named rollback path before any default, publication, support, or budget claim."
-consumer            = "SDK-TS DID resolution"
-rollback            = "Disable the opt-in Rust-backed document facade before initialization and retain the current SDK-TS document projection."
+next_action         = "Qualify resource budgets and seek separate external activation, publication, support, and React Native authority."
+consumer            = "Pinned SDK-TS 8.1.4 pairwise document projection in the private adoption journey"
+rollback            = "Select the injected legacy document projection at a fresh pre-initialization boundary."
 non_claims          = [ "all method extensions", "external consumer activation", "React Native evidence", "publication", "stable support" ]
 
 [[capability]]
@@ -285,15 +285,15 @@ rust_surface        = "Bounded experimental SDK-Rust support for peer DID numalg
 target_surface      = "Rust-owned deterministic creation and resolution for explicitly selected peer DID profiles with a thin TypeScript facade."
 applicable_targets  = [ "browser", "nodejs", "react-web" ]
 target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "not-applicable" }
-missing_dimensions  = [ "consumer-proof", "rollback" ]
+missing_dimensions  = [ "target-runtime" ]
 missing_proof       = "External SDK-TS adoption, accepted target support/budgets, publication, and React Native remain outside this private canary."
 required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
 known_deviations    = [ "Only explicitly selected numalgo 4 and numalgo 2 compatibility profiles are in scope.", "Numalgo 4 is a Rust-owned addition absent from SDK-TS 8.1.4.", "React Native requires a separately qualified native binding and is not inferred from WASM evidence." ]
-evidence            = [ "docs/architecture/language-adapter-mappings.toml", "docs/architecture/quality-evidence-declarations.toml", "docs/conformance/fixtures/did-peer/v1/vectors.json", "docs/conformance/sdk-ts-peer-did-quality.md", "packages/identus-sdk/tests/peer-vector-assertions.mjs" ]
+evidence            = [ "docs/architecture/language-adapter-mappings.toml", "docs/architecture/quality-evidence-declarations.toml", "docs/conformance/fixtures/did-peer/v1/vectors.json", "docs/conformance/sdk-ts-peer-did-quality.md", "docs/conformance/sdk-ts-did-adoption-rehearsal.md", "packages/identus-sdk/tests/adoption-journey.mjs", "packages/identus-sdk/tests/peer-vector-assertions.mjs" ]
 owner_issue         = 603
-next_action         = "Rehearse the opt-in peer DID facade in an external SDK-TS pairwise consumer before any default, support, publication, or legacy-removal decision."
-consumer            = "SDK-TS DIDComm connection fixture"
-rollback            = "Keep the TypeScript peer DID implementation selectable during canary."
+next_action         = "Keep the locally rehearsed peer facade opt-in until separately authorized external adoption, support, publication, and legacy-removal gates pass."
+consumer            = "Pinned SDK-TS 8.1.4 pairwise request-shaped fixture; DIDComm processing remains excluded"
+rollback            = "Select the fixed legacy peer compatibility provider before initialization; no automatic fallback is permitted."
 non_claims          = [ "all peer DID numalgos", "DIDComm engine migration", "key generation or custody", "external adoption", "React Native support", "publication", "stable API" ]
 
 [[capability]]
@@ -325,15 +325,15 @@ rust_surface        = "Substantial resolver, cancellation, cache, and HTTP contr
 target_surface      = "Rust-owned resolution semantics behind injected browser, Node.js, React web, and React Native transport adapters."
 applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
 target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "blocked" }
-missing_dimensions  = [ "resource-security", "target-runtime", "consumer-proof", "rollback" ]
-missing_proof       = "Fresh exact-revision target, fuzz, measurement, and resource receipts; named external consumer rehearsal; accepted transport/cancellation budgets; publication/support decision; React Native coverage; and default-switch rollback rehearsal."
+missing_dimensions  = [ "resource-security", "target-runtime" ]
+missing_proof       = "Fresh exact-revision fuzz, measurement, resource, and complete target receipts; accepted transport/cancellation budgets; publication/support decision; React Native coverage; and external activation remain open."
 required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
 known_deviations    = [ "Browser and Node fetch, DNS, TLS, redirect, SSRF, retry, timeout, authentication, and cancellation policy remains platform-owned.", "Native non-JSON DID URL dereferencing bytes are excluded from the raw-JSON host contract." ]
-evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/architecture/language-adapter-mappings.toml", "docs/architecture/quality-evidence-declarations.toml", "docs/conformance/fixtures/did-resolution/v1/vectors.json", "docs/conformance/sdk-ts-did-resolution-donor.toml", "docs/conformance/sdk-ts-did-resolution-quality.md", "openspec/changes/archive/2026-11-17-add-sdk-ts-did-resolution/design.md" ]
+evidence            = [ "docs/architecture/identus-platform-ts-capabilities.toml", "docs/architecture/language-adapter-mappings.toml", "docs/architecture/quality-evidence-declarations.toml", "docs/conformance/fixtures/did-resolution/v1/vectors.json", "docs/conformance/sdk-ts-did-resolution-donor.toml", "docs/conformance/sdk-ts-did-resolution-quality.md", "docs/conformance/sdk-ts-did-adoption-rehearsal.md", "packages/identus-sdk/tests/adoption-journey.mjs", "openspec/changes/archive/2026-11-17-add-sdk-ts-did-resolution/design.md" ]
 owner_issue         = 599
-next_action         = "Execute the exact-revision local target/fuzz/measurement gates, then rehearse one named external consumer before any support or default-switch decision."
-consumer            = "Private SDK-TS DID resolution canary; no external rehearsal consumer accepted yet"
-rollback            = "Before initialization, select the existing legacy resolver registry and HTTP proxy route; remove the unreleased private facade without changing canonical Rust."
+next_action         = "Complete exact-revision target/fuzz/measurement/resource gates before any support, publication, or external activation decision."
+consumer            = "Pinned SDK-TS 8.1.4 pairwise resolution and dereferencing journey over injected fixed effects"
+rollback            = "Before initialization, select the fixed legacy query provider; remove the unreleased private facade without changing canonical Rust."
 non_claims          = [ "ambient or unbounded network access", "all DID methods", "native non-JSON dereferencing", "React Native coverage", "external adoption", "publication or support" ]
 
 [[capability]]
@@ -665,13 +665,13 @@ rust_surface        = "Substantial experimental WASM DID value binding backed by
 target_surface      = "Thin DID TypeScript facade using WASM in browser, Node.js, and React web; React Native uses a separate native binding under the same capability contract."
 applicable_targets  = [ "browser", "nodejs", "react-web" ]
 target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "not-applicable" }
-missing_dimensions  = [ "resource-security", "consumer-proof", "rollback" ]
-missing_proof       = "Fresh facade coverage and fuzz evidence, external SDK-TS consumer and named rollback rehearsals, and accepted publication, support, and performance budgets."
+missing_dimensions  = [ "resource-security" ]
+missing_proof       = "Fresh facade fuzz/resource evidence plus accepted publication, support, and performance budgets remain open; external activation is separately authorized."
 required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
 known_deviations    = [ "WASM DTOs and JavaScript errors are adapters, not the canonical domain model.", "React Native is structurally recorded but not applicable to the WASM binding." ]
-evidence            = [ "docs/architecture/language-adapter-mappings.toml", "docs/conformance/cross-language-vector-catalog.toml", "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md", "packages/identus-sdk/tests/browser-runtime.mjs", "packages/identus-sdk/tests/node-runtime.test.mjs", "packages/identus-sdk/tests/react-runtime.test.mjs" ]
+evidence            = [ "docs/architecture/language-adapter-mappings.toml", "docs/conformance/cross-language-vector-catalog.toml", "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md", "docs/conformance/sdk-ts-did-adoption-rehearsal.md", "packages/identus-sdk/tests/adoption-journey.mjs", "packages/identus-sdk/tests/browser-runtime.mjs", "packages/identus-sdk/tests/node-runtime.test.mjs", "packages/identus-sdk/tests/react-runtime.test.mjs" ]
 owner_issue         = 492
-next_action         = "Complete external SDK-TS canary and rollback rehearsals plus fresh facade quality evidence before activation."
-consumer            = "SDK-TS DID syntax canary"
-rollback            = "Disable the Rust-backed facade and restore the existing TypeScript parser route."
+next_action         = "Complete fresh fuzz/resource quality evidence and keep the facade private until publication, support, budget, and activation gates are separately authorized."
+consumer            = "Pinned SDK-TS 8.1.4 pairwise journey in browser, Node.js, React SSR, and hydrated React"
+rollback            = "Select the injected legacy provider before initialization; the Rust-backed route never falls through automatically."
 non_claims          = [ "all DID bindings", "default SDK-TS activation" ]

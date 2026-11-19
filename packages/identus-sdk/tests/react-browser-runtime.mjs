@@ -17,8 +17,9 @@ import { loadVectors } from "./vector-loader.mjs";
 import { loadDocumentVectors } from "./document-vector-loader.mjs";
 import { loadResolutionVectors } from "./resolution-vector-loader.mjs";
 import { loadPeerVectors } from "./peer-vector-loader.mjs";
+import { DID_ADOPTION_JOURNEY, createLegacyAdoptionFixture } from "./adoption-journey.mjs";
 
-const reactDocument = '{"id":"did:example:react-hydration"}';
+const reactDocument = DID_ADOPTION_JOURNEY.documentLiteral;
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const fixture = path.join(root, "tests/.react-runtime.html");
@@ -50,13 +51,19 @@ function DidText() {
 }
 
 const nodeProvider = await createNodeDidProvider();
+const legacyProvider = createLegacyAdoptionFixture().provider;
 const vectors = await loadVectors();
 const documentVectors = await loadDocumentVectors();
 const resolutionVectors = await loadResolutionVectors();
 const peerVectors = await loadPeerVectors();
-const markup = renderToString(createElement(
+const rustMarkup = renderToString(createElement(
   DidProviderBoundary,
   { factory: async () => nodeProvider, initialProvider: nodeProvider },
+  createElement(DidText),
+));
+const legacyMarkup = renderToString(createElement(
+  DidProviderBoundary,
+  { factory: async () => legacyProvider, initialProvider: legacyProvider },
   createElement(DidText),
 ));
 const serializedVectors = JSON.stringify(vectors).replaceAll("<", "\\u003c");
@@ -65,7 +72,7 @@ const serializedResolutionVectors = JSON.stringify(resolutionVectors).replaceAll
 const serializedPeerVectors = JSON.stringify(peerVectors).replaceAll("<", "\\u003c");
 await writeFile(
   fixture,
-  `<!doctype html><html><body><div id="root">${markup}</div><script>window.__identusDidVectors=${serializedVectors};window.__identusDidDocumentVectors=${serializedDocumentVectors};window.__identusDidResolutionVectors=${serializedResolutionVectors};window.__identusPeerDidVectors=${serializedPeerVectors}</script><script type="module" src="/tests/react-browser-fixture.tsx"></script></body></html>\n`,
+  `<!doctype html><html><body><div id="rust-root">${rustMarkup}</div><div id="legacy-root">${legacyMarkup}</div><script>window.__identusDidVectors=${serializedVectors};window.__identusDidDocumentVectors=${serializedDocumentVectors};window.__identusDidResolutionVectors=${serializedResolutionVectors};window.__identusPeerDidVectors=${serializedPeerVectors}</script><script type="module" src="/tests/react-browser-fixture.tsx"></script></body></html>\n`,
   { flag: "wx" },
 );
 

@@ -21,6 +21,28 @@ Historical numalgos 0, 1, and 3, React Native, publication, support, default
 selection, accepted performance budgets, and external SDK-TS adoption are not
 claimed.
 
+## Local adoption rehearsal
+
+Issue [#609](https://github.com/hyperledger-identus/sdk-rust/issues/609)
+adds one repository-local consumer-shaped rehearsal pinned to SDK-TS 8.1.4
+revision `4bf86ebf69d5e96616a148e4c973f831f95fa38e`. A fixed compatibility
+fixture returns reviewed values only for that exact journey and rejects every
+other input; it does not copy or reimplement the donor parser or resolver.
+The unchanged assertion body runs against that legacy route and the Rust-backed
+route in Node.js ESM/CommonJS, a real browser, React SSR, and the hydrated React
+client. It composes peer creation/local resolution, DID and DID URL values,
+document projection, injected resolution/dereferencing, and frozen pairwise
+values while explicitly recording numalgo 4 as a Rust-only addition.
+
+Each applicable target emits a private exact-head adoption receipt containing
+the donor revision, source digest, both routes, assertion and route-instance
+counts, zero skipped/focused/quarantined cases, terminal failure behavior, and
+explicit rollback. A Rust rejection never invokes the compatibility provider;
+rollback is a new pre-initialization selection. This closes repository-local
+consumer-proof and rollback gaps only. It does not activate or mutate SDK-TS,
+publish a package, establish support or performance budgets, select a default,
+or claim DIDComm, credentials, React Native, or mdoc delivery.
+
 ## Local gates
 
 Run the canonical core and binding gates through the pinned Nix environments:

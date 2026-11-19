@@ -73,6 +73,7 @@ try {
     const { assertAllDocumentVectors } = await import("/tests/document-vector-assertions.mjs");
     const { assertAllResolutionVectors } = await import("/tests/resolution-vector-assertions.mjs");
     const { assertAllPeerVectors } = await import("/tests/peer-vector-assertions.mjs");
+    const { runDidAdoptionRehearsal } = await import("/tests/adoption-journey.mjs");
     const peerless = Object.freeze({
       parseDid: (value) => Object.freeze({
         serialized: value,
@@ -95,7 +96,13 @@ try {
       assertAllDocumentVectors(provider, documentVectors);
       assertAllPeerVectors(provider, peerVectors);
       await assertAllResolutionVectors(createDidQueryProvider, resolutionVectors);
-      return { status: "success", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length, peerCount: peerVectors.length };
+      const rehearsal = await runDidAdoptionRehearsal({
+        target: "browser",
+        selectDidProvider,
+        createDidProvider,
+        createDidQueryProvider,
+      });
+      return { status: "success", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length, peerCount: peerVectors.length, adoptionRoutes: rehearsal.routes.length };
     } catch {
       return { status: "failure", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length, peerCount: peerVectors.length };
     }
@@ -105,7 +112,7 @@ try {
     resolutionVectors: await loadResolutionVectors(),
     peerVectors: await loadPeerVectors(),
   });
-  if (result.didCount !== 22 || result.documentCount < 1 || result.resolutionCount < 1 || result.peerCount !== 13 || result.status !== "success") {
+  if (result.didCount !== 22 || result.documentCount < 1 || result.resolutionCount < 1 || result.peerCount !== 13 || result.adoptionRoutes !== 2 || result.status !== "success") {
     throw new Error("browser DID, DID Document, and DID Resolution vector canary failed");
   }
   process.stdout.write(`browser DID vectors: ${result.didCount} passed; DID Document vectors: ${result.documentCount} passed; DID Resolution vectors: ${result.resolutionCount} passed; peer DID vectors: ${result.peerCount} passed\n`);

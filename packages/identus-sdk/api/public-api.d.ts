@@ -1,4 +1,4 @@
-export type DidErrorCode = "did.invalid_did" | "did.invalid_did_url" | "did.invalid_document" | "did.invalid_resolution_options" | "did.invalid_dereferencing_options" | "did.invalid_resolution_result" | "did.invalid_dereferencing_result" | "did.resolution_host_failure" | "did.dereferencing_host_failure" | "did.resolution_provider_unavailable" | "did.dereferencing_provider_unavailable" | "did.operation_aborted" | "did.observer_failure" | "did.peer.wrong_profile" | "did.peer.unsupported_algorithm" | "did.peer.malformed_encoding" | "did.peer.unsupported_codec" | "did.peer.unsupported_purpose" | "did.peer.invalid_input_document" | "did.peer.hash_mismatch" | "did.peer.long_form_required" | "did.peer.resource_limit" | "did.peer.projection_failure" | "adapter.binding_contract" | "adapter.unsupported_lossy_mapping";
+export type DidErrorCode = "did.invalid_did" | "did.invalid_did_url" | "did.invalid_document" | "did.invalid_resolution_options" | "did.invalid_dereferencing_options" | "did.invalid_resolution_result" | "did.invalid_dereferencing_result" | "did.resolution_host_failure" | "did.dereferencing_host_failure" | "did.resolution_provider_unavailable" | "did.dereferencing_provider_unavailable" | "did.operation_aborted" | "did.observer_failure" | "did.peer.wrong_profile" | "did.peer.unsupported_algorithm" | "did.peer.malformed_encoding" | "did.peer.unsupported_codec" | "did.peer.unsupported_purpose" | "did.peer.invalid_input_document" | "did.peer.hash_mismatch" | "did.peer.long_form_required" | "did.peer.resource_limit" | "did.peer.projection_failure" | "did.prism.invalid_syntax" | "did.prism.invalid_wire" | "did.prism.invalid_operation" | "did.prism.invalid_state" | "did.prism.history_provider_unavailable" | "did.prism.history_host_failure" | "adapter.binding_contract" | "adapter.unsupported_lossy_mapping";
 export interface DidValue {
     readonly serialized: string;
     readonly method: string;
@@ -89,6 +89,53 @@ export interface PeerDidNumalgo2CompatibilityValue {
     readonly profile: "numalgo2-compatibility";
     readonly did: DidValue;
     readonly document: DidDocumentValue;
+}
+export type PrismDidKeyUsage = "master" | "issuing" | "keyAgreement" | "authentication" | "revocation" | "capabilityInvocation" | "capabilityDelegation" | "vdr";
+export type PrismDidKeyCurve = "secp256k1" | "Ed25519" | "X25519";
+export interface PrismDidPublicKeyInput {
+    readonly id: string;
+    readonly usage: PrismDidKeyUsage;
+    readonly curve: PrismDidKeyCurve;
+    /** Unpadded base64url public-key bytes. */
+    readonly publicKey: string;
+}
+export interface PrismDidServiceInput {
+    readonly id: string;
+    readonly type: string | readonly string[];
+    readonly serviceEndpoint: DidServiceEndpointValue;
+}
+export interface PrismDidCreateInput {
+    readonly keys: readonly PrismDidPublicKeyInput[];
+    readonly services?: readonly PrismDidServiceInput[];
+    readonly contexts?: readonly string[];
+}
+export interface PrismDidValue {
+    readonly form: "canonical" | "long-form";
+    readonly did: DidValue;
+    readonly canonicalDid: DidValue;
+    readonly document: DidDocumentValue | undefined;
+}
+export type PrismDidStateValue = Readonly<{
+    status: "active";
+    did: DidValue;
+    canonicalDid: DidValue;
+    document: DidDocumentValue;
+}> | Readonly<{
+    status: "deactivated";
+    did: DidValue;
+    canonicalDid: DidValue;
+    document: undefined;
+}>;
+export interface PrismDidHistoryRequestValue {
+    readonly did: DidValue;
+    readonly canonicalDid: DidValue;
+    readonly signal: AbortSignal | undefined;
+}
+export interface PrismDidHistoryEffect {
+    history(request: PrismDidHistoryRequestValue): Promise<readonly string[]>;
+}
+export interface PrismDidEffects {
+    readonly history?: PrismDidHistoryEffect;
 }
 export type DidResolutionStandardErrorKind = "invalidDid" | "invalidDidDocument" | "notFound" | "representationNotSupported" | "invalidDidUrl" | "methodNotSupported" | "invalidOptions" | "internalError" | "featureNotSupported";
 export interface DidResolutionOptions {
@@ -194,9 +241,9 @@ export type DidUrlDereferencingResultValue = (DidUrlDereferencingResultBaseValue
     kind: "failure";
     content: null;
 }>);
-export type DidOperation = "did.parse" | "did-url.parse" | "did-document.parse" | "did.resolve" | "did-url.dereference" | "did.peer.numalgo4.create" | "did.peer.numalgo4.parse-long" | "did.peer.numalgo4.parse-short" | "did.peer.numalgo4.resolve-short" | "did.peer.numalgo2-compatibility.create" | "did.peer.numalgo2-compatibility.parse";
+export type DidOperation = "did.parse" | "did-url.parse" | "did-document.parse" | "did.resolve" | "did-url.dereference" | "did.peer.numalgo4.create" | "did.peer.numalgo4.parse-long" | "did.peer.numalgo4.parse-short" | "did.peer.numalgo4.resolve-short" | "did.peer.numalgo2-compatibility.create" | "did.peer.numalgo2-compatibility.parse" | "did.prism.create" | "did.prism.parse" | "did.prism.resolve-long-form" | "did.prism.resolve-history";
 export type DidProviderRoute = "browser-wasm" | "node-wasm" | "legacy";
-export type DidMappingId = "did.value.typescript.legacy-v1" | "did-url.value.typescript.legacy-v1" | "did.document.typescript.legacy-v1" | "did.resolution.typescript.host-v1" | "did.peer.typescript.numalgo4-v1" | "did.peer.typescript.numalgo2-compat-v1" | "did.error.invalid-did.typescript.legacy-v1" | "did.error.invalid-did-url.typescript.legacy-v1";
+export type DidMappingId = "did.value.typescript.legacy-v1" | "did-url.value.typescript.legacy-v1" | "did.document.typescript.legacy-v1" | "did.resolution.typescript.host-v1" | "did.peer.typescript.numalgo4-v1" | "did.peer.typescript.numalgo2-compat-v1" | "did.prism.typescript.v1" | "did.error.invalid-did.typescript.legacy-v1" | "did.error.invalid-did-url.typescript.legacy-v1";
 export interface DidObservation {
     readonly operation: DidOperation;
     readonly route: DidProviderRoute;
@@ -223,6 +270,12 @@ export interface PeerDidProvider extends DidProvider {
     createPeerDidNumalgo2Compatibility(input: PeerDidNumalgo2CompatibilityInput): PeerDidNumalgo2CompatibilityValue;
     parsePeerDidNumalgo2Compatibility(value: string): PeerDidNumalgo2CompatibilityValue;
 }
+/** Explicit PRISM DID capability layered over peer and core DID values. */
+export interface PrismDidProvider extends PeerDidProvider {
+    createPrismDid(input: PrismDidCreateInput): PrismDidValue;
+    parsePrismDid(value: string): PrismDidValue;
+    resolvePrismDidLongForm(value: string): PrismDidValue;
+}
 export interface InjectedDidProviderSelection<Provider extends DidProvider = DidProvider> {
     readonly kind: "injected";
     readonly provider: Provider;
@@ -243,10 +296,15 @@ export interface DidQueryProvider extends DidResolutionProvider, DidUrlDereferen
 }
 export interface PeerDidQueryProvider extends DidQueryProvider, PeerDidProvider {
 }
+export interface PrismDidQueryProvider extends DidQueryProvider, PrismDidProvider {
+    resolvePrismDid(did: string, context?: DidOperationContext): Promise<PrismDidStateValue>;
+}
 export type DidProviderFactory = (options?: DidProviderOptions) => Promise<DidProvider>;
 export type PeerDidProviderFactory = (options?: DidProviderOptions) => Promise<PeerDidProvider>;
 export type DidQueryProviderFactory = (effects: DidQueryEffects, options?: DidProviderOptions) => Promise<DidQueryProvider>;
 export type PeerDidQueryProviderFactory = (effects: DidQueryEffects, options?: DidProviderOptions) => Promise<PeerDidQueryProvider>;
+export type PrismDidProviderFactory = (options?: DidProviderOptions) => Promise<PrismDidProvider>;
+export type PrismDidQueryProviderFactory = (effects: DidQueryEffects & PrismDidEffects, options?: DidProviderOptions) => Promise<PrismDidQueryProvider>;
 export declare class DidError extends Error {
     readonly code: DidErrorCode;
     constructor(code: DidErrorCode);

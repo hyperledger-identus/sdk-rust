@@ -10,8 +10,12 @@ import {
   type DidOperation,
   type DidProviderOptions,
   type DidProviderRoute,
-  type PeerDidProvider,
-  type PeerDidQueryProvider,
+  type PrismDidProvider,
+  type PrismDidQueryProvider,
+  type PrismDidEffects,
+  type PrismDidCreateInput,
+  type PrismDidStateValue,
+  type PrismDidValue,
   type DidOperationContext,
   type DidResolutionOptions,
   type DidResolutionRequestValue,
@@ -60,8 +64,17 @@ import {
   projectPeerDidNumalgo4,
   projectPeerDidNumalgo4Short,
 } from "./peer-projection.js";
+import {
+  requirePrismDidInput,
+  serializePrismCreateInput,
+  serializePrismHistory,
+} from "./prism-input.js";
+import {
+  projectPrismDid,
+  projectPrismDidState,
+} from "./prism-projection.js";
 
-const BINDING_API_VERSION = 4;
+const BINDING_API_VERSION = 5;
 const MAX_OBSERVED_DURATION_MS = 2_147_483_647;
 const MAX_DID_RESOLUTION_RESULT_BYTES = 512 * 1_024;
 
@@ -235,6 +248,10 @@ function readErrorCode(raw: RawDidParseError): DidErrorCode {
     || code === "did.peer.long_form_required"
     || code === "did.peer.resource_limit"
     || code === "did.peer.projection_failure"
+    || code === "did.prism.invalid_syntax"
+    || code === "did.prism.invalid_wire"
+    || code === "did.prism.invalid_operation"
+    || code === "did.prism.invalid_state"
     || code === "adapter.unsupported_lossy_mapping"
   ) {
     return code;
@@ -296,6 +313,11 @@ function successMapping(operation: DidOperation): DidMappingId {
     case "did.peer.numalgo2-compatibility.create":
     case "did.peer.numalgo2-compatibility.parse":
       return "did.peer.typescript.numalgo2-compat-v1";
+    case "did.prism.create":
+    case "did.prism.parse":
+    case "did.prism.resolve-long-form":
+    case "did.prism.resolve-history":
+      return "did.prism.typescript.v1";
   }
 }
 
@@ -325,6 +347,13 @@ function errorMapping(code: DidErrorCode): DidMappingId {
     case "did.peer.resource_limit":
     case "did.peer.projection_failure":
       return "did.peer.typescript.numalgo4-v1";
+    case "did.prism.invalid_syntax":
+    case "did.prism.invalid_wire":
+    case "did.prism.invalid_operation":
+    case "did.prism.invalid_state":
+    case "did.prism.history_provider_unavailable":
+    case "did.prism.history_host_failure":
+      return "did.prism.typescript.v1";
     case "did.resolution_host_failure":
     case "did.dereferencing_host_failure":
     case "did.resolution_provider_unavailable":
@@ -391,7 +420,7 @@ export function createRustDidProvider(
   route: Exclude<DidProviderRoute, "legacy">,
   options: DidProviderOptions = {},
   internals: ProviderInternals = {},
-): PeerDidProvider {
+): PrismDidProvider {
   if (binding.bindingApiVersion() !== BINDING_API_VERSION) {
     throw bindingFailure();
   }
@@ -444,6 +473,9 @@ export function createRustDidProvider(
     | "did.peer.numalgo4.resolve-short"
     | "did.peer.numalgo2-compatibility.create"
     | "did.peer.numalgo2-compatibility.parse"
+    | "did.prism.create"
+    | "did.prism.parse"
+    | "did.prism.resolve-long-form"
   >, invoke: () => T): T {
     const start = now();
     let result: T;
@@ -550,6 +582,26 @@ export function createRustDidProvider(
           peerCallbacks(),
         ));
     },
+    createPrismDid(input: PrismDidCreateInput): PrismDidValue {
+      return runPeer("did.prism.create", () =>
+        projectPrismDid(
+          binding.createPrismDid(serializePrismCreateInput(input)),
+          peerCallbacks(),
+        ));
+    },
+    parsePrismDid(value: string): PrismDidValue {
+      requirePrismDidInput(value);
+      return runPeer("did.prism.parse", () =>
+        projectPrismDid(binding.parsePrismDid(value), peerCallbacks()));
+    },
+    resolvePrismDidLongForm(value: string): PrismDidValue {
+      requirePrismDidInput(value);
+      return runPeer("did.prism.resolve-long-form", () =>
+        projectPrismDid(
+          binding.resolvePrismDidLongForm(value),
+          peerCallbacks(),
+        ));
+    },
   });
 }
 
@@ -588,15 +640,19 @@ function mapQueryBindingError(binding: RawDidBinding, error: unknown): DidError 
 export function createRustDidQueryProvider(
   binding: RawDidBinding,
   route: Exclude<DidProviderRoute, "legacy">,
-  effects: DidQueryEffects,
+  effects: DidQueryEffects & PrismDidEffects,
   options: DidProviderOptions = {},
   internals: ProviderInternals = {},
-): PeerDidQueryProvider {
+): PrismDidQueryProvider {
   const base = createRustDidProvider(binding, route, options, internals);
   const now = internals.now ?? Date.now;
 
   async function runQuery<T>(
-    operation: Extract<DidOperation, "did.resolve" | "did-url.dereference">,
+    operation: Extract<DidOperation,
+      | "did.resolve"
+      | "did-url.dereference"
+      | "did.prism.resolve-history"
+    >,
     invoke: () => Promise<T>,
   ): Promise<T> {
     const start = now();
@@ -724,6 +780,64 @@ export function createRustDidQueryProvider(
         try {
           return projectDereferencingResult(
             binding.parseDidDereferencingResult(raw),
+          );
+        } catch (error) {
+          throw mapQueryBindingError(binding, error);
+        }
+      });
+    },
+    resolvePrismDid(
+      did: string,
+      context?: DidOperationContext,
+    ): Promise<PrismDidStateValue> {
+      requirePrismDidInput(did);
+      return runQuery("did.prism.resolve-history", async () => {
+        if (isAborted(context?.signal)) {
+          throw new DidError("did.operation_aborted");
+        }
+        if (effects.history === undefined) {
+          throw new DidError("did.prism.history_provider_unavailable");
+        }
+        let parsed: PrismDidValue;
+        try {
+          parsed = projectPrismDid(binding.parsePrismDid(did), {
+            did: (serialized) => projectDid(binding.parseDid(serialized)),
+            document: (serialized) =>
+              projectDidDocument(binding.parseDidDocument(serialized)),
+          });
+        } catch (error) {
+          throw mapQueryBindingError(binding, error);
+        }
+        let history: readonly string[];
+        try {
+          history = await effects.history.history(Object.freeze({
+            did: parsed.did,
+            canonicalDid: parsed.canonicalDid,
+            signal: context?.signal,
+          }));
+        } catch {
+          throw new DidError("did.prism.history_host_failure");
+        }
+        if (isAborted(context?.signal)) {
+          throw new DidError("did.operation_aborted");
+        }
+        let serialized: string;
+        try {
+          serialized = serializePrismHistory(history);
+        } catch (error) {
+          if (error instanceof DidError) {
+            throw error;
+          }
+          throw new DidError("did.prism.history_host_failure");
+        }
+        try {
+          return projectPrismDidState(
+            binding.reducePrismDidHistory(did, serialized),
+            {
+              did: (value) => projectDid(binding.parseDid(value)),
+              document: (value) =>
+                projectDidDocument(binding.parseDidDocument(value)),
+            },
           );
         } catch (error) {
           throw mapQueryBindingError(binding, error);

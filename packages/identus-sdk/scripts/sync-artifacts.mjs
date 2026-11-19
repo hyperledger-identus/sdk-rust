@@ -37,7 +37,7 @@ await assertDirectory(path.join(source, "web"), expectedTarget);
 await assertDirectory(path.join(source, "nodejs"), expectedTarget);
 const manifest = JSON.parse(await readFile(path.join(source, "manifest.json"), "utf8"));
 if (manifest.layout !== "identus.sdk-ts-did.private-artifacts.v1"
-    || manifest.bindingApiVersion !== 4) {
+    || manifest.bindingApiVersion !== 5) {
   throw new Error("artifact manifest identity mismatch");
 }
 

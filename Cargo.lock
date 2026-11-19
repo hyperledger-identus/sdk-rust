@@ -1042,8 +1042,12 @@ dependencies = [
 name = "identus-wasm-did"
 version = "0.0.0"
 dependencies = [
+ "base64",
+ "hex",
+ "identus-crypto",
  "identus-did",
  "identus-did-peer",
+ "identus-prism-did",
  "serde",
  "serde_json",
  "wasm-bindgen",

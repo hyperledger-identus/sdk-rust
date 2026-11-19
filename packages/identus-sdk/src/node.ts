@@ -3,9 +3,10 @@ import type {
   DidProviderOptions,
   DidProviderSelection,
   DidQueryEffects,
+  PrismDidEffects,
   InjectedDidProviderSelection,
-  PeerDidProvider,
-  PeerDidQueryProvider,
+  PrismDidProvider,
+  PrismDidQueryProvider,
   PeerWasmDidProviderSelection,
 } from "./public.js";
 import type { DidParseError as GeneratedDidParseError } from "../artifacts/nodejs/identus_wasm_did.js";
@@ -34,7 +35,7 @@ async function loadBinding(): Promise<ReturnType<typeof adaptGeneratedBinding>> 
 /** Create the explicit Node.js-WASM DID provider. */
 export async function createDidProvider(
   options: DidProviderOptions = {},
-): Promise<PeerDidProvider> {
+): Promise<PrismDidProvider> {
   return createRustDidProvider(await loadBinding(), "node-wasm", options);
 }
 
@@ -44,7 +45,7 @@ export function selectDidProvider<Provider extends DidProvider>(
 ): Promise<Provider>;
 export function selectDidProvider(
   selection: PeerWasmDidProviderSelection,
-): Promise<PeerDidProvider>;
+): Promise<PrismDidProvider>;
 export function selectDidProvider(
   selection: DidProviderSelection,
 ): Promise<DidProvider> {
@@ -53,9 +54,9 @@ export function selectDidProvider(
 
 /** Create the explicit Node.js-WASM DID query provider over injected effects. */
 export async function createDidQueryProvider(
-  effects: DidQueryEffects,
+  effects: DidQueryEffects & PrismDidEffects,
   options: DidProviderOptions = {},
-): Promise<PeerDidQueryProvider> {
+): Promise<PrismDidQueryProvider> {
   return createRustDidQueryProvider(
     await loadBinding(),
     "node-wasm",

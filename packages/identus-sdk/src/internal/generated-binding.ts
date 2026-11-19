@@ -11,6 +11,8 @@ import type {
   RawPeerDidNumalgo2CompatibilityView,
   RawPeerDidNumalgo4ShortView,
   RawPeerDidNumalgo4View,
+  RawPrismDidStateView,
+  RawPrismDidView,
 } from "./raw-binding.js";
 
 export interface GeneratedDidBindingModule {
@@ -44,6 +46,10 @@ export interface GeneratedDidBindingModule {
   parsePeerDidNumalgo2Compatibility(
     value: string,
   ): RawPeerDidNumalgo2CompatibilityView;
+  parsePrismDid(value: string): RawPrismDidView;
+  createPrismDid(inputJson: string): RawPrismDidView;
+  resolvePrismDidLongForm(value: string): RawPrismDidView;
+  reducePrismDidHistory(value: string, historyJson: string): RawPrismDidStateView;
 }
 
 export function adaptGeneratedBinding(
@@ -75,6 +81,12 @@ export function adaptGeneratedBinding(
       generated.createPeerDidNumalgo2Compatibility(inputJson),
     parsePeerDidNumalgo2Compatibility: (value: string) =>
       generated.parsePeerDidNumalgo2Compatibility(value),
+    parsePrismDid: (value: string) => generated.parsePrismDid(value),
+    createPrismDid: (inputJson: string) => generated.createPrismDid(inputJson),
+    resolvePrismDidLongForm: (value: string) =>
+      generated.resolvePrismDidLongForm(value),
+    reducePrismDidHistory: (value: string, historyJson: string) =>
+      generated.reducePrismDidHistory(value, historyJson),
     isParseError,
   });
 }

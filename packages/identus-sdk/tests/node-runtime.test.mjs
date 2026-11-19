@@ -10,6 +10,10 @@ import { assertAllResolutionVectors } from "./resolution-vector-assertions.mjs";
 import { loadResolutionVectors } from "./resolution-vector-loader.mjs";
 import { assertAllPeerVectors } from "./peer-vector-assertions.mjs";
 import { loadPeerVectors } from "./peer-vector-loader.mjs";
+import {
+  assertPrismHistoryVector,
+  assertPrismStaticVectors,
+} from "./prism-vector-assertions.mjs";
 import { runDidAdoptionRehearsal } from "./adoption-journey.mjs";
 
 test("Node ESM executes every canonical DID vector", async () => {
@@ -18,6 +22,8 @@ test("Node ESM executes every canonical DID vector", async () => {
   assertAllVectors(provider, await loadVectors());
   assertAllDocumentVectors(provider, await loadDocumentVectors());
   assertAllPeerVectors(provider, await loadPeerVectors());
+  assertPrismStaticVectors(provider);
+  await assertPrismHistoryVector(createDidQueryProvider);
   await assertAllResolutionVectors(createDidQueryProvider, await loadResolutionVectors());
   const rehearsal = await runDidAdoptionRehearsal({
     target: "node-esm",
@@ -52,6 +58,8 @@ test("Node CommonJS shares the ESM facade and executes every canonical DID vecto
   assertAllVectors(provider, await loadVectors());
   assertAllDocumentVectors(provider, await loadDocumentVectors());
   assertAllPeerVectors(provider, await loadPeerVectors());
+  assertPrismStaticVectors(provider);
+  await assertPrismHistoryVector(entry.createDidQueryProvider);
   await assertAllResolutionVectors(entry.createDidQueryProvider, await loadResolutionVectors());
   const rehearsal = await runDidAdoptionRehearsal({
     target: "node-commonjs",

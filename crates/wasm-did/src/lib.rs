@@ -5,6 +5,7 @@
 //! and stable error codes. `identus-did` remains binding-framework-free.
 
 mod peer;
+mod prism;
 mod resolution;
 
 use identus_did::{Did, DidDocument, DidUrl};
@@ -12,7 +13,7 @@ use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 /// Version of the JavaScript value and error contract.
-pub const BINDING_API_VERSION: u32 = 4;
+pub const BINDING_API_VERSION: u32 = 5;
 
 const INVALID_DID_CODE: &str = "did.invalid_did";
 const INVALID_DID_URL_CODE: &str = "did.invalid_did_url";
@@ -33,6 +34,10 @@ const PEER_HASH_MISMATCH_CODE: &str = "did.peer.hash_mismatch";
 const PEER_LONG_FORM_REQUIRED_CODE: &str = "did.peer.long_form_required";
 const PEER_RESOURCE_LIMIT_CODE: &str = "did.peer.resource_limit";
 const PEER_PROJECTION_FAILURE_CODE: &str = "did.peer.projection_failure";
+const PRISM_INVALID_SYNTAX_CODE: &str = "did.prism.invalid_syntax";
+const PRISM_INVALID_WIRE_CODE: &str = "did.prism.invalid_wire";
+const PRISM_INVALID_OPERATION_CODE: &str = "did.prism.invalid_operation";
+const PRISM_INVALID_STATE_CODE: &str = "did.prism.invalid_state";
 const MAX_SAFE_JAVASCRIPT_INTEGER: i64 = 9_007_199_254_740_991;
 
 /// Owned JavaScript view of a validated DID.
@@ -233,6 +238,19 @@ impl DidParseError {
             code: code.to_owned(),
         }
     }
+
+    pub(crate) fn prism(error: identus_prism_did::Error) -> Self {
+        let code = match error {
+            identus_prism_did::Error::InvalidSyntax(_) => PRISM_INVALID_SYNTAX_CODE,
+            identus_prism_did::Error::InvalidWire(_) => PRISM_INVALID_WIRE_CODE,
+            identus_prism_did::Error::InvalidOperation(_) => PRISM_INVALID_OPERATION_CODE,
+            identus_prism_did::Error::InvalidState(_) => PRISM_INVALID_STATE_CODE,
+            _ => BINDING_CONTRACT_CODE,
+        };
+        Self {
+            code: code.to_owned(),
+        }
+    }
 }
 
 /// Return the binding contract version.
@@ -246,6 +264,10 @@ pub use peer::{
     create_peer_did_numalgo2_compatibility, create_peer_did_numalgo4,
     parse_peer_did_numalgo2_compatibility, parse_peer_did_numalgo4_long,
     parse_peer_did_numalgo4_short, resolve_peer_did_numalgo4_short,
+};
+pub use prism::{
+    PrismDidStateView, PrismDidView, create_prism_did, parse_prism_did, reduce_prism_did_history,
+    resolve_prism_did_long_form,
 };
 
 /// Parse a bounded DID into an owned JavaScript view.
@@ -343,7 +365,7 @@ mod tests {
 
     #[test]
     fn version_and_component_views_are_stable() {
-        assert_eq!(binding_api_version(), 4);
+        assert_eq!(binding_api_version(), 5);
 
         let did = parse_did("did:example:123").unwrap();
         assert_eq!(did.value(), "did:example:123");

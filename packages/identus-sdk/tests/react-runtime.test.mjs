@@ -14,6 +14,10 @@ import { loadResolutionVectors } from "./resolution-vector-loader.mjs";
 import { assertAllPeerVectors } from "./peer-vector-assertions.mjs";
 import { loadPeerVectors } from "./peer-vector-loader.mjs";
 import {
+  assertPrismHistoryVector,
+  assertPrismStaticVectors,
+} from "./prism-vector-assertions.mjs";
+import {
   DID_ADOPTION_JOURNEY,
   createLegacyAdoptionFixture,
   runDidAdoptionRehearsal,
@@ -37,6 +41,8 @@ test("React SSR crosses the Node provider without duplicated DID logic", async (
   assertAllVectors(provider, await loadVectors());
   assertAllDocumentVectors(provider, await loadDocumentVectors());
   assertAllPeerVectors(provider, await loadPeerVectors());
+  assertPrismStaticVectors(provider);
+  await assertPrismHistoryVector(createDidQueryProvider);
   await assertAllResolutionVectors(createDidQueryProvider, await loadResolutionVectors());
   const rehearsal = await runDidAdoptionRehearsal({
     target: "react-ssr",

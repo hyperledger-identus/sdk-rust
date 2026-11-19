@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 605
+disposition    = "behavior-neutral"
+scope          = "test-only"
+rationale      = "The change corrects donor and quality evidence attribution and strengthens executable differential and adapter-fuzz assertions without changing public APIs, wire behavior, production dependencies, supported targets, publication state, or downstream consumers."
+ledger_ids     = [  ]

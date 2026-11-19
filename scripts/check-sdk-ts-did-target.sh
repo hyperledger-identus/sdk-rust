@@ -4,9 +4,9 @@ set -euo pipefail
 
 mode="${1:-all}"
 case "$mode" in
-  package-types | browser | nodejs | react-web | react-native | all | differential | measurements) ;;
+  package-types | browser | nodejs | react-web | react-native | all | differential | adapter-fuzz | measurements) ;;
   *)
-    echo "usage: $0 [package-types|browser|nodejs|react-web|react-native|all|differential|measurements]" >&2
+    echo "usage: $0 [package-types|browser|nodejs|react-web|react-native|all|differential|adapter-fuzz|measurements]" >&2
     exit 2
     ;;
 esac
@@ -187,5 +187,8 @@ case "$mode" in
     run_nodejs
     run_react_web
     write_receipt react-native inapplicable inapplicable none
+    ;;
+  adapter-fuzz)
+    (cd "$package_root" && node --test tests/peer-adapter-fuzz.test.mjs)
     ;;
 esac

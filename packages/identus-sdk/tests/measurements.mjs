@@ -68,6 +68,16 @@ const nearLimitDocumentValue = JSON.stringify({
 const nearLimitDocument = measure(() => provider.parseDidDocument(nearLimitDocumentValue));
 const ordinaryDocumentOutputBytes = Buffer.byteLength(provider.parseDidDocument(ordinaryDocumentValue).serialized);
 const nearLimitDocumentOutputBytes = Buffer.byteLength(provider.parseDidDocument(nearLimitDocumentValue).serialized);
+const ordinaryPeerInput = Object.freeze({ hello: "world" });
+const nearLimitPeerInput = Object.freeze({ claim: "a".repeat(16_372) });
+const ordinaryPeer = measure(() => provider.createPeerDidNumalgo4(ordinaryPeerInput));
+const nearLimitPeer = measure(() => provider.createPeerDidNumalgo4(nearLimitPeerInput));
+const ordinaryPeerOutputBytes = Buffer.byteLength(
+  JSON.stringify(provider.createPeerDidNumalgo4(ordinaryPeerInput)),
+);
+const nearLimitPeerOutputBytes = Buffer.byteLength(
+  JSON.stringify(provider.createPeerDidNumalgo4(nearLimitPeerInput)),
+);
 const resolutionDid = "did:example:measurement";
 const ordinaryResolutionValue = JSON.stringify({
   didResolutionMetadata: { contentType: "application/did+json" },
@@ -128,6 +138,19 @@ const report = Object.freeze({
       ...nearLimitDocument,
       inputBytes: Buffer.byteLength(nearLimitDocumentValue),
       outputBytes: nearLimitDocumentOutputBytes,
+    }),
+  }),
+  peer: Object.freeze({
+    profile: "numalgo4",
+    ordinary: Object.freeze({
+      ...ordinaryPeer,
+      inputBytes: Buffer.byteLength(JSON.stringify(ordinaryPeerInput)),
+      outputBytes: ordinaryPeerOutputBytes,
+    }),
+    nearLimit: Object.freeze({
+      ...nearLimitPeer,
+      inputBytes: Buffer.byteLength(JSON.stringify(nearLimitPeerInput)),
+      outputBytes: nearLimitPeerOutputBytes,
     }),
   }),
   resolution: Object.freeze({

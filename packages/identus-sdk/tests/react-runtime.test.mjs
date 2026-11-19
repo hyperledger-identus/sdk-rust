@@ -11,6 +11,8 @@ import { assertAllDocumentVectors } from "./document-vector-assertions.mjs";
 import { loadDocumentVectors } from "./document-vector-loader.mjs";
 import { assertAllResolutionVectors } from "./resolution-vector-assertions.mjs";
 import { loadResolutionVectors } from "./resolution-vector-loader.mjs";
+import { assertAllPeerVectors } from "./peer-vector-assertions.mjs";
+import { loadPeerVectors } from "./peer-vector-loader.mjs";
 
 const reactDocument = '{"id":"did:example:react-ssr"}';
 
@@ -29,6 +31,7 @@ test("React SSR crosses the Node provider without duplicated DID logic", async (
   const provider = await createDidProvider();
   assertAllVectors(provider, await loadVectors());
   assertAllDocumentVectors(provider, await loadDocumentVectors());
+  assertAllPeerVectors(provider, await loadPeerVectors());
   await assertAllResolutionVectors(createDidQueryProvider, await loadResolutionVectors());
   const factory = async () => {
     throw new Error("SSR must use the explicit initial provider");

@@ -121,9 +121,11 @@ run_browser() {
     docs/conformance/fixtures/did/v1/vectors.json \
     docs/conformance/fixtures/did-document/v1/vectors.json \
     docs/conformance/fixtures/did-resolution/v1/vectors.json \
+    docs/conformance/fixtures/did-peer/v1/vectors.json \
     packages/identus-sdk/tests/vector-assertions.mjs \
     packages/identus-sdk/tests/document-vector-assertions.mjs \
     packages/identus-sdk/tests/resolution-vector-assertions.mjs \
+    packages/identus-sdk/tests/peer-vector-assertions.mjs \
     packages/identus-sdk/tests/browser-runtime.mjs)"
   write_receipt browser selected success "$digest"
 }
@@ -135,9 +137,11 @@ run_nodejs() {
     docs/conformance/fixtures/did/v1/vectors.json \
     docs/conformance/fixtures/did-document/v1/vectors.json \
     docs/conformance/fixtures/did-resolution/v1/vectors.json \
+    docs/conformance/fixtures/did-peer/v1/vectors.json \
     packages/identus-sdk/tests/vector-assertions.mjs \
     packages/identus-sdk/tests/document-vector-assertions.mjs \
     packages/identus-sdk/tests/resolution-vector-assertions.mjs \
+    packages/identus-sdk/tests/peer-vector-assertions.mjs \
     packages/identus-sdk/tests/node-runtime.test.mjs)"
   write_receipt nodejs selected success "$digest"
 }
@@ -149,9 +153,11 @@ run_react_web() {
     docs/conformance/fixtures/did/v1/vectors.json \
     docs/conformance/fixtures/did-document/v1/vectors.json \
     docs/conformance/fixtures/did-resolution/v1/vectors.json \
+    docs/conformance/fixtures/did-peer/v1/vectors.json \
     packages/identus-sdk/tests/vector-assertions.mjs \
     packages/identus-sdk/tests/document-vector-assertions.mjs \
     packages/identus-sdk/tests/resolution-vector-assertions.mjs \
+    packages/identus-sdk/tests/peer-vector-assertions.mjs \
     packages/identus-sdk/tests/react-runtime.test.mjs \
     packages/identus-sdk/tests/react-browser-fixture.tsx \
     packages/identus-sdk/tests/react-browser-runtime.mjs)"
@@ -166,7 +172,16 @@ case "$mode" in
   measurements)
     (cd "$package_root" && npm run test:measurements)
     ;;
-  all | differential)
+  all)
+    run_package_types
+    run_browser
+    run_nodejs
+    run_react_web
+    write_receipt react-native inapplicable inapplicable none
+    ;;
+  differential)
+    cargo test --locked -p identus-did-peer --test conformance \
+      portable_peer_did_packet_matches_both_profiles
     run_package_types
     run_browser
     run_nodejs

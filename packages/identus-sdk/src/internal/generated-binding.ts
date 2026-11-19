@@ -8,6 +8,9 @@ import type {
   RawDidResolutionResultView,
   RawDidUrlView,
   RawDidView,
+  RawPeerDidNumalgo2CompatibilityView,
+  RawPeerDidNumalgo4ShortView,
+  RawPeerDidNumalgo4View,
 } from "./raw-binding.js";
 
 export interface GeneratedDidBindingModule {
@@ -28,6 +31,19 @@ export interface GeneratedDidBindingModule {
     rawJson: string,
   ): RawDidResolutionResultView;
   parseDidDereferencingResult(rawJson: string): RawDidDereferencingResultView;
+  createPeerDidNumalgo4(inputDocumentJson: string): RawPeerDidNumalgo4View;
+  parsePeerDidNumalgo4Long(value: string): RawPeerDidNumalgo4View;
+  parsePeerDidNumalgo4Short(value: string): RawPeerDidNumalgo4ShortView;
+  resolvePeerDidNumalgo4Short(
+    shortForm: string,
+    longForm: string,
+  ): RawPeerDidNumalgo4View;
+  createPeerDidNumalgo2Compatibility(
+    inputJson: string,
+  ): RawPeerDidNumalgo2CompatibilityView;
+  parsePeerDidNumalgo2Compatibility(
+    value: string,
+  ): RawPeerDidNumalgo2CompatibilityView;
 }
 
 export function adaptGeneratedBinding(
@@ -47,6 +63,18 @@ export function adaptGeneratedBinding(
       generated.parseDidResolutionResult(did, rawJson),
     parseDidDereferencingResult: (rawJson: string) =>
       generated.parseDidDereferencingResult(rawJson),
+    createPeerDidNumalgo4: (inputDocumentJson: string) =>
+      generated.createPeerDidNumalgo4(inputDocumentJson),
+    parsePeerDidNumalgo4Long: (value: string) =>
+      generated.parsePeerDidNumalgo4Long(value),
+    parsePeerDidNumalgo4Short: (value: string) =>
+      generated.parsePeerDidNumalgo4Short(value),
+    resolvePeerDidNumalgo4Short: (shortForm: string, longForm: string) =>
+      generated.resolvePeerDidNumalgo4Short(shortForm, longForm),
+    createPeerDidNumalgo2Compatibility: (inputJson: string) =>
+      generated.createPeerDidNumalgo2Compatibility(inputJson),
+    parsePeerDidNumalgo2Compatibility: (value: string) =>
+      generated.parsePeerDidNumalgo2Compatibility(value),
     isParseError,
   });
 }

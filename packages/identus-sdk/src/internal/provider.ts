@@ -19,6 +19,11 @@ import {
   type DidUrlDereferencingResultValue,
   type DidUrlValue,
   type DidValue,
+  type PeerDidNumalgo2CompatibilityInput,
+  type PeerDidNumalgo2CompatibilityValue,
+  type PeerDidNumalgo4InputDocument,
+  type PeerDidNumalgo4ShortValue,
+  type PeerDidNumalgo4Value,
 } from "../public.js";
 import { projectDidDocument as projectDidDocumentValue } from "./document-projection.js";
 import {
@@ -43,8 +48,17 @@ import type {
   RawDidView,
   RawOwnedValue,
 } from "./raw-binding.js";
+import {
+  serializePeerDidNumalgo2Input,
+  serializePeerDidNumalgo4Input,
+} from "./peer-input.js";
+import {
+  projectPeerDidNumalgo2Compatibility,
+  projectPeerDidNumalgo4,
+  projectPeerDidNumalgo4Short,
+} from "./peer-projection.js";
 
-const BINDING_API_VERSION = 3;
+const BINDING_API_VERSION = 4;
 const MAX_OBSERVED_DURATION_MS = 2_147_483_647;
 const MAX_DID_RESOLUTION_RESULT_BYTES = 512 * 1_024;
 
@@ -208,6 +222,16 @@ function readErrorCode(raw: RawDidParseError): DidErrorCode {
     || code === "did.invalid_dereferencing_options"
     || code === "did.invalid_resolution_result"
     || code === "did.invalid_dereferencing_result"
+    || code === "did.peer.wrong_profile"
+    || code === "did.peer.unsupported_algorithm"
+    || code === "did.peer.malformed_encoding"
+    || code === "did.peer.unsupported_codec"
+    || code === "did.peer.unsupported_purpose"
+    || code === "did.peer.invalid_input_document"
+    || code === "did.peer.hash_mismatch"
+    || code === "did.peer.long_form_required"
+    || code === "did.peer.resource_limit"
+    || code === "did.peer.projection_failure"
     || code === "adapter.unsupported_lossy_mapping"
   ) {
     return code;
@@ -261,6 +285,14 @@ function successMapping(operation: DidOperation): DidMappingId {
     case "did.resolve":
     case "did-url.dereference":
       return "did.resolution.typescript.host-v1";
+    case "did.peer.numalgo4.create":
+    case "did.peer.numalgo4.parse-long":
+    case "did.peer.numalgo4.parse-short":
+    case "did.peer.numalgo4.resolve-short":
+      return "did.peer.typescript.numalgo4-v1";
+    case "did.peer.numalgo2-compatibility.create":
+    case "did.peer.numalgo2-compatibility.parse":
+      return "did.peer.typescript.numalgo2-compat-v1";
   }
 }
 
@@ -279,6 +311,17 @@ function errorMapping(code: DidErrorCode): DidMappingId {
     case "did.invalid_resolution_result":
     case "did.invalid_dereferencing_result":
       return "did.resolution.typescript.host-v1";
+    case "did.peer.wrong_profile":
+    case "did.peer.unsupported_algorithm":
+    case "did.peer.malformed_encoding":
+    case "did.peer.unsupported_codec":
+    case "did.peer.unsupported_purpose":
+    case "did.peer.invalid_input_document":
+    case "did.peer.hash_mismatch":
+    case "did.peer.long_form_required":
+    case "did.peer.resource_limit":
+    case "did.peer.projection_failure":
+      return "did.peer.typescript.numalgo4-v1";
     case "did.resolution_host_failure":
     case "did.dereferencing_host_failure":
     case "did.resolution_provider_unavailable":
@@ -383,6 +426,49 @@ export function createRustDidProvider(
     }
   }
 
+  function peerCallbacks() {
+    return {
+      did: (serialized: string) => projectDid(binding.parseDid(serialized)),
+      document: (serialized: string) =>
+        projectDidDocument(binding.parseDidDocument(serialized)),
+    };
+  }
+
+  function runPeer<T>(operation: Extract<DidOperation,
+    | "did.peer.numalgo4.create"
+    | "did.peer.numalgo4.parse-long"
+    | "did.peer.numalgo4.parse-short"
+    | "did.peer.numalgo4.resolve-short"
+    | "did.peer.numalgo2-compatibility.create"
+    | "did.peer.numalgo2-compatibility.parse"
+  >, invoke: () => T): T {
+    const start = now();
+    let result: T;
+    try {
+      result = invoke();
+    } catch (error) {
+      const mapped = error instanceof DidError ? error : mappedError(binding, error);
+      strictNotify(options.observer, {
+        operation,
+        route,
+        result: "error",
+        mappingId: successMapping(operation),
+        errorCode: mapped instanceof DidError ? mapped.code : undefined,
+        durationMs: boundedDuration(start, now()),
+      });
+      throw mapped;
+    }
+    strictNotify(options.observer, {
+      operation,
+      route,
+      result: "success",
+      mappingId: successMapping(operation),
+      errorCode: undefined,
+      durationMs: boundedDuration(start, now()),
+    });
+    return result;
+  }
+
   return Object.freeze({
     parseDid(value: string): DidValue {
       requireInput(value);
@@ -398,6 +484,67 @@ export function createRustDidProvider(
         "did-document.parse",
         () => projectDidDocument(binding.parseDidDocument(value)),
       );
+    },
+    createPeerDidNumalgo4(
+      input: PeerDidNumalgo4InputDocument,
+    ): PeerDidNumalgo4Value {
+      return runPeer("did.peer.numalgo4.create", () =>
+        projectPeerDidNumalgo4(
+          binding.createPeerDidNumalgo4(serializePeerDidNumalgo4Input(input)),
+          peerCallbacks(),
+        ));
+    },
+    parsePeerDidNumalgo4Long(value: string): PeerDidNumalgo4Value {
+      requireInput(value);
+      return runPeer("did.peer.numalgo4.parse-long", () =>
+        projectPeerDidNumalgo4(
+          binding.parsePeerDidNumalgo4Long(value),
+          peerCallbacks(),
+        ));
+    },
+    parsePeerDidNumalgo4Short(value: string): PeerDidNumalgo4ShortValue {
+      requireInput(value);
+      return runPeer("did.peer.numalgo4.parse-short", () =>
+        projectPeerDidNumalgo4Short(
+          binding.parsePeerDidNumalgo4Short(value),
+          (serialized) => projectDid(binding.parseDid(serialized)),
+        ));
+    },
+    resolvePeerDidNumalgo4Short(
+      shortForm: string,
+      longForm: string,
+    ): PeerDidNumalgo4Value {
+      requireInput(shortForm);
+      return runPeer("did.peer.numalgo4.resolve-short", () => {
+        if (typeof longForm !== "string" || longForm.length === 0) {
+          throw new DidError("did.peer.long_form_required");
+        }
+        return projectPeerDidNumalgo4(
+          binding.resolvePeerDidNumalgo4Short(shortForm, longForm),
+          peerCallbacks(),
+        );
+      });
+    },
+    createPeerDidNumalgo2Compatibility(
+      input: PeerDidNumalgo2CompatibilityInput,
+    ): PeerDidNumalgo2CompatibilityValue {
+      return runPeer("did.peer.numalgo2-compatibility.create", () =>
+        projectPeerDidNumalgo2Compatibility(
+          binding.createPeerDidNumalgo2Compatibility(
+            serializePeerDidNumalgo2Input(input),
+          ),
+          peerCallbacks(),
+        ));
+    },
+    parsePeerDidNumalgo2Compatibility(
+      value: string,
+    ): PeerDidNumalgo2CompatibilityValue {
+      requireInput(value);
+      return runPeer("did.peer.numalgo2-compatibility.parse", () =>
+        projectPeerDidNumalgo2Compatibility(
+          binding.parsePeerDidNumalgo2Compatibility(value),
+          peerCallbacks(),
+        ));
     },
   });
 }

@@ -43,6 +43,32 @@ sha256             = "8383078cee088b9625c142fa650ace84137df5ee3eeae2906c974ef20a
 git_object_format  = "sha1"
 git_blob_oid       = "b928986219a26d07dcbcffcb77cbbf920b435be0"
 
+[[canonical_sources]]
+id                 = "did-peer.source.identus-did-peer.v1"
+owner_issue        = 512
+state              = "active"
+canonical_crate    = "identus-did-peer"
+canonical_revision = "bd1981372fcb08772d1196131a0cf26291fad9cb"
+path               = "crates/did-peer/src/numalgo4.rs"
+file_mode          = "100644"
+byte_length        = 28041
+sha256             = "d71712f2c0f81adb9b20a78fc7fa0f924c764095c10c7855e5c8bc3633b9066f"
+git_object_format  = "sha1"
+git_blob_oid       = "4403dd928cfab3658dd35d4914f49cb62c5f47a3"
+
+[[canonical_sources]]
+id                 = "did-peer-numalgo2.source.identus-did-peer.v1"
+owner_issue        = 512
+state              = "pending-revision"
+canonical_crate    = "identus-did-peer"
+canonical_revision = "bd1981372fcb08772d1196131a0cf26291fad9cb"
+path               = "crates/did-peer/src/numalgo2_compat.rs"
+file_mode          = "100644"
+byte_length        = 39975
+sha256             = "d87c37aeb66abff0805e306c773a69eaf788ebd1b960c75cc643086ed065763d"
+git_object_format  = "sha1"
+git_blob_oid       = "81da7fa3d35fc5d309bfb23b0e650fa848aedd77"
+
 [[mappings]]
 id = "did.value.typescript.legacy-v1"
 capability = "did.syntax"
@@ -556,3 +582,133 @@ id           = "did.resolution.unsafe-number-projection"
 reason       = "JavaScript number cannot exactly represent every integer accepted by bounded canonical JSON."
 behavior     = "Reject typed projection without fallback or rounded output."
 stable_error = "adapter.unsupported_lossy_mapping"
+
+[[mappings]]
+id                       = "did.peer.typescript.numalgo4-v1"
+capability               = "did.peer.profiles"
+owner_issue              = 505
+state                    = "active"
+kind                     = "value"
+canonical_crate          = "identus-did-peer"
+canonical_rust_path      = "identus_did_peer::numalgo4::InputDocument"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_source_id      = "did-peer.source.identus-did-peer.v1"
+canonical_description    = "Bounded deterministic numalgo-4 creation, long/short parsing, hash linkage, and local resolution."
+canonical_bound_symbol   = "MAX_INPUT_DOCUMENT_BYTES"
+language                 = "typescript"
+language_package         = "@hyperledger/identus-sdk"
+language_target          = "browser-node-react-web"
+language_version         = "0.0.0"
+language_revision        = "a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0"
+language_path            = "packages/identus-sdk/src/public.ts"
+language_license         = "Apache-2.0"
+language_symbol          = "DidProvider"
+language_shape_state     = "private-canary"
+direction                = "bidirectional"
+compatibility_class      = "additive"
+fidelity                 = "lossy"
+version_window           = ">=0.0.0,<0.0.1"
+deprecation_phase        = "none"
+version_negotiation      = "binding-api-version-4"
+consumers                = [ "sdk-ts" ]
+vector_ids               = [ "did.peer.numalgo4.reference-minimal", "did.peer.numalgo4.exact-input-limit" ]
+rust_selectors           = [ "identus_did_peer::numalgo4::InputDocument", "identus_did_peer::numalgo4::LongForm", "identus_did_peer::numalgo4::ShortForm" ]
+language_selectors       = [ "packages/identus-sdk/src/public.ts", "packages/identus-sdk/src/internal/peer-input.ts", "packages/identus-sdk/src/internal/peer-projection.ts" ]
+max_input_bytes          = 16384
+redaction                = "caller-input"
+sensitive_fields         = [ "did", "input-document", "public-key", "service", "generated-error" ]
+async_ownership          = "not-applicable"
+cancellation_ownership   = "not-applicable"
+migration_action         = "Use only the explicit numalgo-4 or numalgo-2-compatibility method; keep public-key generation, custody, networking, persistence, and DIDComm effects in their owning host capabilities."
+replacement              = "Private capability-named peer DID methods backed by identus-did-peer."
+observability            = "Record only mapping ID, operation, provider route, result category, stable error code, and bounded duration; never record identifiers, documents, public keys, services, errors, stacks, or WASM memory."
+fallback                 = "No automatic profile, parser, resolver, or legacy fallback follows a canonical rejection."
+rollback                 = "Select the existing legacy provider before initialization and remove the unreleased peer methods without changing canonical Rust."
+removal_gate             = "A separately accepted SDK-TS migration may retire the legacy route only after external consumer rehearsal, accepted support and resource budgets, publication authority, and a rehearsed rollback."
+errors                   = [  ]
+
+[[mappings.fields]]
+rust      = "numalgo4 input document"
+language  = "PeerDidNumalgo4InputDocument"
+transform = "closed-bounded-json"
+direction = "language-to-rust"
+required  = true
+
+[[mappings.fields]]
+rust      = "long form, short form and DID document"
+language  = "PeerDidNumalgo4Value"
+transform = "frozen-owned-projection"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.losses]]
+id          = "did.peer.historical-numalgos"
+distinction = "The peer DID method family also defines historical numalgos 0, 1 and 3."
+consequence = "The private facade cannot create or parse those profiles."
+mitigation  = "Reject them with did.peer.unsupported_algorithm and require a separately selected profile before expansion."
+
+[[mappings.unsupported]]
+id           = "did.peer.historical-numalgos"
+reason       = "Only the selected numalgo-4 and explicit numalgo-2 compatibility profiles have accepted semantics and evidence."
+behavior     = "Reject historical numalgos 0, 1 and 3 without profile or legacy fallback."
+stable_error = "did.peer.unsupported_algorithm"
+
+[[mappings]]
+id                       = "did.peer.typescript.numalgo2-compat-v1"
+capability               = "did.peer.profiles"
+owner_issue              = 505
+state                    = "active"
+kind                     = "value"
+canonical_crate          = "identus-did-peer"
+canonical_rust_path      = "identus_did_peer::numalgo2_compat::PeerDid"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_source_id      = "did-peer-numalgo2.source.identus-did-peer.v1"
+canonical_description    = "Explicit bounded numalgo-2 compatibility creation, parsing, and local resolution from caller-owned public keys and services."
+canonical_bound_symbol   = "MAX_SERVICE_BYTES"
+language                 = "typescript"
+language_package         = "@hyperledger/identus-sdk"
+language_target          = "browser-node-react-web"
+language_version         = "0.0.0"
+language_revision        = "a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0"
+language_path            = "packages/identus-sdk/src/public.ts"
+language_license         = "Apache-2.0"
+language_symbol          = "DidProvider"
+language_shape_state     = "private-canary"
+direction                = "bidirectional"
+compatibility_class      = "additive"
+fidelity                 = "lossless"
+version_window           = ">=0.0.0,<0.0.1"
+deprecation_phase        = "none"
+version_negotiation      = "binding-api-version-4"
+consumers                = [ "sdk-ts" ]
+vector_ids               = [ "did.peer.numalgo2.affinidi-compat", "did.peer.numalgo2.sdk-ts-pairwise" ]
+rust_selectors           = [ "identus_did_peer::numalgo2_compat::PeerDid", "identus_did_peer::numalgo2_compat::PublicKey", "identus_did_peer::numalgo2_compat::Service" ]
+language_selectors       = [ "packages/identus-sdk/src/public.ts", "packages/identus-sdk/src/internal/peer-input.ts", "packages/identus-sdk/src/internal/peer-projection.ts" ]
+max_input_bytes          = 16384
+redaction                = "caller-input"
+sensitive_fields         = [ "did", "public-key", "service", "generated-error" ]
+async_ownership          = "not-applicable"
+cancellation_ownership   = "not-applicable"
+migration_action         = "Use the explicitly named numalgo-2 compatibility methods with caller-owned public material; keep generation, custody, storage, networking, and DIDComm effects in their owning capabilities."
+replacement              = "Private capability-named numalgo-2 compatibility methods backed by identus-did-peer."
+observability            = "Record only mapping ID, operation, provider route, result category, stable error code, and bounded duration; never record identifiers, documents, public keys, services, errors, stacks, or WASM memory."
+fallback                 = "No automatic profile, parser, resolver, or legacy fallback follows a canonical rejection."
+rollback                 = "Select the existing legacy provider before initialization and remove the unreleased peer methods without changing canonical Rust."
+removal_gate             = "A separately accepted SDK-TS migration may retire the legacy route only after external consumer rehearsal, accepted support and resource budgets, publication authority, and a rehearsed rollback."
+errors                   = [  ]
+losses                   = [  ]
+unsupported              = [  ]
+
+[[mappings.fields]]
+rust      = "public keys and services"
+language  = "PeerDidNumalgo2CompatibilityInput"
+transform = "closed-public-material-dto"
+direction = "language-to-rust"
+required  = true
+
+[[mappings.fields]]
+rust      = "DID and DID document"
+language  = "PeerDidNumalgo2CompatibilityValue"
+transform = "frozen-owned-projection"
+direction = "rust-to-language"
+required  = true

@@ -23,7 +23,7 @@ test("the reviewed public declaration names contain no historical components", a
     declaration.replace(/^\/\/# sourceMappingURL=.*$/gmu, "").trim(),
     reviewed.trim(),
   );
-  assert.equal(snapshot.trim().split("\n").length, 44);
+  assert.equal(snapshot.trim().split("\n").length, 54);
 });
 
 test("target entries match reviewed declarations and expose only their capability surface", async () => {

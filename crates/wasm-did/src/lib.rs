@@ -4,6 +4,7 @@
 //! This unpublished outer boundary exposes only owned public identifier values
 //! and stable error codes. `identus-did` remains binding-framework-free.
 
+mod peer;
 mod resolution;
 
 use identus_did::{Did, DidDocument, DidUrl};
@@ -11,7 +12,7 @@ use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 /// Version of the JavaScript value and error contract.
-pub const BINDING_API_VERSION: u32 = 3;
+pub const BINDING_API_VERSION: u32 = 4;
 
 const INVALID_DID_CODE: &str = "did.invalid_did";
 const INVALID_DID_URL_CODE: &str = "did.invalid_did_url";
@@ -21,6 +22,17 @@ const INVALID_DEREFERENCING_OPTIONS_CODE: &str = "did.invalid_dereferencing_opti
 const INVALID_RESOLUTION_RESULT_CODE: &str = "did.invalid_resolution_result";
 const INVALID_DEREFERENCING_RESULT_CODE: &str = "did.invalid_dereferencing_result";
 const UNSUPPORTED_LOSSY_MAPPING_CODE: &str = "adapter.unsupported_lossy_mapping";
+const BINDING_CONTRACT_CODE: &str = "adapter.binding_contract";
+const PEER_WRONG_PROFILE_CODE: &str = "did.peer.wrong_profile";
+const PEER_UNSUPPORTED_ALGORITHM_CODE: &str = "did.peer.unsupported_algorithm";
+const PEER_MALFORMED_ENCODING_CODE: &str = "did.peer.malformed_encoding";
+const PEER_UNSUPPORTED_CODEC_CODE: &str = "did.peer.unsupported_codec";
+const PEER_UNSUPPORTED_PURPOSE_CODE: &str = "did.peer.unsupported_purpose";
+const PEER_INVALID_INPUT_DOCUMENT_CODE: &str = "did.peer.invalid_input_document";
+const PEER_HASH_MISMATCH_CODE: &str = "did.peer.hash_mismatch";
+const PEER_LONG_FORM_REQUIRED_CODE: &str = "did.peer.long_form_required";
+const PEER_RESOURCE_LIMIT_CODE: &str = "did.peer.resource_limit";
+const PEER_PROJECTION_FAILURE_CODE: &str = "did.peer.projection_failure";
 const MAX_SAFE_JAVASCRIPT_INTEGER: i64 = 9_007_199_254_740_991;
 
 /// Owned JavaScript view of a validated DID.
@@ -202,6 +214,25 @@ impl DidParseError {
             code: INVALID_DEREFERENCING_RESULT_CODE.to_owned(),
         }
     }
+
+    pub(crate) fn peer(error: identus_did_peer::Error) -> Self {
+        let code = match error {
+            identus_did_peer::Error::WrongProfile => PEER_WRONG_PROFILE_CODE,
+            identus_did_peer::Error::UnsupportedAlgorithm => PEER_UNSUPPORTED_ALGORITHM_CODE,
+            identus_did_peer::Error::MalformedEncoding => PEER_MALFORMED_ENCODING_CODE,
+            identus_did_peer::Error::UnsupportedCodec => PEER_UNSUPPORTED_CODEC_CODE,
+            identus_did_peer::Error::UnsupportedPurpose => PEER_UNSUPPORTED_PURPOSE_CODE,
+            identus_did_peer::Error::InvalidInputDocument => PEER_INVALID_INPUT_DOCUMENT_CODE,
+            identus_did_peer::Error::HashMismatch => PEER_HASH_MISMATCH_CODE,
+            identus_did_peer::Error::LongFormRequired => PEER_LONG_FORM_REQUIRED_CODE,
+            identus_did_peer::Error::ResourceLimit => PEER_RESOURCE_LIMIT_CODE,
+            identus_did_peer::Error::Projection => PEER_PROJECTION_FAILURE_CODE,
+            _ => BINDING_CONTRACT_CODE,
+        };
+        Self {
+            code: code.to_owned(),
+        }
+    }
 }
 
 /// Return the binding contract version.
@@ -209,6 +240,13 @@ impl DidParseError {
 pub fn binding_api_version() -> u32 {
     BINDING_API_VERSION
 }
+
+pub use peer::{
+    PeerDidNumalgo2CompatibilityView, PeerDidNumalgo4ShortView, PeerDidNumalgo4View,
+    create_peer_did_numalgo2_compatibility, create_peer_did_numalgo4,
+    parse_peer_did_numalgo2_compatibility, parse_peer_did_numalgo4_long,
+    parse_peer_did_numalgo4_short, resolve_peer_did_numalgo4_short,
+};
 
 /// Parse a bounded DID into an owned JavaScript view.
 #[wasm_bindgen(js_name = parseDid)]
@@ -305,7 +343,7 @@ mod tests {
 
     #[test]
     fn version_and_component_views_are_stable() {
-        assert_eq!(binding_api_version(), 3);
+        assert_eq!(binding_api_version(), 4);
 
         let did = parse_did("did:example:123").unwrap();
         assert_eq!(did.value(), "did:example:123");

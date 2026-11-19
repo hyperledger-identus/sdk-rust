@@ -194,9 +194,86 @@ export class DidView {
 }
 
 /**
+ * Owned JavaScript result for explicit numalgo-2 compatibility operations.
+ */
+export class PeerDidNumalgo2CompatibilityView {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * Validated compatibility peer DID.
+     */
+    readonly did: string;
+    /**
+     * Stable explicit compatibility-profile identity.
+     */
+    readonly profile: string;
+    /**
+     * Compact normalized locally resolved DID Document.
+     */
+    readonly resolvedDocument: string;
+}
+
+/**
+ * Owned JavaScript result for short-form validation without resolution.
+ */
+export class PeerDidNumalgo4ShortView {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * Stable explicit profile identity.
+     */
+    readonly profile: string;
+    /**
+     * Validated short-form peer DID.
+     */
+    readonly shortForm: string;
+}
+
+/**
+ * Owned JavaScript result for numalgo-4 creation or local resolution.
+ */
+export class PeerDidNumalgo4View {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * Compact normalized public input document without a root `id`.
+     */
+    readonly inputDocument: string;
+    /**
+     * Verified long-form peer DID.
+     */
+    readonly longForm: string;
+    /**
+     * Stable explicit profile identity.
+     */
+    readonly profile: string;
+    /**
+     * Compact normalized locally resolved DID Document.
+     */
+    readonly resolvedDocument: string;
+    /**
+     * Derived short-form peer DID.
+     */
+    readonly shortForm: string;
+}
+
+/**
  * Return the binding contract version.
  */
 export function bindingApiVersion(): number;
+
+/**
+ * Create and locally resolve an explicit numalgo-2 compatibility DID.
+ */
+export function createPeerDidNumalgo2Compatibility(input_json: string): PeerDidNumalgo2CompatibilityView;
+
+/**
+ * Create and locally resolve the current numalgo-4 profile.
+ */
+export function createPeerDidNumalgo4(input_document_json: string): PeerDidNumalgo4View;
 
 /**
  * Parse a bounded DID into an owned JavaScript view.
@@ -229,6 +306,21 @@ export function parseDidResolutionResult(did: string, result_json: string): DidR
 export function parseDidUrl(value: string): DidUrlView;
 
 /**
+ * Parse and locally resolve an explicit numalgo-2 compatibility DID.
+ */
+export function parsePeerDidNumalgo2Compatibility(did: string): PeerDidNumalgo2CompatibilityView;
+
+/**
+ * Parse, verify, and locally resolve a numalgo-4 long form.
+ */
+export function parsePeerDidNumalgo4Long(long_form: string): PeerDidNumalgo4View;
+
+/**
+ * Validate a numalgo-4 short form without implying resolvability.
+ */
+export function parsePeerDidNumalgo4Short(short_form: string): PeerDidNumalgo4ShortView;
+
+/**
  * Validate and normalize one DID URL dereferencing request before host invocation.
  */
 export function prepareDidDereferencing(did_url: string, options_json: string): DidDereferencingRequestView;
@@ -238,10 +330,34 @@ export function prepareDidDereferencing(did_url: string, options_json: string): 
  */
 export function prepareDidResolution(did: string, options_json: string): DidResolutionRequestView;
 
+/**
+ * Resolve a short form only with matching caller-supplied long-form material.
+ */
+export function resolvePeerDidNumalgo4Short(short_form: string, long_form: string): PeerDidNumalgo4View;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly __wbg_peerdidnumalgo2compatibilityview_free: (a: number, b: number) => void;
+    readonly __wbg_peerdidnumalgo4shortview_free: (a: number, b: number) => void;
+    readonly __wbg_peerdidnumalgo4view_free: (a: number, b: number) => void;
+    readonly createPeerDidNumalgo2Compatibility: (a: number, b: number) => [number, number, number];
+    readonly createPeerDidNumalgo4: (a: number, b: number) => [number, number, number];
+    readonly parsePeerDidNumalgo2Compatibility: (a: number, b: number) => [number, number, number];
+    readonly parsePeerDidNumalgo4Long: (a: number, b: number) => [number, number, number];
+    readonly parsePeerDidNumalgo4Short: (a: number, b: number) => [number, number, number];
+    readonly peerdidnumalgo2compatibilityview_did: (a: number) => [number, number];
+    readonly peerdidnumalgo2compatibilityview_profile: (a: number) => [number, number];
+    readonly peerdidnumalgo2compatibilityview_resolvedDocument: (a: number) => [number, number];
+    readonly peerdidnumalgo4shortview_profile: (a: number) => [number, number];
+    readonly peerdidnumalgo4shortview_shortForm: (a: number) => [number, number];
+    readonly peerdidnumalgo4view_inputDocument: (a: number) => [number, number];
+    readonly peerdidnumalgo4view_longForm: (a: number) => [number, number];
+    readonly peerdidnumalgo4view_profile: (a: number) => [number, number];
+    readonly peerdidnumalgo4view_resolvedDocument: (a: number) => [number, number];
+    readonly peerdidnumalgo4view_shortForm: (a: number) => [number, number];
+    readonly resolvePeerDidNumalgo4Short: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly __wbg_diddereferencingrequestview_free: (a: number, b: number) => void;
     readonly __wbg_diddereferencingresultview_free: (a: number, b: number) => void;
     readonly __wbg_didresolutionrequestview_free: (a: number, b: number) => void;
@@ -288,10 +404,10 @@ export interface InitOutput {
     readonly parseDidDocument: (a: number, b: number) => [number, number, number];
     readonly parseDidUrl: (a: number, b: number) => [number, number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
-    readonly __wbindgen_free: (a: number, b: number, c: number) => void;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __externref_table_dealloc: (a: number) => void;
+    readonly __wbindgen_free: (a: number, b: number, c: number) => void;
     readonly __wbindgen_start: () => void;
 }
 

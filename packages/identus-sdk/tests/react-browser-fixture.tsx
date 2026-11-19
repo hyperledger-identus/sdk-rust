@@ -6,6 +6,7 @@ import { DidProviderBoundary, useDidProvider } from "../dist/react.js";
 import { assertAllVectors } from "./vector-assertions.mjs";
 import { assertAllDocumentVectors } from "./document-vector-assertions.mjs";
 import { assertAllResolutionVectors } from "./resolution-vector-assertions.mjs";
+import { assertAllPeerVectors } from "./peer-vector-assertions.mjs";
 
 declare global {
   interface Window {
@@ -16,6 +17,7 @@ declare global {
     __identusDidVectors?: readonly unknown[];
     __identusDidDocumentVectors?: readonly unknown[];
     __identusDidResolutionVectors?: readonly unknown[];
+    __identusPeerDidVectors?: readonly unknown[];
   }
 }
 
@@ -36,9 +38,11 @@ try {
   const vectors = window.__identusDidVectors;
   const documentVectors = window.__identusDidDocumentVectors;
   const resolutionVectors = window.__identusDidResolutionVectors;
+  const peerVectors = window.__identusPeerDidVectors;
   if (vectors === undefined) throw new Error("vectors missing");
   if (documentVectors === undefined) throw new Error("document vectors missing");
   if (resolutionVectors === undefined) throw new Error("resolution vectors missing");
+  if (peerVectors === undefined) throw new Error("peer vectors missing");
   const root = document.getElementById("root");
   if (root === null) throw new Error("root missing");
   const recoverable: string[] = [];
@@ -57,6 +61,7 @@ try {
   await hydrated;
   assertAllVectors(provider, vectors);
   assertAllDocumentVectors(provider, documentVectors);
+  assertAllPeerVectors(provider, peerVectors);
   await assertAllResolutionVectors(createDidQueryProvider, resolutionVectors);
   const text = root.textContent ?? "";
   if (text !== '{"id":"did:example:react-hydration"}' || recoverable.length !== 0) {

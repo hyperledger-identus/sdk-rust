@@ -48,6 +48,25 @@ export interface RawDidDereferencingResultView extends RawOwnedValue {
   readonly kind: unknown;
 }
 
+export interface RawPeerDidNumalgo4View extends RawOwnedValue {
+  readonly profile: unknown;
+  readonly longForm: unknown;
+  readonly shortForm: unknown;
+  readonly inputDocument: unknown;
+  readonly resolvedDocument: unknown;
+}
+
+export interface RawPeerDidNumalgo4ShortView extends RawOwnedValue {
+  readonly profile: unknown;
+  readonly shortForm: unknown;
+}
+
+export interface RawPeerDidNumalgo2CompatibilityView extends RawOwnedValue {
+  readonly profile: unknown;
+  readonly did: unknown;
+  readonly resolvedDocument: unknown;
+}
+
 export interface RawDidParseError extends RawOwnedValue {
   readonly code: unknown;
 }
@@ -70,5 +89,18 @@ export interface RawDidBinding {
     rawJson: string,
   ): RawDidResolutionResultView;
   parseDidDereferencingResult(rawJson: string): RawDidDereferencingResultView;
+  createPeerDidNumalgo4(inputDocumentJson: string): RawPeerDidNumalgo4View;
+  parsePeerDidNumalgo4Long(value: string): RawPeerDidNumalgo4View;
+  parsePeerDidNumalgo4Short(value: string): RawPeerDidNumalgo4ShortView;
+  resolvePeerDidNumalgo4Short(
+    shortForm: string,
+    longForm: string,
+  ): RawPeerDidNumalgo4View;
+  createPeerDidNumalgo2Compatibility(
+    inputJson: string,
+  ): RawPeerDidNumalgo2CompatibilityView;
+  parsePeerDidNumalgo2Compatibility(
+    value: string,
+  ): RawPeerDidNumalgo2CompatibilityView;
   isParseError(error: unknown): error is RawDidParseError;
 }

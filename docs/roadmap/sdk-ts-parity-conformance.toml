@@ -283,18 +283,18 @@ state               = "partial"
 rationale           = "Selected peer DID profiles require the same deterministic identifiers and documents across SDKs."
 rust_surface        = "Bounded experimental SDK-Rust support for peer DID numalgo 4 and opt-in numalgo 2 creation, parsing, local resolution, and generic DID-document projection."
 target_surface      = "Rust-owned deterministic creation and resolution for explicitly selected peer DID profiles with a thin TypeScript facade."
-applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
-target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
-missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
-missing_proof       = "Cross-SDK and DID-document equivalence, typed TypeScript facade and error mapping, pairwise messaging consumer E2E tests, per-target receipts, and rollback proof."
-required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "consumer-proof", "rollback" ]
-known_deviations    = [ "Only explicitly selected numalgo profiles are in scope." ]
-evidence            = [ "docs/roadmap/platform-core-adoption-milestones.toml", "docs/architecture/identus-platform-ts-capabilities.toml" ]
-owner_issue         = 502
-next_action         = "Route a pairwise SDK-TS fixture through the selected Rust peer DID profile."
+applicable_targets  = [ "browser", "nodejs", "react-web" ]
+target_states       = { browser = "delivered", nodejs = "delivered", react-web = "delivered", react-native = "not-applicable" }
+missing_dimensions  = [ "consumer-proof", "rollback" ]
+missing_proof       = "External SDK-TS adoption, accepted target support/budgets, publication, and React Native remain outside this private canary."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Only explicitly selected numalgo 4 and numalgo 2 compatibility profiles are in scope.", "Numalgo 4 is a Rust-owned addition absent from SDK-TS 8.1.4.", "React Native requires a separately qualified native binding and is not inferred from WASM evidence." ]
+evidence            = [ "docs/architecture/language-adapter-mappings.toml", "docs/architecture/quality-evidence-declarations.toml", "docs/conformance/fixtures/did-peer/v1/vectors.json", "docs/conformance/sdk-ts-peer-did-quality.md", "packages/identus-sdk/tests/peer-vector-assertions.mjs" ]
+owner_issue         = 603
+next_action         = "Rehearse the opt-in peer DID facade in an external SDK-TS pairwise consumer before any default, support, publication, or legacy-removal decision."
 consumer            = "SDK-TS DIDComm connection fixture"
 rollback            = "Keep the TypeScript peer DID implementation selectable during canary."
-non_claims          = [ "all peer DID numalgos", "DIDComm engine migration" ]
+non_claims          = [ "all peer DID numalgos", "DIDComm engine migration", "key generation or custody", "external adoption", "React Native support", "publication", "stable API" ]
 
 [[capability]]
 id                  = "did.method.prism"

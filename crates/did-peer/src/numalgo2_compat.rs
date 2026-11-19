@@ -9,7 +9,7 @@ use identus_did::{
     Did, DidDocument, JsonWireError, JsonWireLimits, MAX_DID_BYTES, MAX_DID_DOCUMENT_BYTES, Uri,
     validate_unique_object_names,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeMap};
 use serde_json::{Value, json};
 
 use crate::Error;
@@ -85,18 +85,129 @@ impl PublicKey {
 }
 
 /// Compact DIDComm service input used by the Identus compatibility profile.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+///
+/// The canonical in-memory and Rust creation spelling is `DIDCommMessaging`.
+/// Deserialization also accepts the SDK-TS compact spelling `dm` and restores
+/// the canonical in-memory value. Donor-compatible creation is exposed only
+/// through [`PeerDid::create_sdk_ts_compatibility`].
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Service {
     /// Service type (`DIDCommMessaging` in normal Identus use).
-    #[serde(rename = "t")]
     pub type_: String,
     /// Service endpoint value, using the pinned compact shape.
-    #[serde(rename = "s")]
     pub endpoint: ServiceEndpoint,
     /// Optional relative fragment identifier.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ServiceWire {
+    #[serde(rename = "t")]
+    type_: String,
+    #[serde(rename = "s")]
+    endpoint: ServiceEndpoint,
+    id: Option<String>,
+}
+
+impl<'de> Deserialize<'de> for Service {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let wire = ServiceWire::deserialize(deserializer)?;
+        Ok(Self {
+            type_: if wire.type_ == "dm" {
+                "DIDCommMessaging".to_owned()
+            } else {
+                wire.type_
+            },
+            endpoint: wire.endpoint,
+            id: wire.id,
+        })
+    }
+}
+
+impl Serialize for Service {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(2 + usize::from(self.id.is_some())))?;
+        map.serialize_entry("t", self.type_.as_str())?;
+        map.serialize_entry("s", &self.endpoint)?;
+        if let Some(id) = &self.id {
+            map.serialize_entry("id", id)?;
+        }
+        map.end()
+    }
+}
+
+struct SdkTsCompatibilityService<'a>(&'a Service);
+
+impl Serialize for SdkTsCompatibilityService<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let service = self.0;
+        let mut map = serializer.serialize_map(Some(2 + usize::from(service.id.is_some())))?;
+        map.serialize_entry(
+            "t",
+            if matches!(service.type_.as_str(), "DIDCommMessaging" | "dm") {
+                "dm"
+            } else {
+                service.type_.as_str()
+            },
+        )?;
+        map.serialize_entry("s", &SdkTsCompatibilityEndpoint(&service.endpoint))?;
+        if let Some(id) = &service.id {
+            map.serialize_entry("id", id)?;
+        }
+        map.end()
+    }
+}
+
+struct SdkTsCompatibilityEndpoint<'a>(&'a ServiceEndpoint);
+
+impl Serialize for SdkTsCompatibilityEndpoint<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self.0 {
+            ServiceEndpoint::Uri(uri) => uri.serialize(serializer),
+            ServiceEndpoint::Map(endpoint) => {
+                SdkTsCompatibilityEndpointMap(endpoint).serialize(serializer)
+            }
+            ServiceEndpoint::Maps(endpoints) => {
+                serializer.collect_seq(endpoints.iter().map(SdkTsCompatibilityEndpointMap))
+            }
+        }
+    }
+}
+
+struct SdkTsCompatibilityEndpointMap<'a>(&'a ServiceEndpointMap);
+
+impl Serialize for SdkTsCompatibilityEndpointMap<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let endpoint = self.0;
+        let mut size = 1;
+        size += usize::from(endpoint.accept.is_some());
+        size += usize::from(endpoint.routing_keys.is_some());
+        let mut map = serializer.serialize_map(Some(size))?;
+        map.serialize_entry("uri", &endpoint.uri)?;
+        if let Some(routing_keys) = &endpoint.routing_keys {
+            map.serialize_entry("r", routing_keys)?;
+        }
+        if let Some(accept) = &endpoint.accept {
+            map.serialize_entry("a", accept)?;
+        }
+        map.end()
+    }
 }
 
 /// Compact numalgo-2 service endpoint.
@@ -111,8 +222,7 @@ pub enum ServiceEndpoint {
     Maps(Vec<ServiceEndpointMap>),
 }
 
-/// Compact DIDComm endpoint fields, serialized in the pinned `uri`, `a`, `r`
-/// order used by existing Identus consumers.
+/// Compact DIDComm endpoint fields.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServiceEndpointMap {
@@ -144,10 +254,30 @@ pub struct PeerDid {
 impl PeerDid {
     /// Create a compatibility DID from caller-owned public material.
     pub fn create(keys: Vec<PublicKey>, services: Vec<Service>) -> Result<Self, Error> {
+        Self::create_with_service_encoding(keys, services, ServiceEncoding::RustCompatibility)
+    }
+
+    /// Create using the pinned SDK-TS donor service encoding.
+    ///
+    /// This explicit adapter preserves the donor's `dm` service spelling and
+    /// endpoint member order without changing deterministic Rust identifiers.
+    pub fn create_sdk_ts_compatibility(
+        keys: Vec<PublicKey>,
+        services: Vec<Service>,
+    ) -> Result<Self, Error> {
+        Self::create_with_service_encoding(keys, services, ServiceEncoding::SdkTsCompatibility)
+    }
+
+    fn create_with_service_encoding(
+        keys: Vec<PublicKey>,
+        mut services: Vec<Service>,
+        encoding: ServiceEncoding,
+    ) -> Result<Self, Error> {
         validate_counts(keys.len(), services.len())?;
         if keys.is_empty() {
             return Err(Error::InvalidInputDocument);
         }
+        normalize_service_types(&mut services);
         let mut value = String::from(PREFIX);
         for key in &keys {
             value.push('.');
@@ -158,10 +288,20 @@ impl PeerDid {
             validate_service(service)?;
         }
         if !services.is_empty() {
-            let json = if services.len() == 1 {
-                serde_json::to_vec(&services[0])
-            } else {
-                serde_json::to_vec(&services)
+            let json = match encoding {
+                ServiceEncoding::RustCompatibility if services.len() == 1 => {
+                    serde_json::to_vec(&services[0])
+                }
+                ServiceEncoding::RustCompatibility => serde_json::to_vec(&services),
+                ServiceEncoding::SdkTsCompatibility if services.len() == 1 => {
+                    serde_json::to_vec(&SdkTsCompatibilityService(&services[0]))
+                }
+                ServiceEncoding::SdkTsCompatibility => serde_json::to_vec(
+                    &services
+                        .iter()
+                        .map(SdkTsCompatibilityService)
+                        .collect::<Vec<_>>(),
+                ),
             }
             .map_err(|_| Error::InvalidInputDocument)?;
             if json.len() > MAX_SERVICE_BYTES {
@@ -250,13 +390,14 @@ impl PeerDid {
                     validate_service_json(&bytes)?;
                     let decoded: EncodedServices =
                         serde_json::from_slice(&bytes).map_err(|_| Error::InvalidInputDocument)?;
-                    let decoded = match decoded {
+                    let mut decoded = match decoded {
                         EncodedServices::One(service) => vec![service],
                         EncodedServices::Many(services) if services.is_empty() => {
                             return Err(Error::InvalidInputDocument);
                         }
                         EncodedServices::Many(services) => services,
                     };
+                    normalize_service_types(&mut decoded);
                     if keys
                         .len()
                         .saturating_add(services.len())
@@ -411,6 +552,12 @@ impl PeerDid {
     }
 }
 
+#[derive(Clone, Copy)]
+enum ServiceEncoding {
+    RustCompatibility,
+    SdkTsCompatibility,
+}
+
 fn json_string_encoded_len(value: &str) -> usize {
     value.chars().fold(2_usize, |length, character| {
         length.saturating_add(match character {
@@ -437,6 +584,14 @@ fn validate_counts(keys: usize, services: usize) -> Result<(), Error> {
         Err(Error::ResourceLimit)
     } else {
         Ok(())
+    }
+}
+
+fn normalize_service_types(services: &mut [Service]) {
+    for service in services {
+        if service.type_ == "dm" {
+            service.type_ = "DIDCommMessaging".to_owned();
+        }
     }
 }
 
@@ -625,6 +780,34 @@ mod tests {
     }
 
     #[test]
+    fn service_serde_preserves_rust_encoding_and_accepts_sdk_ts_encoding() {
+        let service = Service {
+            type_: "DIDCommMessaging".into(),
+            endpoint: ServiceEndpoint::Map(ServiceEndpointMap {
+                uri: "https://example.com/didcomm".into(),
+                accept: Some(vec!["didcomm/v2".into()]),
+                routing_keys: Some(vec![]),
+            }),
+            id: None,
+        };
+        let encoded = serde_json::to_string(&service).expect("serialize service");
+        assert!(encoded.contains("\"t\":\"DIDCommMessaging\""));
+        assert!(encoded.contains("\"a\":[\"didcomm/v2\"],\"r\":[]"));
+        assert_eq!(
+            serde_json::from_str::<Service>(&encoded).expect("deserialize service"),
+            service
+        );
+        let sdk_ts = serde_json::to_string(&SdkTsCompatibilityService(&service))
+            .expect("serialize SDK-TS service");
+        assert!(sdk_ts.contains("\"t\":\"dm\""));
+        assert!(sdk_ts.contains("\"r\":[],\"a\":[\"didcomm/v2\"]"));
+        assert_eq!(
+            serde_json::from_str::<Service>(&sdk_ts).expect("deserialize SDK-TS service"),
+            service
+        );
+    }
+
+    #[test]
     fn creates_parses_and_resolves_multiple_endpoint_maps() {
         let key = PublicKey::new(Purpose::Verification, VERIFICATION_KEY).expect("key");
         let endpoint = |uri: &str| ServiceEndpointMap {
@@ -655,8 +838,9 @@ mod tests {
             URL_SAFE_NO_PAD.encode(br#"{"t":"dm","s":{"uri":"https://example.com/didcomm"}}"#);
         let encoded = format!("{PREFIX}.V{VERIFICATION_KEY}.S{compact}");
         let parsed = PeerDid::parse(&encoded).expect("parse omitted options");
-        let recreated = PeerDid::create(parsed.keys.clone(), parsed.services.clone())
-            .expect("recreate omitted options");
+        let recreated =
+            PeerDid::create_sdk_ts_compatibility(parsed.keys.clone(), parsed.services.clone())
+                .expect("recreate omitted options");
         assert_eq!(recreated.did().as_str(), encoded);
     }
 
@@ -850,20 +1034,16 @@ mod tests {
     }
 
     #[test]
-    fn parses_affinidi_numalgo2_compatibility_vector() {
+    fn parses_legacy_affinidi_vector_and_recreates_it_exactly() {
         const VECTOR: &str = "did:peer:2.Vz6MkiToqovww7vYtxm1xNM15u9JzqzUFZ1k7s7MazYJUyAxv.EzQ3shQLqRUza6AMJFbPuMdvFRFWm1wKviQRnQSC1fScovJN4s.SeyJ0IjoiRElEQ29tbU1lc3NhZ2luZyIsInMiOnsidXJpIjoiaHR0cHM6Ly8xMjcuMC4wLjE6NzAzNyIsImEiOlsiZGlkY29tbS92MiJdLCJyIjpbXX19";
         let peer = PeerDid::parse(VECTOR).expect("oracle vector");
         assert_eq!(peer.did().as_str(), VECTOR);
-        assert_eq!(
-            PeerDid::create(peer.keys.clone(), peer.services.clone())
-                .expect("recreate")
-                .did()
-                .as_str(),
-            VECTOR
-        );
         let document = peer.resolve().expect("resolve");
         assert_eq!(document.verification_methods().expect("methods").len(), 2);
         assert_eq!(document.services().expect("services").len(), 1);
+        let recreated = PeerDid::create(peer.keys.clone(), peer.services.clone())
+            .expect("deterministic recreation");
+        assert_eq!(recreated.did().as_str(), VECTOR);
     }
 
     #[test]

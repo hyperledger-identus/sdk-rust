@@ -23,6 +23,7 @@ const planSignals = new Set([
   "node-source",
   "npm-lock",
   "package-metadata",
+  "peer-quality-evidence",
   "react-native-contract",
   "react-web-source",
   "resolution-quality-evidence",

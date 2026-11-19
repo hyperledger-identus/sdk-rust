@@ -1043,6 +1043,8 @@ name = "identus-wasm-did"
 version = "0.0.0"
 dependencies = [
  "identus-did",
+ "identus-did-peer",
+ "serde",
  "serde_json",
  "wasm-bindgen",
 ]

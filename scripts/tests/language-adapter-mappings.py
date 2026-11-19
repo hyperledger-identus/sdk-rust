@@ -239,9 +239,20 @@ def bind_source_evidence(
 
 
 def main() -> None:
-    registry = REGISTRY.read_text(encoding="utf-8")
+    current_registry = REGISTRY.read_text(encoding="utf-8")
     rendered = RENDERED.read_text(encoding="utf-8")
     catalog = CATALOG.read_text(encoding="utf-8")
+    active_state_line = 'state              = "active"'
+    pending_state_line = 'state              = "pending-revision"'
+    # Lifecycle mutation tests need an active synthetic baseline even when the
+    # checked-in repository is carrying a valid pending source transition.
+    # Keep the actual registry for render-integrity checks below.
+    canonical_sources, mappings = current_registry.split("\n[[mappings]]", 1)
+    registry = (
+        canonical_sources.replace(pending_state_line, active_state_line)
+        + "\n[[mappings]]"
+        + mappings
+    )
     revision_match = re.search(
         r'(?m)^canonical_revision = "([0-9a-f]{40})"$', registry
     )
@@ -250,12 +261,10 @@ def main() -> None:
     canonical_revision_line = (
         f'canonical_revision = "{revision_match.group(1)}"'
     )
-    active_state_line = 'state              = "active"'
-    pending_state_line = 'state              = "pending-revision"'
     pending_registry = replace_first(registry, active_state_line, pending_state_line)
 
-    run(registry, rendered, True)
-    run(registry, rendered, True, check_rendered=True)
+    run(current_registry, rendered, True)
+    run(current_registry, rendered, True, check_rendered=True)
 
     # Closed schemas and malformed structures produce diagnostics, never tracebacks.
     run(
@@ -964,20 +973,10 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         subprocess.run(["git", "add", "."], cwd=root, check=True)
         subprocess.run(["git", "commit", "-qm", "move source"], cwd=root, check=True)
         registry_path = root / "docs/architecture/language-adapter-mappings.toml"
-        fixture_registry = replace_once(
+        fixture_registry = re.sub(
+            r'(?m)^canonical_revision = "[0-9a-f]{40}"$',
+            f'canonical_revision = "{revision}"',
             registry_path.read_text(encoding="utf-8"),
-            canonical_revision_line,
-            f'canonical_revision = "{revision}"',
-        )
-        fixture_registry = replace_once(
-            fixture_registry,
-            'canonical_revision = "f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8"',
-            f'canonical_revision = "{revision}"',
-        )
-        fixture_registry = replace_once(
-            fixture_registry,
-            'canonical_revision = "d3cdc6719fb040da2753dbfde9c3a784c85dafb2"',
-            f'canonical_revision = "{revision}"',
         )
         registry_path.write_text(fixture_registry, encoding="utf-8")
 
@@ -1206,9 +1205,9 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
             raise AssertionError(f"rendered review surface is missing {required!r}")
     if "identus-did::identus_did" in rendered:
         raise AssertionError("rendered Rust API must not duplicate the Cargo package")
-    run(registry, rendered + "\n", False, check_rendered=True)
+    run(current_registry, rendered + "\n", False, check_rendered=True)
     run(
-        registry,
+        current_registry,
         rendered.replace(
             "Validated immutable DID preserving the exact serialized value",
             "Validated immutable DID with changed review semantics",

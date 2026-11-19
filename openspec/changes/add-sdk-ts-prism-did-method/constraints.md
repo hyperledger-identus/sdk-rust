@@ -19,8 +19,8 @@ Constraint blockers: none
   runtime-certified.
 - `SDK-LIM-009` remains effective: selected target failures do not erase
   completed Rust-core evidence, while terminal aggregation fails closed.
-- ADRs 0163 and 0174 through 0176, the canonical PRISM method specification,
-  and TS1 SC-01 through SC-09 remain controlling.
+- ADRs 0163, 0174 through 0176, 0199, and 0201, the canonical PRISM method
+  specification, and TS1 SC-01 through SC-09 remain controlling.
 
 ## Introduced or changed constraints
 
@@ -29,6 +29,11 @@ Constraint blockers: none
 names and explicit canonical/long-form/history operations. No raw generated
 owner, chain client, ledger coordinate, database, transport, runtime, or
 historical SDK component name crosses the reviewed public boundary.
+
+ADR 0201 narrows ADR 0174's generic-crate prohibition for this exact outer
+target-assembly edge. The conformance rulebook accepts only
+`identus-wasm-did -> identus-prism-did`; generic crates, native adapters, VDR,
+indexer, and chain-family dependencies remain denied.
 
 Long-form construction accepts caller-owned public key, service, and context
 material only. Rust owns operation encoding, identifier derivation, state

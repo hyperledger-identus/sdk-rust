@@ -9,6 +9,10 @@ provider composition, observation, cancellation, and target loaders. Injected
 effects own platform work. No TypeScript function parses protobuf, derives a
 suffix, verifies a signature, reduces state, or projects a document.
 
+ADR 0201 records the exact outer-boundary composition edge from the private
+WASM artifact to the portable PRISM method crate. The exception is closed to
+that source-target pair and does not broaden generic or native dependencies.
+
 ## Generated binding v5
 
 The binding adds owned views for a parsed/created PRISM identifier and reduced

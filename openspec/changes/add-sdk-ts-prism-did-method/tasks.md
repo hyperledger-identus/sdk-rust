@@ -62,5 +62,5 @@
       findings, and verify signed+DCO commits.
 - [x] 5.4 Prepare the exact locally validated candidate and issue-linked,
       merge-ready PR metadata; hosted CI/review/merge remain delivery evidence.
-- [ ] 5.5 Guardedly archive the synchronized contract with retained receipts;
+- [x] 5.5 Guardedly archive the synchronized contract with retained receipts;
       owned rebuildable target/worktree cleanup remains post-integration.

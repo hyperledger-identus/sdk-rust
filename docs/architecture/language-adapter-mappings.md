@@ -16,7 +16,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `did-document.source.identus-did.v1` | `active` | `identus-did` | `f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8` | `crates/did/src/document.rs` | 3202 | `9dc6010e8b9ede3e5da14b78444c20f7ceaafb30ca7c1d9dadfb47adc09ed293` | `sha1:9deb6e0d769c188f87e6a1aa23a924babfd98bb2` |
 | `did-resolution.source.identus-did.v1` | `active` | `identus-did` | `d3cdc6719fb040da2753dbfde9c3a784c85dafb2` | `crates/did/src/resolution/wire.rs` | 1826 | `8383078cee088b9625c142fa650ace84137df5ee3eeae2906c974ef20aee19b7` | `sha1:b928986219a26d07dcbcffcb77cbbf920b435be0` |
 | `did-peer.source.identus-did-peer.v1` | `active` | `identus-did-peer` | `bd1981372fcb08772d1196131a0cf26291fad9cb` | `crates/did-peer/src/numalgo4.rs` | 28041 | `d71712f2c0f81adb9b20a78fc7fa0f924c764095c10c7855e5c8bc3633b9066f` | `sha1:4403dd928cfab3658dd35d4914f49cb62c5f47a3` |
-| `did-peer-numalgo2.source.identus-did-peer.v1` | `pending-revision` | `identus-did-peer` | `bd1981372fcb08772d1196131a0cf26291fad9cb` | `crates/did-peer/src/numalgo2_compat.rs` | 38481 | `19fcb5d80b3ea7a807d75357d13a7d0c027a80a035541d83a4f17858d37a018f` | `sha1:e9d1c5f214ce358fb92b8729f7dfad01f25af6f8` |
+| `did-peer-numalgo2.source.identus-did-peer.v1` | `pending-revision` | `identus-did-peer` | `bd1981372fcb08772d1196131a0cf26291fad9cb` | `crates/did-peer/src/numalgo2_compat.rs` | 39975 | `d87c37aeb66abff0805e306c773a69eaf788ebd1b960c75cc643086ed065763d` | `sha1:81da7fa3d35fc5d309bfb23b0e650fa848aedd77` |
 
 ## Mappings
 

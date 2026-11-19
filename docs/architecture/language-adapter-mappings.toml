@@ -64,10 +64,10 @@ canonical_crate    = "identus-did-peer"
 canonical_revision = "bd1981372fcb08772d1196131a0cf26291fad9cb"
 path               = "crates/did-peer/src/numalgo2_compat.rs"
 file_mode          = "100644"
-byte_length        = 38481
-sha256             = "19fcb5d80b3ea7a807d75357d13a7d0c027a80a035541d83a4f17858d37a018f"
+byte_length        = 39975
+sha256             = "d87c37aeb66abff0805e306c773a69eaf788ebd1b960c75cc643086ed065763d"
 git_object_format  = "sha1"
-git_blob_oid       = "e9d1c5f214ce358fb92b8729f7dfad01f25af6f8"
+git_blob_oid       = "81da7fa3d35fc5d309bfb23b0e650fa848aedd77"
 
 [[mappings]]
 id = "did.value.typescript.legacy-v1"

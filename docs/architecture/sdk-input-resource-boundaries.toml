@@ -1,7 +1,7 @@
 schema_version    = 1
 repository        = "hyperledger-identus/sdk-rust"
 owner_issue       = "#168"
-baseline_revision = "66ec2b9b3a7ec35cf21ecc52cdca5bebed0b4d0d"
+baseline_revision = "5a26290691c8fdd484217630825e7280f9e5627e"
 
 [[boundaries]]
 id               = "core-fixed-values"
@@ -618,3 +618,14 @@ evidence         = [ "crates/wasm-did/src/lib.rs", "openspec/specs/browser-did-b
 outer_obligation = "The JavaScript engine and wasm-bindgen bridge allocate/encode input before bounded Rust DID parsing."
 consumer_impact  = "Browser applications must cap input before the bridge; the Rust DID value remains bounded."
 review_triggers  = [ "new WASM payload", "binary bridge", "browser support activation" ]
+
+[[boundaries]]
+id               = "wasm-did-peer-inputs"
+package          = "identus-wasm-did"
+surface          = "TypeScript peer DID creation JSON and peer DID string arguments before the wasm-bindgen bridge"
+disposition      = "sdk-enforced"
+limits           = [ "MAX_NUMALGO4_INPUT_BYTES=16384", "MAX_NUMALGO2_INPUT_BYTES=24576", "MAX_NUMALGO4_LONG_FORM_BYTES=24635", "MAX_NUMALGO4_SHORT_FORM_BYTES=58", "MAX_NUMALGO2_DID_BYTES=131072", "MAX_DEPTH=32", "MAX_NODES=4096", "MAX_MEMBERS=128", "MAX_ELEMENTS=32" ]
+evidence         = [ "packages/identus-sdk/src/internal/peer-input.ts", "packages/identus-sdk/src/internal/provider.ts", "packages/identus-sdk/tests/provider.test.mjs", "crates/wasm-did/src/peer.rs" ]
+outer_obligation = "The JavaScript engine already owns structured values and strings before the private adapter runs. The adapter checks profile, UTF-8 bytes, cardinality, descriptors, depth and nodes before JSON serialization or wasm-bindgen encoding; raw host allocation remains outside the SDK boundary."
+consumer_impact  = "Numalgo-4 creation JSON is capped at 16 KiB, the complete numalgo-2 creation DTO at 24 KiB, compact service JSON at the separate Rust-owned 16 KiB limit, and every peer DID string at its selected Rust profile ceiling before crossing into WASM."
+review_triggers  = [ "new peer profile or operation", "binding DTO change", "string or JSON limit change", "binary bridge", "browser support activation" ]

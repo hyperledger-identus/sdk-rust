@@ -34,6 +34,7 @@ MAPPING_KEYS = {
     "language_path", "language_license", "language_symbol", "language_shape_state", "direction",
     "compatibility_class", "fidelity", "version_window", "deprecation_phase", "version_negotiation",
     "consumers", "vector_ids", "rust_selectors", "language_selectors", "max_input_bytes",
+    "adapter_max_input_bytes",
     "redaction", "sensitive_fields", "async_ownership", "cancellation_ownership", "migration_action",
     "replacement", "observability", "fallback", "rollback", "removal_gate", "fields", "errors",
     "losses", "unsupported"
@@ -602,6 +603,15 @@ def validate_registry(
         limit = mapping.get("max_input_bytes")
         if not isinstance(limit, int) or isinstance(limit, bool) or limit <= 0:
             errors.append(f"{identifier}.max_input_bytes must be a positive integer")
+        adapter_limit = mapping.get("adapter_max_input_bytes")
+        if (
+            not isinstance(adapter_limit, int)
+            or isinstance(adapter_limit, bool)
+            or adapter_limit <= 0
+        ):
+            errors.append(
+                f"{identifier}.adapter_max_input_bytes must be a positive integer"
+            )
         rust_limit = (
             canonical_bound(mapping, source_payloads[source_id], str(identifier), errors)
             if source_record is not None and source_id in source_payloads
@@ -796,7 +806,7 @@ def render(document: dict[str, object], mappings: list[dict[str, object]]) -> st
                 f"- Compatibility: {mapping['compatibility_class']}, {mapping['direction']}, {mapping['fidelity']}; window `{mapping['version_window']}`; phase `{mapping['deprecation_phase']}`.",
                 f"- Version negotiation: {mapping['version_negotiation']}",
                 f"- Consumers: {', '.join(f'`{item}`' for item in mapping['consumers'])}.",
-                f"- Resource policy: at most {mapping['max_input_bytes']} bytes; redaction `{mapping['redaction']}`; sensitive fields: {', '.join(f'`{item}`' for item in mapping['sensitive_fields']) or 'none'}.",
+                f"- Resource policy: canonical component at most {mapping['max_input_bytes']} bytes; complete language-adapter ingress at most {mapping['adapter_max_input_bytes']} bytes; redaction `{mapping['redaction']}`; sensitive fields: {', '.join(f'`{item}`' for item in mapping['sensitive_fields']) or 'none'}.",
                 f"- Ownership: async `{mapping['async_ownership']}`; cancellation `{mapping['cancellation_ownership']}`.",
                 f"- Migration: {mapping['migration_action']}",
                 f"- Replacement: {mapping['replacement']}",

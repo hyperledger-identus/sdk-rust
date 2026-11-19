@@ -16,7 +16,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `did-document.source.identus-did.v1` | `active` | `identus-did` | `f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8` | `crates/did/src/document.rs` | 3202 | `9dc6010e8b9ede3e5da14b78444c20f7ceaafb30ca7c1d9dadfb47adc09ed293` | `sha1:9deb6e0d769c188f87e6a1aa23a924babfd98bb2` |
 | `did-resolution.source.identus-did.v1` | `active` | `identus-did` | `d3cdc6719fb040da2753dbfde9c3a784c85dafb2` | `crates/did/src/resolution/wire.rs` | 1826 | `8383078cee088b9625c142fa650ace84137df5ee3eeae2906c974ef20aee19b7` | `sha1:b928986219a26d07dcbcffcb77cbbf920b435be0` |
 | `did-peer.source.identus-did-peer.v1` | `active` | `identus-did-peer` | `bd1981372fcb08772d1196131a0cf26291fad9cb` | `crates/did-peer/src/numalgo4.rs` | 28041 | `d71712f2c0f81adb9b20a78fc7fa0f924c764095c10c7855e5c8bc3633b9066f` | `sha1:4403dd928cfab3658dd35d4914f49cb62c5f47a3` |
-| `did-peer-numalgo2.source.identus-did-peer.v1` | `pending-revision` | `identus-did-peer` | `bd1981372fcb08772d1196131a0cf26291fad9cb` | `crates/did-peer/src/numalgo2_compat.rs` | 39975 | `d87c37aeb66abff0805e306c773a69eaf788ebd1b960c75cc643086ed065763d` | `sha1:81da7fa3d35fc5d309bfb23b0e650fa848aedd77` |
+| `did-peer-numalgo2.source.identus-did-peer.v1` | `pending-revision` | `identus-did-peer` | `5a26290691c8fdd484217630825e7280f9e5627e` | `crates/did-peer/src/numalgo2_compat.rs` | 39912 | `cd70472044edcb3d30541ee8fe8ee711778cecc3b2a097efba01cc3b9454f582` | `sha1:e64e949cab278b4dfe49a61e644e2e40971ba333` |
 
 ## Mappings
 
@@ -43,7 +43,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: deprecated, bidirectional, lossless; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 131072 bytes; redaction `caller-input`; sensitive fields: none.
+- Resource policy: canonical component at most 131072 bytes; complete language-adapter ingress at most 131072 bytes; redaction `caller-input`; sensitive fields: none.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Construct the Rust value first, then project the legacy DTO until SDK-TS exposes a canonical-value facade.
 - Replacement: SDK-TS additive DID facade backed by the serialized Rust value and stable error code.
@@ -76,7 +76,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 139264 bytes; redaction `caller-input`; sensitive fields: none.
+- Resource policy: canonical component at most 139264 bytes; complete language-adapter ingress at most 139264 bytes; redaction `caller-input`; sensitive fields: none.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Use Rust as the parser and source of truth; reject unsupported reverse projection and introduce an additive exact-value facade.
 - Replacement: SDK-TS additive DID URL facade preserving serialized, raw query, and presence state.
@@ -125,7 +125,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 131072 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
+- Resource policy: canonical component at most 131072 bytes; complete language-adapter ingress at most 131072 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Expose the stable Rust code beside the legacy class, then migrate callers from class/message matching to the code.
 - Replacement: SDK-TS adapter error carrying did.invalid_did with a redacted legacy class facade.
@@ -161,7 +161,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: deprecated, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `transitional`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 139264 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
+- Resource policy: canonical component at most 139264 bytes; complete language-adapter ingress at most 139264 bytes; redaction `caller-input`; sensitive fields: `rejected-input`.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Expose the distinct stable Rust code beside the shared legacy class, then migrate callers from class/message matching.
 - Replacement: SDK-TS adapter error carrying did.invalid_did_url with a redacted legacy class facade.
@@ -197,7 +197,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: additive, rust-to-language, lossy; window `>=8.1.4,<8.1.5`; phase `none`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 262144 bytes; redaction `caller-input`; sensitive fields: `document-json`, `verification-material`.
+- Resource policy: canonical component at most 262144 bytes; complete language-adapter ingress at most 262144 bytes; redaction `caller-input`; sensitive fields: `document-json`, `verification-material`.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Parse with canonical Rust first, project a frozen capability-named DTO, and preserve normalized JSON when the legacy object shape loses distinctions.
 - Replacement: Private additive TypeScript DID Document value backed by identus-did validation and normalized serialization.
@@ -242,7 +242,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: additive, rust-to-language, lossy; window `>=0.0.0,<0.0.1`; phase `none`.
 - Version negotiation: npm-package-version
 - Consumers: `sdk-ts`.
-- Resource policy: at most 524288 bytes; redaction `caller-input`; sensitive fields: `requested-did`, `result-json`, `problem-detail`, `dereferenced-content`.
+- Resource policy: canonical component at most 524288 bytes; complete language-adapter ingress at most 524288 bytes; redaction `caller-input`; sensitive fields: `requested-did`, `result-json`, `problem-detail`, `dereferenced-content`.
 - Ownership: async `language`; cancellation `adapter`.
 - Migration: Inject one bounded raw-text host effect and compose it between synchronous canonical Rust request preparation and correlated result parsing.
 - Replacement: Private capability-named DID resolution and dereferencing provider backed by identus-did.
@@ -289,7 +289,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: additive, bidirectional, lossy; window `>=0.0.0,<0.0.1`; phase `none`.
 - Version negotiation: binding-api-version-4
 - Consumers: `sdk-ts`.
-- Resource policy: at most 16384 bytes; redaction `caller-input`; sensitive fields: `did`, `input-document`, `public-key`, `service`, `generated-error`.
+- Resource policy: canonical component at most 16384 bytes; complete language-adapter ingress at most 16384 bytes; redaction `caller-input`; sensitive fields: `did`, `input-document`, `public-key`, `service`, `generated-error`.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Use only the explicit numalgo-4 or numalgo-2-compatibility method; keep public-key generation, custody, networking, persistence, and DIDComm effects in their owning host capabilities.
 - Replacement: Private capability-named peer DID methods backed by identus-did-peer.
@@ -324,7 +324,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `did.peer.profiles`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
 - Cargo package: `identus-did-peer`.
-- Rust API: `identus_did_peer::numalgo2_compat::PeerDid` from source `did-peer-numalgo2.source.identus-did-peer.v1` at `bd1981372fcb08772d1196131a0cf26291fad9cb` (unreleased-workspace-0.0.0).
+- Rust API: `identus_did_peer::numalgo2_compat::PeerDid` from source `did-peer-numalgo2.source.identus-did-peer.v1` at `5a26290691c8fdd484217630825e7280f9e5627e` (unreleased-workspace-0.0.0).
 - Canonical semantics: Explicit bounded numalgo-2 compatibility creation, parsing, and local resolution from caller-owned public keys and services.
 - Canonical bound: `MAX_SERVICE_BYTES` in `crates/did-peer/src/numalgo2_compat.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `browser-node-react-web`, symbol `DidProvider`, version `0.0.0` at `a81e34ff4b47fb24955b1f0dc91d3eb660a7d2b0`, path `packages/identus-sdk/src/public.ts`.
@@ -332,7 +332,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 - Compatibility: additive, bidirectional, lossless; window `>=0.0.0,<0.0.1`; phase `none`.
 - Version negotiation: binding-api-version-4
 - Consumers: `sdk-ts`.
-- Resource policy: at most 16384 bytes; redaction `caller-input`; sensitive fields: `did`, `public-key`, `service`, `generated-error`.
+- Resource policy: canonical component at most 16384 bytes; complete language-adapter ingress at most 24576 bytes; redaction `caller-input`; sensitive fields: `did`, `public-key`, `service`, `generated-error`.
 - Ownership: async `not-applicable`; cancellation `not-applicable`.
 - Migration: Use the explicitly named numalgo-2 compatibility methods with caller-owned public material; keep generation, custody, storage, networking, and DIDComm effects in their owning capabilities.
 - Replacement: Private capability-named numalgo-2 compatibility methods backed by identus-did-peer.

@@ -220,7 +220,7 @@ pub fn create_peer_did_numalgo2_compatibility(
         .collect::<Result<Vec<_>, _>>()
         .map_err(DidParseError::peer)?;
     let services = input.services.into_iter().map(map_service).collect();
-    let peer = PeerDid::create(keys, services).map_err(DidParseError::peer)?;
+    let peer = PeerDid::create_sdk_ts_compatibility(keys, services).map_err(DidParseError::peer)?;
     project_numalgo2(&peer)
 }
 

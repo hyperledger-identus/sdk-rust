@@ -148,7 +148,8 @@ fn portable_peer_did_packet_matches_both_profiles() {
                         id: None,
                     })
                     .collect();
-                let actual = PeerDid::create(keys, services).expect("create pairwise DID");
+                let actual = PeerDid::create_sdk_ts_compatibility(keys, services)
+                    .expect("create pairwise DID");
                 actual.resolve().expect("resolve");
                 assert_eq!(
                     actual.did().as_str(),

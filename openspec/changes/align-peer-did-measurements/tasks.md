@@ -13,6 +13,6 @@
 
 ## 3. Verification and closeout
 
-- [ ] 3.1 Generate one exact-revision receipt and pass focused measurement, parity, quality, factory, and full Nix gates.
-- [ ] 3.2 Complete a distinct local review and clear every blocking finding.
-- [ ] 3.3 Archive the change and prepare the protected issue-closing pull request.
+- [x] 3.1 Generate one exact-revision receipt and pass focused measurement, parity, quality, factory, and full Nix gates.
+- [x] 3.2 Complete a distinct local review and clear every blocking finding.
+- [x] 3.3 Archive the change and prepare the protected issue-closing pull request.

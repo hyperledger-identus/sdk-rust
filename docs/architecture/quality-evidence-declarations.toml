@@ -2,7 +2,7 @@ schema_version   = 1
 registry_version = "1.0.0"
 status           = "active"
 owner_issue      = 501
-evaluated_at     = "2026-11-18"
+evaluated_at     = "2026-11-19"
 allowed_classes  = [ "property", "fuzz", "benchmark", "differential" ]
 allowed_lanes    = [ "focused", "fast", "slow", "release", "none" ]
 allowed_cadences = [ "on-change", "per-pull-request", "weekly-or-manual", "per-candidate", "not-applicable" ]
@@ -1467,26 +1467,26 @@ details           = [ "invariant=Every target exposes the same frozen profile-sp
 [[declarations.obligations]]
 class             = "fuzz"
 disposition       = "satisfied"
-risk              = "Arbitrary multibase, compact service JSON, nested input documents, or oversized values can panic, amplify work, or retain secret-shaped fields."
-selectors         = [ "fuzz/fuzz_targets/peer_did.rs#fuzz_target!", "scripts/fuzz-did-peer.sh#-max_total_time=300" ]
-command           = "nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak"
-lane              = "slow"
-cadence           = "weekly-or-manual"
-targets           = [ "package:identus-did-peer", "host:linux", "sanitizer:address" ]
+risk              = "Arbitrary objects, multibase values, compact service JSON, generated views, or oversized values can bypass the TypeScript adapter, panic, amplify work, or violate ownership."
+selectors         = [ "packages/identus-sdk/tests/peer-adapter-fuzz.test.mjs#deterministically fuzzes peer adapter ingress and projection boundaries", "scripts/check-sdk-ts-did-target.sh#adapter-fuzz" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh adapter-fuzz"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-typescript-sdk", "runtime:nodejs" ]
 freshness         = "source-bound"
 freshness_days    = 0
-budget            = "Reuse the canonical peer DID fuzz target with max_len=131072, timeout=5, rss_limit_mb=1024, and 300 seconds total time."
+budget            = "Execute 2048 deterministic cases across both peer ingress serializers and both generated-value projections with bounded strings, nesting and collection sizes."
 receipt_kind      = "source"
 receipt           = "source:docs/conformance/sdk-ts-peer-did-quality.md"
-evidence_revision = "761fa01adcf593af8517d4b03ff28f5d5414d5a7"
-recorded_at       = "2026-11-18"
+evidence_revision = "3482ab32d5ee10c5e4b7766c0c78dbeedfe95ae5"
+recorded_at       = "2026-11-19"
 artifact          = "docs/conformance/sdk-ts-peer-did-quality.md"
-owner             = "SDK-Rust peer DID maintainers"
+owner             = "SDK-Rust TypeScript binding maintainers"
 owner_issue       = 603
 debt_status       = "none"
 debt_issue        = 0
 rationale         = ""
-details           = [ "harness=Canonical Rust peer parser/create/resolve boundary consumed by the facade", "corpus=Pinned numalgo-4 and numalgo-2 packets plus promoted regressions; 6784994 executions; 22541 average executions per second; 695 MiB peak RSS; no crash or timeout", "seed=4279326073", "bounds=max_len=131072;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+details           = [ "harness=TypeScript peer input serializers and generated-view projection functions", "corpus=2048 deterministic cases per ingress/profile and projection boundary, including accessors, cycles, exotic prototypes, unsafe numbers, unknown fields, malformed generated fields and exact-free ownership", "seed=0x605f0078", "bounds=2048 iterations; strings at most 96 characters; collections at most 139 entries; serialized output at most 24576 bytes", "sanitizer=Node.js/V8 exception boundary plus exact generated-value free counters; Rust ASAN remains separate core-only evidence" ]
 
 [[declarations.obligations]]
 class             = "benchmark"
@@ -1523,18 +1523,18 @@ cadence           = "per-pull-request"
 targets           = [ "package:identus-did-peer", "package:identus-typescript-sdk", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
 freshness         = "source-bound"
 freshness_days    = 0
-budget            = "Compare exact selected-profile identifiers and normalized document relationships/services through Rust and every applicable TypeScript target."
+budget            = "Compare exact selected-profile identifiers, authentication and key-agreement references, service type/URI/routing/accept values, and every applicable stable negative code through Rust and TypeScript targets."
 receipt_kind      = "source"
 receipt           = "source:docs/conformance/fixtures/did-peer/v1/vectors.json"
-evidence_revision = "5fb02d1bf7507adbdf8bd0255ebe15c2ea146756"
-recorded_at       = "2026-11-18"
+evidence_revision = "3482ab32d5ee10c5e4b7766c0c78dbeedfe95ae5"
+recorded_at       = "2026-11-19"
 artifact          = "docs/conformance/fixtures/did-peer/v1/vectors.json"
 owner             = "SDK-Rust TypeScript binding maintainers"
 owner_issue       = 603
 debt_status       = "none"
 debt_issue        = 0
 rationale         = ""
-details           = [ "oracle=Canonical identus-did-peer plus pinned SDK-TS 8.1.4 numalgo-2 consumer behavior", "oracle-revision=SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e", "normalization=Compare exact DID text and normalized document relationships/services rather than donor classes or error text", "deviations=Numalgo-4 is a Rust-owned addition; numalgo-2 remains explicitly compatibility-only; historical numalgos fail closed" ]
+details           = [ "oracle=Canonical identus-did-peer plus pinned SDK-TS 8.1.4 numalgo-2 consumer behavior", "oracle-revision=SDK-TS 4bf86ebf69d5e96616a148e4c973f831f95fa38e", "normalization=Compare exact DID text, relationship references, service ID/type/URI/routing/accept values and stable error codes rather than donor classes or error text", "deviations=Numalgo-4 is a Rust-owned addition; numalgo-2 remains explicitly compatibility-only; bare donor service IDs and historical numalgos fail closed; accessor, cycle, exotic-prototype, unsafe-number and closed-object rejection are TypeScript-only preconditions before Rust" ]
 
 [[declarations]]
 id          = "siopv2.did-authentication.quality.v1"

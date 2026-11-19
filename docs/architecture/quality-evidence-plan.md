@@ -4,7 +4,7 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-11-18`
+- Evidence evaluated: `2026-11-19`
 - Declaration count: `24`
 
 ## `oid4vp.redirect-response.quality.v1`
@@ -473,7 +473,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
 | `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #603 |
-| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #603 |
+| `fuzz` | `satisfied` | `focused` | `on-change` | `source-bound` | #603 |
 | `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #603 |
 | `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #603 |
 
@@ -486,10 +486,10 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 ### `fuzz`
 
-- Command: `nix develop .#fuzz --command ./scripts/fuzz-did-peer.sh soak`
-- Budget: Reuse the canonical peer DID fuzz target with max_len=131072, timeout=5, rss_limit_mb=1024, and 300 seconds total time.
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh adapter-fuzz`
+- Budget: Execute 2048 deterministic cases across both peer ingress serializers and both generated-value projections with bounded strings, nesting and collection sizes.
 - Receipt: `source:docs/conformance/sdk-ts-peer-did-quality.md`
-- Evidence revision: `761fa01adcf593af8517d4b03ff28f5d5414d5a7`
+- Evidence revision: `3482ab32d5ee10c5e4b7766c0c78dbeedfe95ae5`
 
 ### `benchmark`
 
@@ -501,9 +501,9 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `differential`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential`
-- Budget: Compare exact selected-profile identifiers and normalized document relationships/services through Rust and every applicable TypeScript target.
+- Budget: Compare exact selected-profile identifiers, authentication and key-agreement references, service type/URI/routing/accept values, and every applicable stable negative code through Rust and TypeScript targets.
 - Receipt: `source:docs/conformance/fixtures/did-peer/v1/vectors.json`
-- Evidence revision: `5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`
+- Evidence revision: `3482ab32d5ee10c5e4b7766c0c78dbeedfe95ae5`
 
 ## `siopv2.did-authentication.quality.v1`
 

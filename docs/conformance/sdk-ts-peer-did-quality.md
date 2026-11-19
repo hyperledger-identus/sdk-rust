@@ -28,17 +28,37 @@ Run the canonical core and binding gates through the pinned Nix environments:
 ```text
 nix develop --command cargo test -p identus-wasm-did
 nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all
+nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh adapter-fuzz
+nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh differential
 ```
 
 The target gate builds deterministic API-version-4 browser and Node artifacts,
 checks declarations and package boundaries, executes the shared peer vector
 assertions on every applicable runtime, and emits exact-head target receipts.
-The existing peer DID fuzz target and native conformance packet remain the
-authoritative malformed-input and cross-implementation evidence for the Rust
-core.
+The deterministic adapter fuzz lane executes 2,048 cases at seed `0x605f0078`
+through both TypeScript peer input serializers and both generated-value
+projection functions. It covers bounded nested values, accessors, cycles,
+exotic prototypes, unsafe numbers, unknown fields, invalid purposes and
+multibase values, bare service IDs, malformed generated fields, frozen output,
+and exact-once generated-value release. Node.js/V8 exception handling and the
+explicit ownership counters are the adapter oracle; this lane makes no ASAN
+claim.
 
-The reviewed implementation boundary is commit
-`5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`. At that revision, the pinned
+The existing peer DID libFuzzer/ASAN lane remains separate, authoritative
+core-only evidence. Its 300-second soak exercises the Rust parser,
+create/resolve and hash-linkage boundary; it is not relabelled as TypeScript
+adapter fuzz evidence.
+
+The native differential test executes every applicable negative packet and
+compares exact identifiers, authentication and key-agreement references,
+service ID/type/URI, routing keys and accept values. Accessor, cycle,
+exotic-prototype, unsafe-number and closed-object-field rejection are explicit
+TypeScript-only preconditions that occur before Rust and are therefore not
+attributed to the native differential runner.
+
+The peer evidence-completion implementation boundary is commit
+`3482ab32d5ee10c5e4b7766c0c78dbeedfe95ae5`. The original facade implementation
+boundary remains `5fb02d1bf7507adbdf8bd0255ebe15c2ea146756`. At that revision, the pinned
 Rust 1.99.1 environment passed 29 `identus-did-peer` unit tests, the portable
 peer packet, and 17 `identus-wasm-did` tests. The isolated TypeScript target
 gate passed package/type checks plus the same 13 peer vectors in browser,

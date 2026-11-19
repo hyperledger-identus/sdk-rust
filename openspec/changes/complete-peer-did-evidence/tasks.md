@@ -7,9 +7,9 @@
 
 ## 2. Evidence repair
 
-- [ ] 2.1 Link donor selectors, omitted bare service IDs, adapted positive evidence, and the intentional negative vector.
-- [ ] 2.2 Add bounded deterministic adapter-entry/projection fuzz evidence and keep Rust ASAN evidence core-only.
-- [ ] 2.3 Compare native identifiers, relationships, services, and applicable stable rejections while marking TypeScript-only preconditions.
+- [x] 2.1 Link donor selectors, omitted bare service IDs, adapted positive evidence, and the intentional negative vector.
+- [x] 2.2 Add bounded deterministic adapter-entry/projection fuzz evidence and keep Rust ASAN evidence core-only.
+- [x] 2.3 Compare native identifiers, relationships, services, and applicable stable rejections while marking TypeScript-only preconditions.
 
 ## 3. Verification and closeout
 

@@ -112,6 +112,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "did.syntax.typescript-adoption-rehearsal.v1"
+capability                        = "did.syntax"
+lifecycle_state                   = "proposed"
+issue                             = 609
+pull_request                      = 0
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "target-support" ]
+affected_packages                 = [ "identus-typescript-sdk" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "The private DID facade has isolated capability and target evidence but no one revision-bound consumer journey that runs against both provider routes and proves explicit rollback."
+new_behavior                      = "One pinned pairwise DID journey composes syntax, documents, resolution, dereferencing, peer creation and local resolution through legacy and Rust-backed providers across Node.js, browser, React SSR, and hydrated client targets with terminal pre-initialization selection."
+migration_action                  = "Keep the legacy provider explicitly selectable; adopt the Rust-backed route only through the private pre-initialization selection boundary."
+replacement                       = "Provider-neutral private DID facade adoption and rollback rehearsal."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The package remains private, opt-in, non-default, and unpublished; no external migration window is activated."
+deprecation_phase                 = "not-applicable"
+legacy_bug_policy                 = "fix-and-document"
+mapping_disposition               = "required"
+mapping_ids                       = [ "did.value.typescript.legacy-v1" ]
+mapping_rationale                 = "The change record binds the composed fixture through the existing DID value mapping while the document, resolution, and peer records remain independently authoritative."
+vector_ids                        = [ "did.syntax.consumer-shared-basic" ]
+quality_declaration_ids           = [ "did.syntax.typescript-canary.quality.v1" ]
+observability                     = "Record only exact revisions, target, provider route, mapping ID, stable result or error category, bounded assertion counts and duration; never record DIDs, documents, resolver payloads, generated errors, stacks, WASM memory, secrets, messages or consumer data."
+fallback                          = "Selection is explicit before initialization; a selected provider rejection is terminal and never invokes the other route."
+rollback                          = "Select the injected legacy provider at a fresh pre-initialization boundary and rerun the same consumer journey; remove the private rehearsal without changing canonical Rust or external SDK-TS behavior."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = "External default activation remains prohibited until separately authorized adoption, support, budget, publication, and compatibility gates pass."
+evidence_selectors                = [ "docs/architecture/language-adapter-mappings.toml#did.value.typescript.legacy-v1", "docs/architecture/quality-evidence-declarations.toml#did.syntax.typescript-canary.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#did.syntax.consumer-shared-basic" ]
+evidence_artifacts                = [ "openspec/changes/rehearse-sdk-ts-did-facade-adoption/constraints.md", "openspec/changes/rehearse-sdk-ts-did-facade-adoption/design.md", "openspec/changes/rehearse-sdk-ts-did-facade-adoption/research.md" ]
+limitations                       = "Repository-local private rehearsal only; no external SDK-TS mutation, default switch, support, accepted budget, publication, stable API, React Native, DIDComm processing, credential workflow, release, or mdoc."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "did.peer.profiles.provider-selection.typescript.v1"
 capability                        = "did.peer.profiles"
 lifecycle_state                   = "active"

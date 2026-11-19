@@ -85,6 +85,7 @@ CONSUMER_SELECTORS = {
     "sdk-swift.did-parser": "DIDParserTests.swift:testValidDIDs",
     "sdk-kmp.did-parser": "DIDParserTest.kt:it_should_test_valid_DIDs",
     "typescript.sdk-ts-peer": "PeerDID.test.ts:Should create the peerDID correctly",
+    "typescript.sdk-ts-prism": "PrismDID.test.ts:real example resolves correctly",
 }
 MAX_GENERATED_REPEAT = 262_144
 

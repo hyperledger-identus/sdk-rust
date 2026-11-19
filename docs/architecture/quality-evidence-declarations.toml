@@ -1114,6 +1114,116 @@ details = [
 ]
 
 [[declarations]]
+id          = "did.prism.typescript.quality.v1"
+capability  = "did.prism"
+slice       = "Private TypeScript PRISM DID method facade"
+owner       = "SDK-Rust TypeScript binding maintainers"
+owner_issue = 610
+risk        = "A language facade can drift from canonical PRISM identifiers and authenticated state, accept secret-shaped or unbounded values, trust host-projected state, leak generated ownership, or differ across target loaders."
+targets     = [ "package:identus-typescript-sdk", "package:identus-wasm-did", "package:identus-prism-did", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+vector_ids  = [ "did.prism.preprod.signed-create", "did.prism.preprod.signed-create-second", "did.prism.wire.duplicate-envelope-field" ]
+limitations = "Private additive public-material and exact-history facade only; no Cardano, VDR persistence, indexing, networking, retry, cache, private keys, signing, custody, agent runtime, React Native, external adoption, publication, support, release, stable API, certification, production claim, or mdoc."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "satisfied"
+risk              = "Strict ingress, generated projection, ownership, cancellation, rollback, or target loading can diverge from the canonical Rust boundary."
+selectors         = [ "packages/identus-sdk/tests/provider.test.mjs#resolves PRISM history through one frozen injected effect", "packages/identus-sdk/tests/prism-vector-assertions.mjs#assertPrismStaticVectors", "packages/identus-sdk/tests/prism-vector-assertions.mjs#assertPrismHistoryVector", "crates/wasm-did/src/prism.rs#canonical_signed_history_is_authenticated_and_projected" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all && nix develop --command cargo test -p identus-wasm-did"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-typescript-sdk", "package:identus-wasm-did", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Execute deterministic create/parse/local projection and injected authenticated history through each target, plus strict ingress, abort, redaction, exact-free, observer, and rollback boundaries."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/sdk-ts-prism-did-quality.md"
+evidence_revision = "155f0f982ec14a70ec22ac9a42a1fb996242125d"
+recorded_at       = "2026-11-19"
+artifact          = "docs/conformance/sdk-ts-prism-did-quality.md"
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 610
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "invariant=Only public material and exact signed history cross the adapter; Rust authenticates and projects all state", "domain=Node ESM/CommonJS, browser ESM, React SSR and hydrated React over one binding API", "cases=create, canonical parse, long-form projection, signed history, unavailable/rejected/malformed host result, pre-abort, hostile input and exact ownership" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "required"
+risk              = "Arbitrary nested public-material DTOs, base64url histories, generated views, or oversized values can bypass the TypeScript preflight or violate ownership."
+selectors         = [ "packages/identus-sdk/src/internal/prism-input.ts#serializePrismCreateInput", "packages/identus-sdk/src/internal/prism-input.ts#serializePrismHistory", "packages/identus-sdk/src/internal/prism-projection.ts#projectPrismDidState" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh prism-adapter-fuzz"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-typescript-sdk", "runtime:nodejs" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Add deterministic bounded hostile-object and history cases over both PRISM serializers and both generated projections."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 610
+debt_status       = "open"
+debt_issue        = 610
+rationale         = ""
+details           = [ "harness=Planned deterministic TypeScript serializer and generated-projection hostile-value runner", "corpus=Closed objects, arrays, accessors, cycles, exotic prototypes, unsafe numbers, unknown fields, malformed base64url, over-limit histories and malformed generated fields", "seed=Fixed checked-in deterministic seed", "bounds=Canonical Rust limits remain enforced independently", "sanitizer=Node/V8 exception boundary plus explicit exact-free counters; native ASAN remains core-only evidence" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "required"
+risk              = "The PRISM dependency, generated API, history serialization, signature verification, or projection can materially increase artifacts, latency, or retained memory."
+selectors         = [ "docs/conformance/sdk-ts-prism-did-quality.md#Local gates", "packages/identus-sdk/tests/measurements.mjs#measurement" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-typescript-sdk", "runtime:nodejs" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Extend the exact-revision measurement lane with representative and near-limit PRISM create/history cases before any support budget is accepted."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 610
+debt_status       = "open"
+debt_issue        = 610
+rationale         = ""
+details           = [ "operation=Representative and near-limit PRISM public-material creation and authenticated signed-history reduction", "fixture=Pinned public Preprod signed create plus deterministic bounded public material", "environment=Pinned Nix Rust 1.99.1, Node 24, wasm-pack 0.15.0 and wasm-bindgen-cli 0.2.121", "statistic=Artifact bytes, p50/p95 latency and process RSS", "samples=At least 101 measured operations after 21 warm-ups per stable fixture", "threshold=Measurement-only until a later target decision" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "satisfied"
+risk              = "The facade can appear internally consistent while changing public Preprod operation identity, signature verification, canonical suffix, or projected state."
+selectors         = [ "crates/conformance/tests/cross_language_prism_vectors.rs#portable_prism_packet_matches_identus_prism_did", "packages/identus-sdk/tests/prism-vector-assertions.mjs#assertPrismHistoryVector", "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json#5873d42d38408e10f5e9dc624c0fc18fbf4b5a7871046501eb7f7e4997f11360" ]
+command           = "cargo test -p identus-conformance --test cross_language_prism_vectors && nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-prism-did", "package:identus-typescript-sdk", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "source-bound"
+freshness_days    = 0
+budget            = "Verify the pinned exact signed create envelope and canonical suffix in Rust, then execute the same envelope through every applicable TypeScript target."
+receipt_kind      = "source"
+receipt           = "source:docs/conformance/sdk-ts-prism-did-quality.md"
+evidence_revision = "155f0f982ec14a70ec22ac9a42a1fb996242125d"
+recorded_at       = "2026-11-19"
+artifact          = "docs/conformance/sdk-ts-prism-did-quality.md"
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 610
+debt_status       = "none"
+debt_issue        = 0
+rationale         = ""
+details           = [ "oracle=Public Cardano Preprod signed create reproduced by canonical Rust and NeoPRISM evidence", "oracle-revision=04a43c3ff8afde4218011e58bd02b246e4d9ab6194e356467dd2319aba5015f9", "normalization=Compare exact canonical/long-form identifiers, signed envelope bytes, active status and projected document subject", "deviations=Host supplies only exact history; Cardano and persistence remain excluded" ]
+
+[[declarations]]
 id = "did.prism.vdr-indexing.quality.v1"
 capability = "did.prism.vdr-indexing"
 slice = "Portable chain-neutral PRISM VDR and deterministic indexer cores"

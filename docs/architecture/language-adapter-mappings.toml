@@ -69,6 +69,19 @@ sha256             = "cd70472044edcb3d30541ee8fe8ee711778cecc3b2a097efba01cc3b94
 git_object_format  = "sha1"
 git_blob_oid       = "e64e949cab278b4dfe49a61e644e2e40971ba333"
 
+[[canonical_sources]]
+id                 = "did-prism.source.identus-prism-did.v1"
+owner_issue        = 512
+state              = "active"
+canonical_crate    = "identus-prism-did"
+canonical_revision = "0482b7066a8806e588cd9494e903f5aee1e4c324"
+path               = "crates/prism-did/src/limits.rs"
+file_mode          = "100644"
+byte_length        = 1874
+sha256             = "ec56362ac49c302b66de0d16a9374541c0d8f2dcd1a521618da3f8b88c5231b4"
+git_object_format  = "sha1"
+git_blob_oid       = "94cfca8c5da124c093d6ca5f85cc6845f3985828"
+
 [[mappings]]
 id = "did.value.typescript.legacy-v1"
 capability = "did.syntax"
@@ -717,6 +730,81 @@ required  = true
 [[mappings.fields]]
 rust      = "DID and DID document"
 language  = "PeerDidNumalgo2CompatibilityValue"
+transform = "frozen-owned-projection"
+direction = "rust-to-language"
+required  = true
+
+[[mappings]]
+id                       = "did.prism.typescript.v1"
+capability               = "did.prism"
+owner_issue              = 505
+state                    = "active"
+kind                     = "value"
+canonical_crate          = "identus-prism-did"
+canonical_rust_path      = "identus_prism_did::PrismDidState"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_source_id      = "did-prism.source.identus-prism-did.v1"
+canonical_description    = "Bounded canonical and long-form identifiers, public-material initial state, authenticated exact signed history, atomic state reduction, and generic DID Document projection."
+canonical_bound_symbol   = "MAX_SIGNED_OPERATION_BYTES"
+language                 = "typescript"
+language_package         = "@hyperledger/identus-sdk"
+language_target          = "browser-node-react-web"
+language_version         = "0.0.0"
+language_revision        = "155f0f982ec14a70ec22ac9a42a1fb996242125d"
+language_path            = "packages/identus-sdk/src/public.ts"
+language_license         = "Apache-2.0"
+language_symbol          = "PrismDidProvider"
+language_shape_state     = "private-canary"
+direction                = "bidirectional"
+compatibility_class      = "additive"
+fidelity                 = "lossless"
+version_window           = ">=0.0.0,<0.0.1"
+deprecation_phase        = "none"
+version_negotiation      = "binding-api-version-5"
+consumers                = [ "sdk-ts" ]
+vector_ids               = [ "did.prism.preprod.signed-create" ]
+rust_selectors           = [ "identus_prism_did::PrismDid", "identus_prism_did::LongFormPrismDid", "identus_prism_did::PrismDidState" ]
+language_selectors       = [ "packages/identus-sdk/src/public.ts", "packages/identus-sdk/src/internal/prism-input.ts", "packages/identus-sdk/src/internal/prism-projection.ts" ]
+max_input_bytes          = 131072
+adapter_max_input_bytes  = 25165824
+redaction                = "caller-input"
+sensitive_fields         = [ "did", "signed-operation", "public-key", "service", "document", "host-error", "generated-error" ]
+async_ownership          = "adapter"
+cancellation_ownership   = "adapter"
+migration_action         = "Use capability-named PRISM values and inject only ordered exact signed-operation base64url history; keep Cardano, persistence, indexing, retry, cache, key custody, and signing in their owning hosts."
+replacement              = "Private additive PRISM DID method facade backed by identus-prism-did."
+observability            = "Record only mapping ID, operation, provider route, result category, stable error code, and bounded duration; never record identifiers, operations, keys, services, documents, host errors, stacks, or WASM memory."
+fallback                 = "No automatic transport, retry, parser, history, document, or legacy fallback follows canonical or host rejection."
+rollback                 = "Select a provider without PRISM capability before initialization and remove the unreleased additive facade without changing canonical Rust."
+removal_gate             = "A separately accepted SDK-TS migration may retire a legacy route only after external adoption, accepted target budgets and support, publication authority, and a rehearsed rollback."
+errors                   = [  ]
+losses                   = [  ]
+unsupported              = [  ]
+
+[[mappings.fields]]
+rust      = "public keys, services, contexts and initial-state operation"
+language  = "PrismDidCreateInput"
+transform = "closed-public-material-dto"
+direction = "language-to-rust"
+required  = true
+
+[[mappings.fields]]
+rust      = "canonical or long-form identifier and optional projected document"
+language  = "PrismDidValue"
+transform = "frozen-owned-projection"
+direction = "rust-to-language"
+required  = true
+
+[[mappings.fields]]
+rust      = "ordered exact signed operation bytes"
+language  = "PrismDidHistoryEffect"
+transform = "unpadded-base64url-array"
+direction = "language-to-rust"
+required  = true
+
+[[mappings.fields]]
+rust      = "authenticated active or deactivated state"
+language  = "PrismDidStateValue"
 transform = "frozen-owned-projection"
 direction = "rust-to-language"
 required  = true

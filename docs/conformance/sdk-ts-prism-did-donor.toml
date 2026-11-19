@@ -1,0 +1,83 @@
+schema_version  = 1
+owner_issue     = 610
+source_url      = "https://github.com/hyperledger-identus/sdk-ts"
+source_revision = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+source_version  = "8.1.4"
+license         = "Apache-2.0"
+
+[[records]]
+id              = "sdk-ts.prism.long-form-value"
+kind            = "source"
+path            = "packages/lib/sdk/src/castor/did/prismDID/LongFormPrismDID.ts"
+sha256          = "2bad7d6cf168e5399d424e2434126dddc1cadb2296ab11a5e09e8a52c56f2bfd"
+disposition     = "adapted"
+portable_part   = "Self-certifying canonical suffix plus embedded initial-state long form."
+excluded_part   = "Legacy class shape, donor protobuf implementation, and permissive error behavior."
+replacement     = "identus-prism-did canonical/long-form parser projected as frozen PrismDidValue."
+reconsideration = "Revisit only after an accepted PRISM method profile revision."
+
+[[records]]
+id              = "sdk-ts.prism.method-id"
+kind            = "source"
+path            = "packages/lib/sdk/src/castor/did/prismDID/PrismDIDMethodId.ts"
+sha256          = "290ad21f88cf82a9794b16827969b57e3ad371b9e1abb13aba928675dbcb9a50"
+disposition     = "superseded"
+portable_part   = "PRISM method identity and canonical suffix."
+excluded_part   = "Historical value naming and duplicate parser authority."
+replacement     = "Canonical identus-prism-did PrismDid and capability-named TypeScript values."
+reconsideration = "Revisit only if the canonical Rust owner changes."
+
+[[records]]
+id              = "sdk-ts.prism.long-form-resolver"
+kind            = "source"
+path            = "packages/lib/sdk/src/castor/resolver/LongFormPrismDIDResolver.ts"
+sha256          = "a466e25a4beac125bbcb7ddeca1de8a98abf677e744d355d3da39f7a0fe9a030"
+disposition     = "adapted"
+portable_part   = "Local projection from embedded long-form initial state."
+excluded_part   = "Donor DTOs, legacy names, and generic errors."
+replacement     = "resolvePrismDidLongForm through canonical Rust initial-state reduction and generic DID Document projection."
+reconsideration = "Revisit only if long-form local resolution semantics change normatively."
+
+[[records]]
+id              = "sdk-ts.prism.canonical-resolver"
+kind            = "source"
+path            = "packages/lib/sdk/src/castor/resolver/PrismDIDResolver.ts"
+sha256          = "c4081f8740da0848371d9c0a8b2eb2a62c8de08f40013bd3bfe3985a72043de0"
+disposition     = "adapted"
+portable_part   = "Asynchronous canonical identifier resolution through configured infrastructure."
+excluded_part   = "Ambient network, resolver registry, transport policy, document injection, and generic errors."
+replacement     = "One injected cancellable exact-history effect followed by authenticated Rust reduction and projection."
+reconsideration = "Revisit only with a separately reviewed transport or Cardano capability."
+
+[[records]]
+id              = "sdk-ts.prism.syntax-tests"
+kind            = "test"
+path            = "packages/lib/sdk/tests/castor/PrismDID.test.ts"
+sha256          = "18a25ef8e1d5a7586f02b98a932d919b8efe73f24d8c97da916a835f3cebd330"
+disposition     = "adapted"
+portable_part   = "Long/canonical identity and projected document outcomes."
+excluded_part   = "Donor-only DTO shape, mocks, and generic thrown text."
+replacement     = "Shared PRISM assertion body plus pinned Rust/Preprod exact signed-operation vectors."
+reconsideration = "Revisit when SDK-TS publishes a new independently reviewed consumer journey."
+
+[[records]]
+id              = "sdk-ts.prism.key-generation"
+kind            = "source"
+path            = "packages/lib/sdk/src/edge-agent/didFunctions/CreatePrismDIDWithKeys.ts"
+sha256          = "1c89e9df7d64881098d7b181216520ed47d27775f2c81ea8657357a3d2b6f3b1"
+disposition     = "platform-owned"
+portable_part   = "Public key material may enter deterministic initial-state construction."
+excluded_part   = "Private key generation, derivation, custody, persistence, and agent lifecycle."
+replacement     = "Caller supplies bounded public material; no private material or signing callback crosses the facade."
+reconsideration = "Revisit only in a separately authorized custody capability."
+
+[[records]]
+id              = "neoprism.prism-adoption-boundary"
+kind            = "merge"
+path            = "https://github.com/hyperledger-identus/neoprism/pull/324"
+sha256          = "aa7f96156708f8884cf5a4ae3d29bf1fb929f5a532391ba5539209d5512fd8b1"
+disposition     = "conformance-only"
+portable_part   = "Exact-byte operation and portable-state adoption boundary."
+excluded_part   = "Cardano, persistence, indexing, timestamps, node composition, and service policy."
+replacement     = "Pinned Rust vectors and canonical identus-prism-did semantics."
+reconsideration = "Revisit only as immutable differential evidence, never as adapter implementation authority."

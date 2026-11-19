@@ -38,6 +38,14 @@ function dispose(value: RawOwnedValue): void {
   }
 }
 
+function project<T>(callback: () => T): T {
+  try {
+    return callback();
+  } catch {
+    throw bindingFailure();
+  }
+}
+
 export function projectPrismDid(
   raw: RawPrismDidView,
   callbacks: PrismProjectionCallbacks,
@@ -59,11 +67,11 @@ export function projectPrismDid(
   }
   return Object.freeze({
     form,
-    did: callbacks.did(requestedDid),
-    canonicalDid: callbacks.did(canonicalDid),
+    did: project(() => callbacks.did(requestedDid)),
+    canonicalDid: project(() => callbacks.did(canonicalDid)),
     document: resolvedDocument === undefined
       ? undefined
-      : callbacks.document(resolvedDocument),
+      : project(() => callbacks.document(resolvedDocument)),
   });
 }
 
@@ -86,8 +94,8 @@ export function projectPrismDidState(
   } finally {
     dispose(raw);
   }
-  const did = callbacks.did(requestedDid);
-  const canonical = callbacks.did(canonicalDid);
+  const did = project(() => callbacks.did(requestedDid));
+  const canonical = project(() => callbacks.did(canonicalDid));
   if (deactivated) {
     if (resolvedDocument !== undefined) {
       throw bindingFailure();
@@ -106,6 +114,6 @@ export function projectPrismDidState(
     status: "active",
     did,
     canonicalDid: canonical,
-    document: callbacks.document(resolvedDocument),
+    document: project(() => callbacks.document(resolvedDocument)),
   });
 }

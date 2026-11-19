@@ -1094,6 +1094,42 @@ test("fails closed for unavailable, malformed, rejected, and aborted PRISM histo
   );
   assert.equal(parseCalls, 0);
 
+  const duringEffect = new AbortController();
+  const parsedDuringEffect = owned({
+    requestedDid: canonical,
+    canonicalDid: canonical,
+    form: "canonical",
+    resolvedDocument: undefined,
+  });
+  const didsDuringEffect = [0, 1].map(() => owned({
+    value: canonical,
+    method: "prism",
+    methodSpecificId: "canonical",
+  }));
+  let didDuringEffectIndex = 0;
+  let reduceAfterAbortCalls = 0;
+  const cancelled = createRustDidQueryProvider(binding({
+    parsePrismDid: () => parsedDuringEffect.value,
+    parseDid: () => didsDuringEffect[didDuringEffectIndex++].value,
+    reducePrismDidHistory() {
+      reduceAfterAbortCalls += 1;
+    },
+  }), "node-wasm", {
+    history: {
+      async history() {
+        duringEffect.abort();
+        return ["CgAB"];
+      },
+    },
+  });
+  await assert.rejects(
+    cancelled.resolvePrismDid(canonical, { signal: duringEffect.signal }),
+    (error) => error instanceof DidError && error.code === "did.operation_aborted",
+  );
+  assert.equal(reduceAfterAbortCalls, 0);
+  assert.equal(parsedDuringEffect.freeCount(), 1);
+  for (const did of didsDuringEffect) assert.equal(did.freeCount(), 1);
+
   for (const returnHistory of [
     async () => ["="],
     async () => { throw new Error("host detail"); },

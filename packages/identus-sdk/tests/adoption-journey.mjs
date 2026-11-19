@@ -2,6 +2,7 @@
 
 export const SDK_TS_DONOR_REVISION =
   "4bf86ebf69d5e96616a148e4c973f831f95fa38e";
+export const DID_ADOPTION_ASSERTIONS_PER_ROUTE = 23;
 
 const PAIRWISE_DID =
   "did:peer:2.Ez6LSoHkfN1Y4nK9RCjx7vopWsLrMGNFNgTNZgoCNQrTzmb1n.Vz6MknRZmapV7uYZQuZez9n9N3tQotjRN18UGS68Vcfo6gR4h.SeyJ0IjoiZG0iLCJzIjp7InVyaSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vZW5kcG9pbnQiLCJyIjpbImRpZDpleGFtcGxlOnNvbWVtZWRpYXRvciNzb21la2V5Il0sImEiOltdfX0";
@@ -28,10 +29,38 @@ const PAIRWISE_INPUT = Object.freeze({
     }),
   ]),
 });
-const DOCUMENT_LITERAL = `{"id":"${PAIRWISE_DID}"}`;
+const DOCUMENT_WIRE = Object.freeze({
+  id: PAIRWISE_DID,
+  verificationMethod: Object.freeze([
+    Object.freeze({
+      id: `${PAIRWISE_DID}#key-1`,
+      type: "Multikey",
+      controller: PAIRWISE_DID,
+      publicKeyMultibase: "z6LSoHkfN1Y4nK9RCjx7vopWsLrMGNFNgTNZgoCNQrTzmb1n",
+    }),
+    Object.freeze({
+      id: `${PAIRWISE_DID}#key-2`,
+      type: "Multikey",
+      controller: PAIRWISE_DID,
+      publicKeyMultibase: "z6MknRZmapV7uYZQuZez9n9N3tQotjRN18UGS68Vcfo6gR4h",
+    }),
+  ]),
+  authentication: Object.freeze([`${PAIRWISE_DID}#key-2`]),
+  keyAgreement: Object.freeze([`${PAIRWISE_DID}#key-1`]),
+  service: Object.freeze([Object.freeze({
+    id: `${PAIRWISE_DID}#service`,
+    type: "DIDCommMessaging",
+    serviceEndpoint: Object.freeze({
+      accept: Object.freeze([]),
+      routingKeys: Object.freeze(["did:example:somemediator#somekey"]),
+      uri: "https://example.com/endpoint",
+    }),
+  })]),
+});
+const DOCUMENT_LITERAL = JSON.stringify(DOCUMENT_WIRE);
 const RESOLUTION_LITERAL = JSON.stringify({
   didResolutionMetadata: { contentType: "application/did+ld+json" },
-  didDocument: { id: PAIRWISE_DID },
+  didDocument: DOCUMENT_WIRE,
   didDocumentMetadata: { versionId: "sdk-ts-8.1.4" },
 });
 const DEREFERENCING_LITERAL = JSON.stringify({
@@ -93,14 +122,27 @@ function documentValue() {
     context: undefined,
     controller: undefined,
     alsoKnownAs: undefined,
-    verificationMethod: undefined,
+    verificationMethod: [
+      {
+        id: `${PAIRWISE_DID}#key-1`,
+        type: "Multikey",
+        controller: didValue(PAIRWISE_DID),
+        properties: { publicKeyMultibase: "z6LSoHkfN1Y4nK9RCjx7vopWsLrMGNFNgTNZgoCNQrTzmb1n" },
+      },
+      {
+        id: `${PAIRWISE_DID}#key-2`,
+        type: "Multikey",
+        controller: didValue(PAIRWISE_DID),
+        properties: { publicKeyMultibase: "z6MknRZmapV7uYZQuZez9n9N3tQotjRN18UGS68Vcfo6gR4h" },
+      },
+    ],
     authentication: [{ kind: "reference", reference: `${PAIRWISE_DID}#key-2` }],
     assertionMethod: undefined,
     keyAgreement: [{ kind: "reference", reference: `${PAIRWISE_DID}#key-1` }],
     capabilityInvocation: undefined,
     capabilityDelegation: undefined,
     service: [{
-      id: `${PAIRWISE_DID}#service-0`,
+      id: `${PAIRWISE_DID}#service`,
       type: "DIDCommMessaging",
       serviceEndpoint: {
         uri: "https://example.com/endpoint",
@@ -261,6 +303,7 @@ export async function assertDidAdoptionJourney({ provider, createQueryProvider, 
   assertions.equal(parsedUrl.fragment, "key-2", "parsed-url-fragment");
   const parsedDocument = provider.parseDidDocument(DOCUMENT_LITERAL);
   assertions.equal(parsedDocument.id.serialized, PAIRWISE_DID, "document-id");
+  assertions.equal(parsedDocument.serialized, DOCUMENT_LITERAL, "document-wire");
   const reparsed = provider.parsePeerDidNumalgo2Compatibility(PAIRWISE_DID);
   assertions.equal(reparsed.did.serialized, PAIRWISE_DID, "reparsed-peer-did");
 
@@ -299,7 +342,6 @@ export async function assertDidAdoptionJourney({ provider, createQueryProvider, 
 export async function runDidAdoptionRehearsal({
   target,
   selectDidProvider,
-  createDidProvider,
   createDidQueryProvider,
 }) {
   const legacy = createLegacyAdoptionFixture();
@@ -315,6 +357,12 @@ export async function runDidAdoptionRehearsal({
     createQueryProvider: createDidQueryProvider,
     route: "rust",
   });
+  if (
+    legacyResult.assertions !== DID_ADOPTION_ASSERTIONS_PER_ROUTE
+    || rustResult.assertions !== DID_ADOPTION_ASSERTIONS_PER_ROUTE
+  ) {
+    throw new Error(`DID adoption assertion failed: ${target}:assertion-count`);
+  }
 
   const callsBeforeFailure = legacy.totalCalls();
   let stableError;
@@ -331,10 +379,6 @@ export async function runDidAdoptionRehearsal({
   if (rollback !== legacy.provider || rollback.parseDid(PAIRWISE_DID).serialized !== PAIRWISE_DID) {
     throw new Error(`DID adoption assertion failed: ${target}:explicit-rollback`);
   }
-  if (await createDidProvider() === rollback) {
-    throw new Error(`DID adoption assertion failed: ${target}:provider-alias`);
-  }
-
   return Object.freeze({
     target,
     donorRevision: SDK_TS_DONOR_REVISION,

@@ -41,7 +41,6 @@ test("React SSR crosses the Node provider without duplicated DID logic", async (
   const rehearsal = await runDidAdoptionRehearsal({
     target: "react-ssr",
     selectDidProvider,
-    createDidProvider,
     createDidQueryProvider,
   });
   assert.deepEqual(rehearsal.routes.map(({ route }) => route), ["legacy", "rust"]);

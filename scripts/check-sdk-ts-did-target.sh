@@ -67,12 +67,18 @@ write_receipt() {
 write_adoption_receipt() {
   local target="$1"
   local route_instances="$2"
-  local runtime_source="$3"
+  local runtime_sources="$3"
+  local sources="$root/packages/identus-sdk/tests/adoption-journey.mjs"
+  local source
+  IFS=',' read -r -a adoption_sources <<< "$runtime_sources"
+  for source in "${adoption_sources[@]}"; do
+    sources+=",$root/$source"
+  done
   node scripts/ci/write-adoption-receipt.mjs \
     --head "$head_sha" \
     --target "$target" \
     --route-instances "$route_instances" \
-    --sources "$root/packages/identus-sdk/tests/adoption-journey.mjs,$root/$runtime_source" \
+    --sources "$sources" \
     --output "$receipt_dir/adoption-$target.json"
 }
 
@@ -164,7 +170,7 @@ run_nodejs() {
 
 run_react_web() {
   (cd "$package_root" && npm run test:react)
-  write_adoption_receipt react-web 4 packages/identus-sdk/tests/react-browser-fixture.tsx
+  write_adoption_receipt react-web 4 packages/identus-sdk/tests/react-runtime.test.mjs,packages/identus-sdk/tests/react-browser-fixture.tsx,packages/identus-sdk/tests/react-browser-runtime.mjs
   local digest
   digest="$(target_contract_digest react-web \
     docs/conformance/fixtures/did/v1/vectors.json \

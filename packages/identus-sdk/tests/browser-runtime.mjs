@@ -99,7 +99,6 @@ try {
       const rehearsal = await runDidAdoptionRehearsal({
         target: "browser",
         selectDidProvider,
-        createDidProvider,
         createDidQueryProvider,
       });
       return { status: "success", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length, peerCount: peerVectors.length, adoptionRoutes: rehearsal.routes.length };

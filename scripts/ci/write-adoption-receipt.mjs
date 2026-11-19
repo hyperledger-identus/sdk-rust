@@ -4,6 +4,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const DONOR_REVISION = "4bf86ebf69d5e96616a148e4c973f831f95fa38e";
 const HASH = /^[0-9a-f]{40}$/u;
@@ -42,18 +43,30 @@ function options(argv) {
 async function main() {
   const selected = options(process.argv.slice(2));
   const digest = createHash("sha256");
+  const helper = selected.sources.find((source) => path.basename(source) === "adoption-journey.mjs");
+  if (helper === undefined) throw new Error("adoption journey source is required");
+  let rehearsalInvocations = 0;
   for (const source of selected.sources) {
     const bytes = await readFile(source);
     const text = bytes.toString("utf8");
     if (/\.(?:only|skip)\s*\(|\bquarantin(?:e|ed)\b/iu.test(text)) {
       throw new Error(`focused, skipped, or quarantined adoption source: ${source}`);
     }
+    if (source !== helper) {
+      rehearsalInvocations += text.match(/\brunDidAdoptionRehearsal\s*\(\s*\{/gu)?.length ?? 0;
+    }
     digest.update(path.basename(source));
     digest.update("\0");
     digest.update(bytes);
     digest.update("\0");
   }
-  const assertionsPerRoute = 22;
+  if (rehearsalInvocations * 2 !== selected.routeInstances) {
+    throw new Error("declared route instances do not match executable rehearsal calls");
+  }
+  const { DID_ADOPTION_ASSERTIONS_PER_ROUTE: assertionsPerRoute } = await import(pathToFileURL(helper));
+  if (!Number.isSafeInteger(assertionsPerRoute) || assertionsPerRoute < 1) {
+    throw new Error("adoption assertion count is invalid");
+  }
   const receipt = Object.freeze({
     schemaVersion: 1,
     rehearsalId: "sdk-ts.did-facade-adoption.v1",

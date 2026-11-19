@@ -36,7 +36,7 @@ provider at a fresh boundary and rerunning the known value.
 The Node.js, browser, and React web target drivers retain private mode-0600
 JSON receipts under `target/sdk-ts-did-receipts/adoption-<target>.json`. Each
 receipt binds the exact SDK-Rust head, donor revision, source digest, required
-`legacy` and `rust` routes, route-instance count, 22 assertions per route,
+`legacy` and `rust` routes, route-instance count, 23 assertions per route,
 aggregate assertion count, zero skipped/focused/quarantined cases, terminal
 selection, and explicit rollback. Node.js records ESM and CommonJS route pairs;
 React web records SSR and hydrated-client pairs. React Native remains

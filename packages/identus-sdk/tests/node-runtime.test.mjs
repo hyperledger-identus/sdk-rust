@@ -22,7 +22,6 @@ test("Node ESM executes every canonical DID vector", async () => {
   const rehearsal = await runDidAdoptionRehearsal({
     target: "node-esm",
     selectDidProvider,
-    createDidProvider,
     createDidQueryProvider,
   });
   assert.deepEqual(rehearsal.routes.map(({ route }) => route), ["legacy", "rust"]);
@@ -57,7 +56,6 @@ test("Node CommonJS shares the ESM facade and executes every canonical DID vecto
   const rehearsal = await runDidAdoptionRehearsal({
     target: "node-commonjs",
     selectDidProvider: entry.selectDidProvider,
-    createDidProvider: entry.createDidProvider,
     createDidQueryProvider: entry.createDidQueryProvider,
   });
   assert.deepEqual(rehearsal.routes.map(({ route }) => route), ["legacy", "rust"]);

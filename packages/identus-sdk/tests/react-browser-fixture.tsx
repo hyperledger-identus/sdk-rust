@@ -69,7 +69,6 @@ try {
   const rehearsal = await runDidAdoptionRehearsal({
     target: "react-hydrated-client",
     selectDidProvider,
-    createDidProvider,
     createDidQueryProvider,
   });
   assertAllVectors(provider, vectors);

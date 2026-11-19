@@ -67,7 +67,7 @@ State: `active`. Class: `behavioral` / `changed`. Target: `unreleased`. Generic 
 
 ### `did.syntax.typescript-adoption-rehearsal.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. One pinned pairwise DID journey composes syntax, documents, resolution, dereferencing, peer creation and local resolution through legacy and Rust-backed providers across Node.js, browser, React SSR, and hydrated client targets with terminal pre-initialization selection.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. One pinned pairwise DID journey composes syntax, documents, resolution, dereferencing, peer creation and local resolution through legacy and Rust-backed providers across Node.js, browser, React SSR, and hydrated client targets with terminal pre-initialization selection.
 
 ### `did.syntax.typescript-migration.v1`
 

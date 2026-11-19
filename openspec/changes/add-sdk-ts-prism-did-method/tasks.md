@@ -56,7 +56,7 @@
 
 - [x] 5.1 Extend fail-closed impact planning, required symbols, target receipts,
       isolated failure-domain tests, and aggregation for PRISM-relevant paths.
-- [ ] 5.2 Run focused Rust/WASM/package/target/fuzz/evidence/factory gates and
+- [x] 5.2 Run focused Rust/WASM/package/target/fuzz/evidence/factory gates and
       complete `nix flake check --print-build-logs` locally.
 - [x] 5.3 Complete distinct architecture/security review, resolve blocking
       findings, and verify signed+DCO commits.

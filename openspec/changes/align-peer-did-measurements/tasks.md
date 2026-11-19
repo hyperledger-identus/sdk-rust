@@ -7,9 +7,9 @@
 
 ## 2. Evidence repair
 
-- [ ] 2.1 Add matched baseline/candidate raw and deterministic compressed artifact accounting.
-- [ ] 2.2 Measure import-inclusive cold/warm Node initialization separately from provider construction and peer operations.
-- [ ] 2.3 Restrict benchmark targets and reconcile private functional target parity states.
+- [x] 2.1 Add matched baseline/candidate raw and deterministic compressed artifact accounting.
+- [x] 2.2 Measure import-inclusive cold/warm Node initialization separately from provider construction and peer operations.
+- [x] 2.3 Restrict benchmark targets and reconcile private functional target parity states.
 
 ## 3. Verification and closeout
 

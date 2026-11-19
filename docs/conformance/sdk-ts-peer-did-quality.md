@@ -104,6 +104,18 @@ Rust 1.99.1 ASAN peer-DID soak completed 6,784,994
 executions in 301 seconds at seed 4279326073, with 22,541 average executions per
 second, 695 MiB peak RSS, and no crash or timeout.
 
+The retained measurement compares baseline
+`bd1981372fcb08772d1196131a0cf26291fad9cb` with implementation boundary
+`b1ea7101655f0a29964df9a35bfc8be312162fde`; its SHA-256 is
+`bf9b3d95c15e45b4206ba18a27405d3682fa1dc673a0cd4c1b71d138faf438c5`.
+Web artifacts changed from 377,545 to 573,733 raw bytes and 136,885 to
+197,444 deterministic gzip bytes. Node artifacts changed from 370,084 to
+565,143 raw bytes and 135,481 to 195,996 deterministic gzip bytes. On Apple
+arm64 with Node 24.19.0, cold import-plus-provider p50/p95 changed from
+14.106/18.327 ms to 18.016/21.783 ms; warm cached import-plus-provider changed
+from 0.005/0.020 ms to 0.015/0.033 ms. These are directional results from one
+host and remain non-budget evidence.
+
 ## Security and ownership
 
 The TypeScript ingress rejects accessors, exotic prototypes, cycles, unknown

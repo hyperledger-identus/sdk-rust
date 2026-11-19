@@ -3,4 +3,4 @@ issue          = 607
 disposition    = "behavior-neutral"
 scope          = "test-only"
 rationale      = "The change corrects measurement definitions and evidence labels without changing public APIs, wire behavior, production dependencies, supported targets, publication state, or downstream consumers."
-ledger_ids     = [ ]
+ledger_ids     = [  ]

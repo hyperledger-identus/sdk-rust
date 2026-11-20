@@ -11,7 +11,7 @@ cargo-fuzz = true
 [dependencies]
 base64                = "=0.22.1"
 hex                   = "=0.4.3"
-identus-crypto        = { path = "../crates/crypto", default-features = false, features = [ "cose", "ed25519", "jwk-thumbprint", "secp256r1" ] }
+identus-crypto        = { path = "../crates/crypto", default-features = false, features = [ "cose", "ed25519", "jwk-thumbprint", "secp256r1", "x25519" ] }
 identus-core          = { path = "../crates/core" }
 identus-credentials   = { path = "../crates/credentials" }
 identus-did           = { path = "../crates/did" }
@@ -146,6 +146,13 @@ bench = false
 [[bin]]
 name  = "public_cose"
 path  = "fuzz_targets/public_cose.rs"
+test  = false
+doc   = false
+bench = false
+
+[[bin]]
+name  = "key_operations"
+path  = "fuzz_targets/key_operations.rs"
 test  = false
 doc   = false
 bench = false

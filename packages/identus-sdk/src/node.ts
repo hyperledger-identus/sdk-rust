@@ -9,6 +9,10 @@ import type {
   PrismDidQueryProvider,
   PeerWasmDidProviderSelection,
   KeyOperationsProvider,
+  KeyOperationsProviderOptions,
+  KeyOperationsProviderSelection,
+  InjectedKeyOperationsProviderSelection,
+  WasmKeyOperationsProviderSelection,
 } from "./public.js";
 import type { DidParseError as GeneratedDidParseError } from "../artifacts/nodejs/identus_wasm_did.js";
 import { adaptGeneratedBinding } from "./internal/generated-binding.js";
@@ -27,7 +31,9 @@ const initializeCrypto = retryableSingleton(() =>
   import("../artifacts/crypto/nodejs/identus_wasm_crypto.js"));
 
 /** Create the explicit Node.js-WASM key-operations provider. */
-export async function createKeyOperationsProvider(): Promise<KeyOperationsProvider> {
+export async function createKeyOperationsProvider(
+  options: KeyOperationsProviderOptions = {},
+): Promise<KeyOperationsProvider> {
   const generated = await initializeCrypto();
   return createRustKeyOperationsProvider({
     cryptoBindingApiVersion: generated.crypto_binding_api_version,
@@ -36,7 +42,22 @@ export async function createKeyOperationsProvider(): Promise<KeyOperationsProvid
     verifyEd25519: generated.verifyEd25519,
     generateX25519: generated.X25519PrivateHandle.generate,
     importX25519: generated.X25519PrivateHandle.importBytes,
-  });
+  }, options);
+}
+
+/** Select an injected key provider or Node.js WASM before initialization. */
+export function selectKeyOperationsProvider<Provider extends KeyOperationsProvider>(
+  selection: InjectedKeyOperationsProviderSelection<Provider>,
+): Promise<Provider>;
+export function selectKeyOperationsProvider(
+  selection: WasmKeyOperationsProviderSelection,
+): Promise<KeyOperationsProvider>;
+export function selectKeyOperationsProvider(
+  selection: KeyOperationsProviderSelection,
+): Promise<KeyOperationsProvider> {
+  return selection.kind === "injected"
+    ? Promise.resolve(selection.provider)
+    : createKeyOperationsProvider(selection.options);
 }
 
 async function loadBinding(): Promise<ReturnType<typeof adaptGeneratedBinding>> {

@@ -1096,7 +1096,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Owner: SDK-Rust TypeScript binding maintainers (issue #611)
 - Risk: Secret lifecycle, entropy, signature verification, shared-secret derivation, redaction or target packaging can diverge across Rust and JavaScript runtimes.
 - Targets: `package:identus-crypto`, `package:identus-typescript-sdk`, `package:identus-wasm-crypto`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
-- Vector IDs: `0` local catalog entries
+- Vector IDs: `2` local catalog entries
 - Limitations: Private additive Ed25519/X25519 primitive facade only; no wallet custody, persistence, HD derivation, seed or mnemonic handling, private export, React Native, publication, stable API, certification or mdoc.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |

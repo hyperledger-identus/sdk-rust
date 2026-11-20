@@ -1,9 +1,16 @@
 CryptoError
 CryptoErrorCode
+KeyOperation
+KeyOperationObservation
+KeyOperationObserver
+KeyOperationsProviderOptions
 DidError
 Ed25519PrivateKeyHandle
 Ed25519PublicKeyValue
 KeyOperationsProvider
+InjectedKeyOperationsProviderSelection
+WasmKeyOperationsProviderSelection
+KeyOperationsProviderSelection
 X25519PrivateKeyHandle
 X25519PublicKeyValue
 DidDocumentContextEntryValue

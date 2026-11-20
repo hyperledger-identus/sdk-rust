@@ -15,6 +15,7 @@ Enter the repository's Nix shell or let the wrapper enter it for you:
 ./scripts/fuzz-crypto.sh replay all
 ./scripts/fuzz-crypto.sh smoke public_jwk
 ./scripts/fuzz-crypto.sh soak public_cose
+./scripts/fuzz-crypto.sh smoke key_operations
 ./scripts/fuzz-jws.sh replay
 ./scripts/fuzz-jws.sh smoke
 ./scripts/fuzz-jws.sh soak

@@ -39,7 +39,35 @@ export type CryptoErrorCode =
   | "crypto.message_too_large"
   | "crypto.non_contributory_peer"
   | "crypto.entropy_unavailable"
+  | "crypto.observer_failure"
   | "adapter.binding_contract";
+
+export type KeyOperation =
+  | "ed25519.generate"
+  | "ed25519.import"
+  | "ed25519.public-key"
+  | "ed25519.sign"
+  | "ed25519.verify"
+  | "ed25519.dispose"
+  | "x25519.generate"
+  | "x25519.import"
+  | "x25519.public-key"
+  | "x25519.derive-shared-secret"
+  | "x25519.dispose";
+
+export interface KeyOperationObservation {
+  readonly operation: KeyOperation;
+  readonly curve: "Ed25519" | "X25519";
+  readonly result: "success" | "error";
+  readonly errorCode: CryptoErrorCode | undefined;
+  readonly durationMs: number;
+}
+
+export type KeyOperationObserver = (observation: KeyOperationObservation) => void;
+
+export interface KeyOperationsProviderOptions {
+  readonly observer?: KeyOperationObserver;
+}
 
 export interface Ed25519PublicKeyValue {
   readonly algorithm: "Ed25519";
@@ -75,6 +103,22 @@ export interface KeyOperationsProvider {
   importX25519(privateKey: Uint8Array): X25519PrivateKeyHandle;
 }
 
+export interface InjectedKeyOperationsProviderSelection<
+  Provider extends KeyOperationsProvider = KeyOperationsProvider,
+> {
+  readonly kind: "injected";
+  readonly provider: Provider;
+}
+
+export interface WasmKeyOperationsProviderSelection {
+  readonly kind: "wasm";
+  readonly options?: KeyOperationsProviderOptions;
+}
+
+export type KeyOperationsProviderSelection =
+  | InjectedKeyOperationsProviderSelection
+  | WasmKeyOperationsProviderSelection;
+
 const CRYPTO_ERROR_MESSAGES: Readonly<Record<CryptoErrorCode, string>> = Object.freeze({
   "crypto.handle_disposed": "Private key handle is disposed",
   "crypto.invalid_private_key": "Private key is invalid",
@@ -83,6 +127,7 @@ const CRYPTO_ERROR_MESSAGES: Readonly<Record<CryptoErrorCode, string>> = Object.
   "crypto.message_too_large": "Message exceeds the key-operation limit",
   "crypto.non_contributory_peer": "Peer public key is non-contributory",
   "crypto.entropy_unavailable": "System entropy is unavailable",
+  "crypto.observer_failure": "Crypto observation failed",
   "adapter.binding_contract": "Crypto binding contract failed",
 });
 

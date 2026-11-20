@@ -323,6 +323,15 @@ owner_issue    = "#224"
 summary        = "Experimental browser-native WASM facade for bounded DID values with deterministic ESM/TypeScript packaging and Chromium/Firefox evidence; unpublished and unsupported."
 
 [[packages]]
+name           = "identus-wasm-crypto"
+path           = "crates/wasm-crypto"
+layer          = "outer-boundary"
+classification = "implemented"
+public_api     = "experimental"
+owner_issue    = "#611"
+summary        = "Experimental WASM facade for opaque Ed25519 and X25519 private handles with bounded TypeScript key operations; unpublished and unsupported."
+
+[[packages]]
 name           = "identus-conformance"
 path           = "crates/conformance"
 layer          = "verification"

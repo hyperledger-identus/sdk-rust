@@ -37,10 +37,20 @@ test("Node CommonJS shares the ESM facade and executes every canonical DID vecto
   const require = createRequire(import.meta.url);
   const entry = require("../cjs/node.cjs");
   assert.deepEqual(Object.keys(entry), [
+    "createKeyOperationsProvider",
+    "selectKeyOperationsProvider",
     "createDidProvider",
     "selectDidProvider",
     "createDidQueryProvider",
   ]);
+  const keyOperations = await entry.createKeyOperationsProvider();
+  const { assertCryptoVectors } = await import("./crypto-vector-assertions.mjs");
+  assert.equal(assertCryptoVectors(keyOperations), 2);
+  const injectedKeyOperations = Object.freeze({ marker: "legacy" });
+  assert.strictEqual(
+    await entry.selectKeyOperationsProvider({ kind: "injected", provider: injectedKeyOperations }),
+    injectedKeyOperations,
+  );
   const peerless = Object.freeze({
     parseDid: (value) => Object.freeze({
       serialized: value,

@@ -214,14 +214,17 @@ jobs:
         if: ${{ contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
 
-      - name: Run selected DID facade target in isolation
+      - name: Run selected TypeScript facade target in isolation
         if: ${{ contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
         env:
           SDK_TS_DID_HEAD_SHA: ${{ github.sha }}
           SDK_TS_DID_RECEIPT_DIR: ${{ runner.temp }}/binding-receipts
         run: >-
           nix develop .#typescript --command
-          ./scripts/check-sdk-ts-did-target.sh "${{ matrix.target }}"
+          ./scripts/check-sdk-ts-did-target.sh "${{ matrix.target }}" &&
+          if [[ "${{ matrix.target }}" != "react-native" ]]; then
+            ./scripts/check-sdk-ts-crypto-target.sh "${{ matrix.target }}";
+          fi
 
       - name: Record selected target failure
         if: ${{ failure() && contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}

@@ -252,6 +252,7 @@ mod tests {
 
     #[test]
     fn strict_boundaries_and_low_order_peer_fail_closed() {
+        assert!(bounded_message(&vec![0; MAX_KEY_OPERATION_MESSAGE_BYTES]).is_ok());
         assert_eq!(
             bounded_message(&vec![0; MAX_KEY_OPERATION_MESSAGE_BYTES + 1]),
             Err(BindingError::MessageTooLarge)
@@ -262,5 +263,27 @@ mod tests {
         );
         let low_order = x25519_public(&[0; X25519_KEY_BYTES]).expect("canonical key");
         assert!(!low_order.is_contributory());
+    }
+
+    #[test]
+    fn malformed_lengths_and_signature_mutation_fail_closed() {
+        assert!(Ed25519PrivateKey::from_slice(&[0; ED25519_KEY_BYTES - 1]).is_err());
+        assert!(X25519PrivateKey::from_slice(&[0; X25519_KEY_BYTES + 1]).is_err());
+        assert_eq!(
+            ed25519_public(&[0; ED25519_KEY_BYTES - 1]),
+            Err(BindingError::InvalidPublicKey)
+        );
+        assert_eq!(
+            x25519_public(&[0; X25519_KEY_BYTES + 1]),
+            Err(BindingError::InvalidPublicKey)
+        );
+
+        let private = Ed25519PrivateKey::from_slice(&decode(
+            "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+        ))
+        .expect("private key");
+        let mut signature = private.sign(b"bounded");
+        signature[0] ^= 1;
+        assert!(!private.to_public_key().verify(b"bounded", &signature));
     }
 }

@@ -5,6 +5,19 @@ owner_issue      = 505
 canonical_owner  = "sdk-rust"
 
 [[canonical_sources]]
+id                 = "crypto-key-operations.source.identus-wasm-crypto.v1"
+owner_issue        = 512
+state              = "pending-revision"
+canonical_crate    = "identus-wasm-crypto"
+canonical_revision = "d291a446ece0e932f7f00cbe19da34b72b36bb17"
+path               = "crates/wasm-crypto/src/lib.rs"
+file_mode          = "100644"
+byte_length        = 10063
+sha256             = "98770ba84083db13766ba478960f76475659ecb862aa93afebb8c434d1606560"
+git_object_format  = "sha1"
+git_blob_oid       = "46f4d4c34142d5d5d17ab892a0e38f0b9f50a280"
+
+[[canonical_sources]]
 id                 = "did.source.identus-did.v1"
 owner_issue        = 512
 state              = "active"
@@ -81,6 +94,81 @@ byte_length        = 1874
 sha256             = "ec56362ac49c302b66de0d16a9374541c0d8f2dcd1a521618da3f8b88c5231b4"
 git_object_format  = "sha1"
 git_blob_oid       = "94cfca8c5da124c093d6ca5f85cc6845f3985828"
+
+[[mappings]]
+id = "crypto.key-operations.typescript.v1"
+capability = "crypto.key-operations"
+owner_issue = 505
+state = "active"
+kind = "value"
+canonical_crate = "identus-wasm-crypto"
+canonical_rust_path = "identus_wasm_crypto::Ed25519PrivateHandle"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_source_id = "crypto-key-operations.source.identus-wasm-crypto.v1"
+canonical_description = "Opaque disposable Ed25519 and X25519 private handles with exact public, signature and shared-secret byte operations."
+canonical_bound_symbol = "MAX_KEY_OPERATION_MESSAGE_BYTES"
+language = "typescript"
+language_package = "@hyperledger/identus-sdk"
+language_target = "browser-node-react-web"
+language_version = "0.0.0"
+language_revision = "f59413e4c124dad69f86cb3ad1fa5f49a0fd186d"
+language_path = "packages/identus-sdk/src/public.ts"
+language_license = "Apache-2.0"
+language_symbol = "KeyOperationsProvider"
+language_shape_state = "private-canary"
+direction = "bidirectional"
+compatibility_class = "additive"
+fidelity = "lossless"
+version_window = ">=0.0.0,<0.0.1"
+deprecation_phase = "none"
+version_negotiation = "crypto-binding-api-version-1"
+consumers = [ "sdk-ts" ]
+vector_ids = [ "crypto.key-operations.ed25519-rfc8032-empty", "crypto.key-operations.x25519-rfc7748" ]
+rust_selectors = [ "identus_wasm_crypto::Ed25519PrivateHandle", "identus_wasm_crypto::X25519PrivateHandle" ]
+language_selectors = [ "packages/identus-sdk/src/public.ts", "packages/identus-sdk/src/internal/crypto-provider.ts" ]
+max_input_bytes = 1048576
+adapter_max_input_bytes = 1048576
+redaction = "caller-input"
+sensitive_fields = [ "private-key", "message", "signature", "shared-secret", "peer-public-key" ]
+async_ownership = "not-applicable"
+cancellation_ownership = "not-applicable"
+migration_action = "Select the private Rust-backed provider explicitly and keep custody, persistence and protocol authorization outside the primitive facade."
+replacement = "Capability-named KeyOperationsProvider over opaque Rust-owned handles."
+observability = "Record mapping ID, operation, curve, result class and stable code without key material, caller bytes, dependency text or WASM memory."
+fallback = "No automatic algorithm, entropy, provider, retry or legacy fallback."
+rollback = "Remove the unreleased provider before initialization; private handles cannot be exported or migrated."
+removal_gate = "External adoption, support and publication require a separate accepted consumer change."
+errors = [  ]
+losses = [  ]
+unsupported = [  ]
+
+[[mappings.fields]]
+rust      = "private_handle"
+language  = "privateHandle"
+transform = "opaque-owned-handle"
+direction = "both"
+required  = true
+
+[[mappings.fields]]
+rust      = "public_key_bytes"
+language  = "publicKey.bytes"
+transform = "immutable-byte-copy"
+direction = "both"
+required  = true
+
+[[mappings.fields]]
+rust      = "signature_bytes"
+language  = "signature"
+transform = "immutable-byte-copy"
+direction = "both"
+required  = false
+
+[[mappings.fields]]
+rust      = "shared_secret_bytes"
+language  = "sharedSecret"
+transform = "owned-byte-copy"
+direction = "rust-to-language"
+required  = false
 
 [[mappings]]
 id = "did.value.typescript.legacy-v1"

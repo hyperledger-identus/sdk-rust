@@ -45,6 +45,30 @@ def mapping_section(value: str, identifier: str) -> tuple[str, str, str]:
     return value[:start], value[start:end], value[end:]
 
 
+def canonical_source_span(value: str, identifier: str) -> tuple[int, int]:
+    marker = f'[[canonical_sources]]\nid                 = "{identifier}"'
+    start = value.index(marker)
+    end = value.find("\n[[canonical_sources]]", start + len(marker))
+    mapping_start = value.find("\n[[mappings]]", start + len(marker))
+    if end == -1 or (mapping_start != -1 and mapping_start < end):
+        end = mapping_start
+    if end == -1:
+        end = len(value)
+    return start, end
+
+
+def canonical_source_section(value: str, identifier: str) -> tuple[str, str, str]:
+    start, end = canonical_source_span(value, identifier)
+    return value[:start], value[start:end], value[end:]
+
+
+def mutate_canonical_source(
+    value: str, identifier: str, mutate: Callable[[str], str]
+) -> str:
+    before, section, after = canonical_source_section(value, identifier)
+    return before + mutate(section) + after
+
+
 def mutate_mapping(value: str, identifier: str, mutate: Callable[[str], str]) -> str:
     before, section, after = mapping_section(value, identifier)
     return before + mutate(section) + after
@@ -253,15 +277,22 @@ def main() -> None:
         + "\n[[mappings]]"
         + mappings
     )
+    _, did_source, _ = canonical_source_section(
+        registry, "did.source.identus-did.v1"
+    )
     revision_match = re.search(
-        r'(?m)^canonical_revision = "([0-9a-f]{40})"$', registry
+        r'(?m)^canonical_revision = "([0-9a-f]{40})"$', did_source
     )
     if revision_match is None:
         raise AssertionError("canonical source revision fixture is missing")
     canonical_revision_line = (
         f'canonical_revision = "{revision_match.group(1)}"'
     )
-    pending_registry = replace_first(registry, active_state_line, pending_state_line)
+    pending_registry = mutate_canonical_source(
+        registry,
+        "did.source.identus-did.v1",
+        lambda section: replace_once(section, active_state_line, pending_state_line),
+    )
 
     run(current_registry, rendered, True)
     run(current_registry, rendered, True, check_rendered=True)
@@ -282,9 +313,19 @@ def main() -> None:
             'id                 = "did.source.identus-did.v1"',
             'id                 = "invalid source id"',
         ),
-        replace_first(registry, "owner_issue        = 512", "owner_issue        = 999"),
-        replace_first(
-            registry, active_state_line, 'state              = "planned"'
+        mutate_canonical_source(
+            registry,
+            "did.source.identus-did.v1",
+            lambda section: replace_once(
+                section, "owner_issue        = 512", "owner_issue        = 999"
+            ),
+        ),
+        mutate_canonical_source(
+            registry,
+            "did.source.identus-did.v1",
+            lambda section: replace_once(
+                section, active_state_line, 'state              = "planned"'
+            ),
         ),
     ):
         run(mutation, rendered, False)
@@ -387,8 +428,9 @@ def main() -> None:
     run(replace_once(registry, "owner_issue      = 505", "owner_issue      = 505.0"), rendered, False)
 
     # Canonical sources are closed, content-addressed, shared, and fully consumed.
-    source_start = registry.index("[[canonical_sources]]")
-    source_end = registry.index("[[canonical_sources]]", source_start + 1)
+    source_start, source_end = canonical_source_span(
+        registry, "did.source.identus-did.v1"
+    )
     source_block = registry[source_start:source_end]
     run(
         replace_first(
@@ -880,9 +922,9 @@ def main() -> None:
     )
 
     # A second mapping may bind a distinct, fully evidenced canonical source.
-    first_mapping = registry.index("[[mappings]]")
-    second_mapping = registry.index("[[mappings]]", first_mapping + 1)
-    additional = registry[first_mapping:second_mapping]
+    _, additional, _ = mapping_section(
+        registry, "did.value.typescript.legacy-v1"
+    )
     additional = replace_once(
         additional,
         'id = "did.value.typescript.legacy-v1"',
@@ -956,8 +998,10 @@ source_locator = "MAX_URI_BYTES; additive second-source fixture"
         'path               = "crates/did/src/evidence/moved.rs"',
     )
     active_moved_registry = moved_registry
-    pending_moved_registry = replace_first(
-        moved_registry, active_state_line, pending_state_line
+    pending_moved_registry = mutate_canonical_source(
+        moved_registry,
+        "did.source.identus-did.v1",
+        lambda section: replace_once(section, active_state_line, pending_state_line),
     )
 
     def moved_source(root: Path) -> None:

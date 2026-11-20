@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-11-20`
-- Declaration count: `26`
+- Declaration count: `27`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -1169,3 +1169,52 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `differential`
 
 - Rationale: Exact local policy, target builds, and named downstream compiler inspection are authoritative; no independent implementation defines this repository contract.
+
+## `crypto.hd-derivation.typescript.quality.v1`
+
+- Capability: `crypto.hd-derivation`
+- Slice: Profile-explicit deterministic HD derivation TypeScript facade
+- Owner: SDK-Rust TypeScript binding maintainers (issue #612)
+- Risk: Profile selection, path rules, seed lifecycle, public projection, derivation semantics, redaction or target packaging can diverge across Rust and JavaScript runtimes.
+- Targets: `package:identus-crypto`, `package:identus-typescript-sdk`, `package:identus-wasm-crypto`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
+- Vector IDs: `0` local catalog entries
+- Limitations: Private additive profile-explicit derivation only; no mnemonic acquisition, BIP-39 seed creation, private export, wallet custody, persistence, React Native, publication, stable API, certification or mdoc.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #612 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #612 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #612 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #612 |
+
+### `property`
+
+- Command: `cargo test -p identus-wasm-crypto && npm --prefix packages/identus-sdk test`
+- Budget: Exercise every profile, seed boundary, path grammar class, permitted and forbidden axis class, projection, idempotent disposal and use-after-dispose sequence.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #612
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak hd_derivation`
+- Budget: Run bounded profile, seed, path and public derivation inputs for 300 seconds with finite input, timeout and RSS limits.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #612
+
+### `benchmark`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh benchmark`
+- Budget: Measure deterministic artifact bytes plus root, three-axis private derivation and supported public derivation latency without coupling the result to Rust core CI.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #612
+
+### `differential`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh differential`
+- Budget: Compare exact child/private-derived public values, extended public values, depths, permitted axes and rejection classes for all named profiles.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #612

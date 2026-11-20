@@ -16,6 +16,7 @@ cd "$root"
 head_sha="${SDK_TS_CRYPTO_HEAD_SHA:-${SDK_TS_DID_HEAD_SHA:-$(git rev-parse HEAD)}}"
 receipt_dir="${SDK_TS_CRYPTO_RECEIPT_DIR:-${SDK_TS_DID_RECEIPT_DIR:-$root/target/sdk-ts-crypto-receipts}}"
 package_root="$root/packages/identus-sdk"
+mkdir -p "$root/target"
 scratch="$(mktemp -d "$root/target/.sdk-ts-crypto-target.XXXXXX")"
 started="$SECONDS"
 trap 'rm -rf "$scratch"' EXIT
@@ -28,11 +29,15 @@ done
 [[ "$(wasm-pack --version)" == "wasm-pack 0.15.0" ]]
 [[ "$(wasm-bindgen --version)" == "wasm-bindgen 0.2.121" ]]
 
-artifact_dir="$scratch/artifacts"
+artifact_dir="$scratch/crypto-artifacts"
+did_artifact_dir="$scratch/did-artifacts"
+./scripts/build-sdk-ts-did-artifacts.sh --output "$did_artifact_dir"
+node scripts/assemble-sdk-ts-did-artifacts.mjs --verify "$did_artifact_dir" >/dev/null
 ./scripts/build-sdk-ts-crypto-artifacts.sh --output "$artifact_dir"
 (
   cd "$package_root"
   npm ci --ignore-scripts
+  SDK_TS_DID_ARTIFACTS="$did_artifact_dir" npm run sync-artifacts
   SDK_TS_CRYPTO_ARTIFACTS="$artifact_dir" npm run sync-crypto-artifacts
   npm run build
 )

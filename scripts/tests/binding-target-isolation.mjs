@@ -175,6 +175,19 @@ test("crypto source and vector signals remain closed planner and aggregator inpu
   assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");
 });
 
+test("isolated target scripts prepare a complete fresh-checkout package", () => {
+  const cryptoSource = readFileSync(path.join(repositoryRoot, "scripts/check-sdk-ts-crypto-target.sh"), "utf8");
+  const didSource = readFileSync(path.join(repositoryRoot, "scripts/check-sdk-ts-did-target.sh"), "utf8");
+  const createParent = cryptoSource.indexOf('mkdir -p "$root/target"');
+  const createScratch = cryptoSource.indexOf('mktemp -d "$root/target/.sdk-ts-crypto-target.XXXXXX"');
+  assert.notEqual(createParent, -1);
+  assert.ok(createParent < createScratch);
+  assert.ok(cryptoSource.indexOf("build-sdk-ts-did-artifacts.sh") < cryptoSource.indexOf("npm run build"));
+  assert.ok(cryptoSource.indexOf("npm run sync-artifacts") < cryptoSource.indexOf("npm run build"));
+  assert.ok(didSource.indexOf("build-sdk-ts-crypto-artifacts.sh") < didSource.indexOf("npm run build"));
+  assert.ok(didSource.indexOf("npm run sync-crypto-artifacts") < didSource.indexOf("npm run build"));
+});
+
 test("resolution quality evidence remains a closed planner and aggregator signal", () => {
   const bindingPlan = plan(["docs/conformance/sdk-ts-did-resolution-quality.md"]);
   assert.deepEqual(bindingPlan.signals, ["resolution-quality-evidence"]);

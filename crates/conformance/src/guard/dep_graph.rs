@@ -213,6 +213,12 @@ fn proc_macro_carve_out_scenarios() {
 }
 
 #[test]
+fn wasm_crypto_composes_only_the_reviewed_entropy_adapter() {
+    assert!(check_dep_edge("identus-wasm-crypto", "identus-adapters-entropy").is_ok());
+    assert!(check_dep_edge("identus-wasm-crypto", "identus-uniffi-did").is_err());
+}
+
+#[test]
 fn wallet_conformance_is_an_inward_verification_leaf() {
     assert!(check_dep_edge("identus-wallet-conformance", "identus-wallet").is_ok());
     assert!(check_dep_edge("identus-wallet", "identus-wallet-conformance").is_err());

@@ -9,6 +9,12 @@ immutable public projection, lifecycle wrappers, observation, target loading,
 selection, and rollback. TypeScript implements no cryptographic algorithm or
 canonical key parser.
 
+The dependency rulebook admits exactly one reviewed same-layer composition
+edge, `identus-wasm-crypto -> identus-adapters-entropy`, because the generated
+outer-boundary artifact is the composition root for the existing production
+entropy adapter. Every other outer-boundary-to-outer-boundary dependency stays
+denied, and a conformance regression test locks both sides of that boundary.
+
 Keeping crypto separate from `identus-wasm-did` prevents secret-bearing APIs
 from entering the public-material DID artifact and lets CI and artifacts evolve
 independently. The package composes both generated modules behind capability

@@ -23,7 +23,8 @@ promise React Native support.
   every axis remains below the hardened offset before its profile rule runs.
 - Explicit disposal is idempotent and frees generated ownership once;
   finalization is defense in depth. Errors and observations contain only
-  closed codes plus bounded operation/profile/depth metadata.
+  closed codes plus the stable mapping ID and bounded
+  operation/profile/depth metadata.
 
 ## Local evidence
 
@@ -32,12 +33,12 @@ wasm-pack 0.15.0, and wasm-bindgen-cli 0.2.121:
 
 - Rust fmt, clippy with warnings denied, seven focused `identus-wasm-crypto`
   tests, and five canonical derivation-path tests passed.
-- `npm --prefix packages/identus-sdk test`: 63 package tests passed.
-- Focused HD provider coverage reached 89.50% lines and 73.77% branches, above
+- `npm --prefix packages/identus-sdk test`: 64 package tests passed.
+- Focused HD provider coverage reached 89.92% lines and 78.26% branches, above
   the 80%/70% acceptance floor.
 - The isolated package/types, browser Chromium, Node ESM/CommonJS, React SSR,
   and hydrated Chromium lanes passed at exact head
-  `87156727348f6b78a0708be0e8d6b87d8409e32e` with artifact SHA-256
+  `2ba336c79087497e8c156bc3f6b8b45441bb1525` with artifact SHA-256
   `ea48c356b6c2089396f092ee22fe22e81af93a90a70aeac9115acc32f7096281`.
 - One neutral assertion body exercised BIP-32, SLIP-0010, and Cardano V2 public
   results in every applicable runtime.
@@ -49,7 +50,7 @@ wasm-pack 0.15.0, and wasm-bindgen-cli 0.2.121:
 The private crypto artifacts measured 337,359 Web bytes and 330,434 Node.js
 bytes before compression, with deterministic gzip sums of 156,945 and 155,514
 bytes. On this host, 101 warm batches spanning all three roots, three private
-axes, and Cardano soft public derivation had a 0.739 ms median and 0.835 ms 95th
+axes, and Cardano soft public derivation had a 0.743 ms median and 0.844 ms 95th
 percentile. These are measurement-only baselines, not support budgets.
 
 ## Residual limits

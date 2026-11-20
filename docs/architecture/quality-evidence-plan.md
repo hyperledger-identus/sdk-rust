@@ -1192,7 +1192,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Command: `cargo test -p identus-wasm-crypto && npm --prefix packages/identus-sdk test`
 - Budget: Exercise every profile, seed boundary, path grammar class, permitted and forbidden axis class, projection, idempotent disposal and use-after-dispose sequence.
 - Receipt: `source:packages/identus-sdk/tests/hd-provider.test.mjs`
-- Evidence revision: `87156727348f6b78a0708be0e8d6b87d8409e32e`
+- Evidence revision: `459824bda49541b91494ae6eac2d3859eabcc1b0`
 
 ### `fuzz`
 

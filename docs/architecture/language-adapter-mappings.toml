@@ -7,9 +7,9 @@ canonical_owner  = "sdk-rust"
 [[canonical_sources]]
 id                 = "crypto-key-operations.source.identus-wasm-crypto.v1"
 owner_issue        = 512
-state              = "active"
+state              = "pending-revision"
 canonical_crate    = "identus-wasm-crypto"
-canonical_revision = "459824bda49541b91494ae6eac2d3859eabcc1b0"
+canonical_revision = "48b3c1dc34969016fe8fbf7bba1a68756b312d7a"
 path               = "crates/wasm-crypto/src/lib.rs"
 file_mode          = "100644"
 byte_length        = 24009

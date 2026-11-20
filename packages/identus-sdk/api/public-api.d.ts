@@ -1,4 +1,34 @@
 export type DidErrorCode = "did.invalid_did" | "did.invalid_did_url" | "did.invalid_document" | "did.invalid_resolution_options" | "did.invalid_dereferencing_options" | "did.invalid_resolution_result" | "did.invalid_dereferencing_result" | "did.resolution_host_failure" | "did.dereferencing_host_failure" | "did.resolution_provider_unavailable" | "did.dereferencing_provider_unavailable" | "did.operation_aborted" | "did.observer_failure" | "did.peer.wrong_profile" | "did.peer.unsupported_algorithm" | "did.peer.malformed_encoding" | "did.peer.unsupported_codec" | "did.peer.unsupported_purpose" | "did.peer.invalid_input_document" | "did.peer.hash_mismatch" | "did.peer.long_form_required" | "did.peer.resource_limit" | "did.peer.projection_failure" | "did.prism.invalid_syntax" | "did.prism.invalid_wire" | "did.prism.invalid_operation" | "did.prism.invalid_state" | "did.prism.history_provider_unavailable" | "did.prism.history_host_failure" | "adapter.binding_contract" | "adapter.unsupported_lossy_mapping";
+export type CryptoErrorCode = "crypto.handle_disposed" | "crypto.invalid_private_key" | "crypto.invalid_public_key" | "crypto.invalid_signature" | "crypto.message_too_large" | "crypto.non_contributory_peer" | "crypto.entropy_unavailable" | "adapter.binding_contract";
+export interface Ed25519PublicKeyValue {
+    readonly algorithm: "Ed25519";
+    readonly bytes: Uint8Array;
+}
+export interface X25519PublicKeyValue {
+    readonly algorithm: "X25519";
+    readonly bytes: Uint8Array;
+}
+export interface Ed25519PrivateKeyHandle {
+    publicKey(): Ed25519PublicKeyValue;
+    sign(message: Uint8Array): Uint8Array;
+    dispose(): void;
+}
+export interface X25519PrivateKeyHandle {
+    publicKey(): X25519PublicKeyValue;
+    deriveSharedSecret(peerPublicKey: Uint8Array): Uint8Array;
+    dispose(): void;
+}
+export interface KeyOperationsProvider {
+    generateEd25519(): Ed25519PrivateKeyHandle;
+    importEd25519(privateKey: Uint8Array): Ed25519PrivateKeyHandle;
+    verifyEd25519(publicKey: Uint8Array, message: Uint8Array, signature: Uint8Array): boolean;
+    generateX25519(): X25519PrivateKeyHandle;
+    importX25519(privateKey: Uint8Array): X25519PrivateKeyHandle;
+}
+export declare class CryptoError extends Error {
+    readonly code: CryptoErrorCode;
+    constructor(code: CryptoErrorCode);
+}
 export interface DidValue {
     readonly serialized: string;
     readonly method: string;

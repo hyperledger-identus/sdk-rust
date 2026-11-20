@@ -31,6 +31,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "sync-artifacts": "node scripts/sync-artifacts.mjs",
+    "sync-crypto-artifacts": "node scripts/sync-crypto-artifacts.mjs",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:browser": "node tests/browser-runtime.mjs",
     "test:measurements": "node tests/measurements.mjs",

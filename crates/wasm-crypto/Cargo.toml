@@ -1,0 +1,21 @@
+[package]
+name                   = "identus-wasm-crypto"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+license.workspace      = true
+publish.workspace      = true
+
+[lib]
+crate-type = [ "cdylib", "rlib" ]
+
+[dependencies]
+identus-adapters-entropy = { workspace = true, features = [ "getrandom" ] }
+identus-crypto           = { workspace = true, default-features = false, features = [ "ed25519", "x25519" ] }
+wasm-bindgen.workspace   = true
+
+[dev-dependencies]
+hex.workspace = true
+
+[lints]
+workspace = true

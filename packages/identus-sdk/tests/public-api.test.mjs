@@ -4,9 +4,9 @@ import { test } from "node:test";
 
 const packageRoot = new URL("../", import.meta.url);
 
-test("runtime root exports only the public error value", async () => {
+test("runtime root exports only the public error values", async () => {
   const exports = Object.keys(await import("../dist/index.js"));
-  assert.deepEqual(exports, ["DidError"]);
+  assert.deepEqual(exports, ["CryptoError", "DidError"]);
 });
 
 test("the reviewed public declaration names contain no historical components", async () => {
@@ -23,7 +23,7 @@ test("the reviewed public declaration names contain no historical components", a
     declaration.replace(/^\/\/# sourceMappingURL=.*$/gmu, "").trim(),
     reviewed.trim(),
   );
-  assert.equal(snapshot.trim().split("\n").length, 75);
+  assert.equal(snapshot.trim().split("\n").length, 82);
 });
 
 test("target entries match reviewed declarations and expose only their capability surface", async () => {
@@ -38,11 +38,11 @@ test("target entries match reviewed declarations and expose only their capabilit
   }
   assert.deepEqual(
     Object.keys(await import("../dist/browser.js")),
-    ["createDidProvider", "createDidQueryProvider", "selectDidProvider"],
+    ["createDidProvider", "createDidQueryProvider", "createKeyOperationsProvider", "selectDidProvider"],
   );
   assert.deepEqual(
     Object.keys(await import("../dist/node.js")),
-    ["createDidProvider", "createDidQueryProvider", "selectDidProvider"],
+    ["createDidProvider", "createDidQueryProvider", "createKeyOperationsProvider", "selectDidProvider"],
   );
   assert.deepEqual(
     Object.keys(await import("../dist/react.js")),

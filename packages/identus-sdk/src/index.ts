@@ -1,4 +1,11 @@
 export {
+  CryptoError,
+  type CryptoErrorCode,
+  type Ed25519PrivateKeyHandle,
+  type Ed25519PublicKeyValue,
+  type KeyOperationsProvider,
+  type X25519PrivateKeyHandle,
+  type X25519PublicKeyValue,
   DidError,
   type DidDocumentContextEntryValue,
   type DidDocumentContextValue,

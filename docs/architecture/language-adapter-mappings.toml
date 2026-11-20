@@ -9,13 +9,13 @@ id                 = "crypto-key-operations.source.identus-wasm-crypto.v1"
 owner_issue        = 512
 state              = "active"
 canonical_crate    = "identus-wasm-crypto"
-canonical_revision = "87156727348f6b78a0708be0e8d6b87d8409e32e"
+canonical_revision = "459824bda49541b91494ae6eac2d3859eabcc1b0"
 path               = "crates/wasm-crypto/src/lib.rs"
 file_mode          = "100644"
-byte_length        = 23916
-sha256             = "34bd3185d5a8e172871b18fceadb491f8cb1e834877917ba0140347b3ad18cf3"
+byte_length        = 24009
+sha256             = "c5f704deeabca89d43d15271259eed45981f1f81cc0e642c7f5d4c90a0a4ce1e"
 git_object_format  = "sha1"
-git_blob_oid       = "5f10fad97b5a169b0dfcc01a7015815a5a88427b"
+git_blob_oid       = "419107aae1f32f422b0653356ba15b8a72735fee"
 
 [[canonical_sources]]
 id                 = "did.source.identus-did.v1"
@@ -186,7 +186,7 @@ language                 = "typescript"
 language_package         = "@hyperledger/identus-sdk"
 language_target          = "browser-node-react-web"
 language_version         = "0.0.0"
-language_revision        = "26bd934bb53feb9f732ef8f4378045dd6f06fef2"
+language_revision        = "459824bda49541b91494ae6eac2d3859eabcc1b0"
 language_path            = "packages/identus-sdk/src/public.ts"
 language_license         = "Apache-2.0"
 language_symbol          = "HdDerivationProvider"

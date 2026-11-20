@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-11-19`
-- Declaration count: `25`
+- Declaration count: `26`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -1088,6 +1088,55 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `differential`
 
 - Rationale: No independent implementation defines this repository's exact receipt, archive, branch, and protected-squash policy; deterministic mutation tests are the authoritative comparison surface.
+
+## `crypto.key-operations.typescript.quality.v1`
+
+- Capability: `crypto.key-operations`
+- Slice: Private Ed25519 signing and X25519 shared-secret TypeScript facade
+- Owner: SDK-Rust TypeScript binding maintainers (issue #611)
+- Risk: Secret lifecycle, entropy, signature verification, shared-secret derivation, redaction or target packaging can diverge across Rust and JavaScript runtimes.
+- Targets: `package:identus-crypto`, `package:identus-typescript-sdk`, `package:identus-wasm-crypto`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
+- Vector IDs: `2` local catalog entries
+- Limitations: Private additive Ed25519/X25519 primitive facade only; no wallet custody, persistence, HD derivation, seed or mnemonic handling, private export, React Native, publication, stable API, certification or mdoc.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `required` | `focused` | `on-change` | `pending` | #611 |
+| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #611 |
+| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #611 |
+| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #611 |
+
+### `property`
+
+- Command: `cargo test -p identus-wasm-crypto && npm --prefix packages/identus-sdk test`
+- Budget: Exercise every exact key/signature length, generated and imported handles, idempotent disposal, use-after-dispose rejection, verification result and shared-secret contributory check.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #611
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak key_operations`
+- Budget: Run bounded signing, verification and shared-secret inputs for 300 seconds with finite message, timeout and RSS limits.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #611
+
+### `benchmark`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh benchmark`
+- Budget: Measure deterministic artifact bytes and generated/imported Ed25519 sign/verify plus X25519 derive latency without coupling the result to Rust core CI.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #611
+
+### `differential`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh differential`
+- Budget: Compare exact public keys, Ed25519 signatures, verification results and X25519 shared secrets for both Rust and TypeScript adapters.
+- Receipt: `pending`
+- Evidence revision: `pending`
+- Delivery debt: #611
 
 ## `factory.rust-1-99-compiler-floor.quality.v1`
 

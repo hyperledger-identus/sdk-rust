@@ -112,6 +112,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "crypto.key-operations.typescript-migration.v1"
+capability                        = "crypto.key-operations"
+lifecycle_state                   = "proposed"
+issue                             = 611
+pull_request                      = 0
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "error", "public-api", "security", "target-support" ]
+affected_packages                 = [ "identus-adapters-entropy", "identus-crypto", "identus-typescript-sdk", "identus-wasm-crypto" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "The private TypeScript package has no capability-named Rust-backed key-operation facade."
+new_behavior                      = "The additive private facade exposes opaque Ed25519 signing and X25519 shared-secret handles with strict public projection, lifecycle, redaction, and target evidence."
+migration_action                  = "Opt in only through the private key provider and retain platform-owned custody and legacy routes until consumer rehearsal, support, budget, publication, and default-switch decisions are accepted."
+replacement                       = "Private additive Ed25519/X25519 facade backed by identus-crypto and the reviewed system entropy adapter."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The facade remains private, opt-in, non-default, and unpublished; no external compatibility window starts in this train."
+deprecation_phase                 = "proposed"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "not-applicable"
+mapping_ids                       = [  ]
+mapping_rationale                 = "The mapping is registered after planning binds the exact selected public and secret lifecycle shapes."
+vector_ids                        = [ "crypto.key-operations.ed25519-rfc8032-empty", "crypto.key-operations.x25519-rfc7748" ]
+quality_declaration_ids           = [ "crypto.key-operations.typescript.quality.v1" ]
+observability                     = "Record only operation, curve, provider route, stable result or error category, and bounded duration; never record keys, messages, signatures, shared secrets, generated errors, stacks, or WASM memory."
+fallback                          = "No automatic provider, algorithm, entropy, retry, or legacy fallback follows initialization or operation failure."
+rollback                          = "Remove the unreleased provider and artifact or select the legacy provider before initialization without exporting or migrating private keys."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = "A separate consumer-visible change may retire a legacy route only after named consumers adopt the Rust-backed facade, accepted support/security/budget evidence exists, and an announced migration window elapses."
+evidence_selectors                = [ "docs/architecture/quality-evidence-declarations.toml#crypto.key-operations.typescript.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#crypto.key-operations.ed25519-rfc8032-empty", "docs/conformance/cross-language-vector-catalog.toml#crypto.key-operations.x25519-rfc7748" ]
+evidence_artifacts                = [ "openspec/changes/add-sdk-ts-key-operations/design.md", "openspec/changes/add-sdk-ts-key-operations/research.md" ]
+limitations                       = "Private Ed25519/X25519 primitive facade only; no HD derivation, mnemonic/seed, additional curves, private export, keystore, KMS/hardware, persistence, wallet custody, React Native, external adoption, publication, stable API, certification, production claim, release, or mdoc."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "did.syntax.typescript-adoption-rehearsal.v1"
 capability                        = "did.syntax"
 lifecycle_state                   = "active"

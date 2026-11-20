@@ -2966,6 +2966,116 @@ rationale         = "No independent implementation defines this repository's exa
 details           = [  ]
 
 [[declarations]]
+id          = "crypto.key-operations.typescript.quality.v1"
+capability  = "crypto.key-operations"
+slice       = "Private Ed25519 signing and X25519 shared-secret TypeScript facade"
+owner       = "SDK-Rust TypeScript binding maintainers"
+owner_issue = 611
+risk        = "Secret lifecycle, entropy, signature verification, shared-secret derivation, redaction or target packaging can diverge across Rust and JavaScript runtimes."
+targets     = [ "package:identus-crypto", "package:identus-typescript-sdk", "package:identus-wasm-crypto", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+vector_ids  = [ "crypto.key-operations.ed25519-rfc8032-empty", "crypto.key-operations.x25519-rfc7748" ]
+limitations = "Private additive Ed25519/X25519 primitive facade only; no wallet custody, persistence, HD derivation, seed or mnemonic handling, private export, React Native, publication, stable API, certification or mdoc."
+active      = true
+supersedes  = [  ]
+replaced_by = ""
+
+[[declarations.obligations]]
+class             = "property"
+disposition       = "required"
+risk              = "Handle disposal, public projection, strict lengths and stable errors may violate the capability contract across operation sequences."
+selectors         = [ "openspec/changes/add-sdk-ts-key-operations/specs/sdk-ts-key-operations/spec.md#Requirement: Rust owns the selected key-operation semantics" ]
+command           = "cargo test -p identus-wasm-crypto && npm --prefix packages/identus-sdk test"
+lane              = "focused"
+cadence           = "on-change"
+targets           = [ "package:identus-wasm-crypto", "package:identus-typescript-sdk", "host:rust", "runtime:nodejs" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Exercise every exact key/signature length, generated and imported handles, idempotent disposal, use-after-dispose rejection, verification result and shared-secret contributory check."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 611
+debt_status       = "open"
+debt_issue        = 611
+rationale         = ""
+details           = [ "invariant=Opaque private handles never export secret bytes and every operation either returns the selected exact value or one stable redacted error", "domain=Generated and imported Ed25519 and X25519 handles plus public keys, messages, signatures, peer keys and disposal sequences", "cases=Exact success vectors, every one-short and one-long fixed input, altered signature, low-order peer key, double disposal and use after disposal" ]
+
+[[declarations.obligations]]
+class             = "fuzz"
+disposition       = "required"
+risk              = "Arbitrary public bytes, signatures and messages may panic, amplify work, bypass strict parsing or expose unstable dependency errors."
+selectors         = [ "openspec/changes/add-sdk-ts-key-operations/design.md#Resource and error contract" ]
+command           = "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak key_operations"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-crypto", "host:linux", "sanitizer:address" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Run bounded signing, verification and shared-secret inputs for 300 seconds with finite message, timeout and RSS limits."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 611
+debt_status       = "open"
+debt_issue        = 611
+rationale         = ""
+details           = [ "harness=Route arbitrary bounded key, message and signature bytes through the selected operations", "corpus=RFC 8032 and RFC 7748 vectors plus strict-length and low-order regressions", "seed=libFuzzer-managed failures promoted to checked-in regressions", "bounds=max_len=1048704;timeout=5;rss_limit_mb=1024;max_total_time=300", "sanitizer=address" ]
+
+[[declarations.obligations]]
+class             = "benchmark"
+disposition       = "required"
+risk              = "WASM bridge copies or cryptographic invocation can regress browser and Node latency or artifact size without a visible Rust-core regression."
+selectors         = [ "openspec/changes/add-sdk-ts-key-operations/design.md#Targets and artifacts" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh benchmark"
+lane              = "slow"
+cadence           = "weekly-or-manual"
+targets           = [ "package:identus-typescript-sdk", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Measure deterministic artifact bytes and generated/imported Ed25519 sign/verify plus X25519 derive latency without coupling the result to Rust core CI."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 611
+debt_status       = "open"
+debt_issue        = 611
+rationale         = ""
+details           = [ "operation=Build the isolated crypto artifact and execute selected key operations", "fixture=Exact RFC vectors plus system-generated private handles", "environment=Pinned Nix Rust 1.99.1, Node 24, wasm-pack 0.15.0 and wasm-bindgen-cli 0.2.121 on one host", "statistic=Uncompressed and deterministic gzip artifact bytes plus p50 and p95 operation latency", "samples=11 cold artifact loads and 101 warm operation samples after 21 warm-ups", "threshold=Measurement-only until downstream support budgets are accepted" ]
+
+[[declarations.obligations]]
+class             = "differential"
+disposition       = "required"
+risk              = "The facade can be internally consistent while producing keys, signatures or shared secrets incompatible with the selected standards or donor consumer behavior."
+selectors         = [ "docs/conformance/fixtures/crypto-key-operations/v1/vectors.json#crypto.key-operations.ed25519-rfc8032-empty", "docs/conformance/fixtures/crypto-key-operations/v1/vectors.json#crypto.key-operations.x25519-rfc7748" ]
+command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh differential"
+lane              = "fast"
+cadence           = "per-pull-request"
+targets           = [ "package:identus-crypto", "package:identus-typescript-sdk", "consumer:sdk-ts", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
+freshness         = "pending"
+freshness_days    = 0
+budget            = "Compare exact public keys, Ed25519 signatures, verification results and X25519 shared secrets for both Rust and TypeScript adapters."
+receipt_kind      = "none"
+receipt           = ""
+evidence_revision = ""
+recorded_at       = ""
+artifact          = ""
+owner             = "SDK-Rust TypeScript binding maintainers"
+owner_issue       = 611
+debt_status       = "open"
+debt_issue        = 611
+rationale         = ""
+details           = [ "oracle=RFC 8032 Ed25519 and RFC 7748 X25519 normative vectors", "oracle-revision=RFC8032-January-2017;RFC7748-January-2016", "normalization=Compare exact public, signature and shared-secret bytes plus stable verification outcome rather than donor classes or error text", "deviations=Private material remains an opaque non-exportable Rust handle; platform custody, persistence and host-key objects remain outside this facade" ]
+
+[[declarations]]
 id          = "factory.rust-1-99-compiler-floor.quality.v1"
 capability  = "factory.operations"
 slice       = "Exact Rust 1.99.1 source and candidate compiler contract"

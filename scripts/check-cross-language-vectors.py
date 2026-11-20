@@ -41,6 +41,7 @@ FIELD_KEYS = {
     "operationKind", "operationId", "operationHash", "canonicalDid", "curve",
     "relationshipCount", "url", "resultKind", "authentication", "keyAgreement",
     "serviceType", "serviceUri", "routingKey", "acceptCount",
+    "publicKeyHex", "signatureHex", "sharedSecretHex",
 }
 AUTHORITIES = {
     "normative", "identus-contract", "consumer-regression", "implementation-regression", "exploratory"
@@ -57,6 +58,8 @@ OPERATIONS = {
     "did-prism.signed-create.verify",
     "did-prism.state.reduce",
     "crypto.secp256k1.verify",
+    "crypto.ed25519.sign-verify",
+    "crypto.x25519.derive-shared",
     "did-prism-vdr.operation.parse",
     "did-peer.numalgo4.create",
     "did-peer.numalgo4.parse-long",
@@ -275,6 +278,10 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 allowed_fields = {"curve", "relationshipCount"}
             elif operation == "did-web.parse-prepare":
                 allowed_fields = {"url"}
+            elif operation == "crypto.ed25519.sign-verify":
+                allowed_fields = {"publicKeyHex", "signatureHex"}
+            elif operation == "crypto.x25519.derive-shared":
+                allowed_fields = {"publicKeyHex", "sharedSecretHex"}
             elif operation in {
                 "oid4vp.direct-post-response.construct",
                 "sdk.compiler-floor.evaluate",
@@ -321,6 +328,8 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
                 "did-prism.signed-create.verify": "did-prism.invalid_operation",
                 "did-prism.state.reduce": "did-prism.invalid_state",
                 "crypto.secp256k1.verify": "crypto.signature_invalid",
+                "crypto.ed25519.sign-verify": "crypto.signature_invalid",
+                "crypto.x25519.derive-shared": "crypto.key_parsing",
                 "did-prism-vdr.operation.parse": "did-prism-vdr.invalid_operation",
                 "did-peer.numalgo4.create": {
                     "did-peer.invalid_input_document",

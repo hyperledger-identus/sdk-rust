@@ -38,11 +38,14 @@ artifact_dir="$scratch/artifacts"
 )
 
 hash_artifacts() {
-  find "$artifact_dir" -type f -print0 \
-    | sort -z \
-    | xargs -0 shasum -a 256 \
-    | shasum -a 256 \
-    | awk '{print $1}'
+  (
+    cd "$artifact_dir"
+    find . -type f -print0 \
+      | LC_ALL=C sort -z \
+      | xargs -0 shasum -a 256 \
+      | shasum -a 256 \
+      | awk '{print $1}'
+  )
 }
 
 write_receipt() {

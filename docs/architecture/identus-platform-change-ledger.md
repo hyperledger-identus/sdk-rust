@@ -23,7 +23,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `crypto.hd-derivation.typescript-migration.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade exposes named BIP-32, SLIP-0010 and Cardano V2 profiles through opaque private/public handles with bounded paths, public-only projection, lifecycle, redaction and isolated target artifacts.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade exposes named BIP-32, SLIP-0010 and Cardano V2 profiles through opaque private/public handles with bounded paths, public-only projection, lifecycle, redaction and isolated target artifacts.
 
 ### `crypto.key-operations.typescript-migration.v1`
 

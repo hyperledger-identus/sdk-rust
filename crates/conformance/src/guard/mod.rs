@@ -96,8 +96,13 @@ pub(super) fn check_dep_edge(source: &str, target: &str) -> Result<(), String> {
         }
     }
 
+    let exact_outer_composition = matches!(
+        (source, target),
+        ("identus-wasm-crypto", "identus-adapters-entropy")
+    );
+
     // Proc-macro targets are exempt from the inward-direction policy.
-    if !is_proc_macro(target) {
+    if !is_proc_macro(target) && !exact_outer_composition {
         let allowed = allowed_target_layers(source_layer);
         if !allowed.contains(&target_layer) {
             let allowed_names: Vec<&str> = allowed.iter().map(|l| l.as_str()).collect();

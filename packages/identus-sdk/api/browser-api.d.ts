@@ -1,4 +1,9 @@
-import type { DidProvider, DidProviderOptions, DidQueryEffects, PrismDidEffects, InjectedDidProviderSelection, PrismDidProvider, PrismDidQueryProvider, PeerWasmDidProviderSelection } from "./public.js";
+import type { DidProvider, DidProviderOptions, DidQueryEffects, PrismDidEffects, InjectedDidProviderSelection, PrismDidProvider, PrismDidQueryProvider, PeerWasmDidProviderSelection, KeyOperationsProvider, KeyOperationsProviderOptions, InjectedKeyOperationsProviderSelection, WasmKeyOperationsProviderSelection } from "./public.js";
+/** Create the explicit browser-WASM key-operations provider. */
+export declare function createKeyOperationsProvider(options?: KeyOperationsProviderOptions): Promise<KeyOperationsProvider>;
+/** Select an injected key provider or browser WASM before initialization. */
+export declare function selectKeyOperationsProvider<Provider extends KeyOperationsProvider>(selection: InjectedKeyOperationsProviderSelection<Provider>): Promise<Provider>;
+export declare function selectKeyOperationsProvider(selection: WasmKeyOperationsProviderSelection): Promise<KeyOperationsProvider>;
 /** Create the explicit browser-WASM DID provider. */
 export declare function createDidProvider(options?: DidProviderOptions): Promise<PrismDidProvider>;
 /** Select an injected core provider or the peer-WASM capability before initialization. */

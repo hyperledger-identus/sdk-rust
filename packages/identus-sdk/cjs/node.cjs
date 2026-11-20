@@ -4,6 +4,16 @@
 // CommonJS callers retain an asynchronous provider factory while sharing the
 // exact ESM facade implementation. No parser or projection logic is duplicated.
 module.exports = Object.freeze({
+  createKeyOperationsProvider(options) {
+    return import("../dist/node.js").then((module) =>
+      module.createKeyOperationsProvider(options),
+    );
+  },
+  selectKeyOperationsProvider(selection) {
+    return import("../dist/node.js").then((module) =>
+      module.selectKeyOperationsProvider(selection),
+    );
+  },
   createDidProvider(options) {
     return import("../dist/node.js").then((module) =>
       module.createDidProvider(options),

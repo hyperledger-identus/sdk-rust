@@ -34,6 +34,7 @@ identus-conformance        = { path = "crates/conformance" }
 identus-wallet-conformance = { path = "crates/wallet-conformance" }
 identus-uniffi-did         = { path = "crates/uniffi-did" }
 identus-wasm-did           = { path = "crates/wasm-did" }
+identus-wasm-crypto        = { path = "crates/wasm-crypto" }
 proc-macro2                = "1"
 quote                      = "1"
 getrandom                  = "0.2"

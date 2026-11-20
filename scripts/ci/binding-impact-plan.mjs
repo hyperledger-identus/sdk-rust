@@ -106,6 +106,7 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
     const inCargoClosure = dependencyPaths.some((prefix) => relative === prefix || relative.startsWith(`${prefix}/`));
     if (inCargoClosure) addSignal(signals, targetSignals, "cargo-dependency-closure");
     if (/^crates\/wasm-did\/api\//u.test(relative)) addSignal(signals, targetSignals, "binding-api-schema");
+    if (relative.startsWith("crates/wasm-crypto/")) addSignal(signals, targetSignals, "crypto-binding-source");
     if (/^(?:Cargo\.(?:toml|lock)|rust-toolchain(?:\.toml)?|flake\.(?:nix|lock))$/u.test(relative)) addSignal(signals, targetSignals, "cargo-lock-or-toolchain");
     if (/^(?:package-lock\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock)$/u.test(relative)
         || (bindingPackage.test(relative) && /\/(?:package-lock\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock)$/u.test(relative))) {
@@ -119,6 +120,9 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
         || relative.startsWith("docs/conformance/fixtures/did-resolution/")
         || relative.startsWith("docs/conformance/fixtures/did-peer/")) {
       addSignal(signals, targetSignals, "shared-vectors");
+    }
+    if (relative.startsWith("docs/conformance/fixtures/crypto-key-operations/")) {
+      addSignal(signals, targetSignals, "shared-crypto-vectors");
     }
     if (relative === "docs/architecture/quality-evidence-declarations.toml"
         || relative === "docs/architecture/quality-evidence-plan.md"
@@ -159,7 +163,7 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
         || relative === "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md") {
       addSignal(signals, targetSignals, "target-contract");
     }
-    if (/^(?:\.github\/workflows\/factory-contract\.yml|scripts\/(?:assemble-sdk-ts-did-artifacts\.mjs|build-sdk-ts-did-artifacts\.sh)|scripts\/ci\/(?:binding-impact-plan|aggregate-fast-targets|write-target-receipt)\.mjs|scripts\/check-sdk-ts-did-(?:boundaries\.mjs|target\.sh))$/u.test(relative)) {
+    if (/^(?:\.github\/workflows\/factory-contract\.yml|scripts\/(?:assemble-sdk-ts-did-artifacts\.mjs|build-sdk-ts-(?:did|crypto)-artifacts\.sh)|scripts\/ci\/(?:binding-impact-plan|aggregate-fast-targets|write-target-receipt)\.mjs|scripts\/check-sdk-ts-(?:did-(?:boundaries\.mjs|target\.sh)|crypto-target\.sh))$/u.test(relative)) {
       addSignal(signals, targetSignals, "ci-contract");
     }
     if (relative === "scripts/tests/binding-target-isolation.mjs"
@@ -218,7 +222,11 @@ function main() {
   const headSha = resolveCommit(options.head, "head");
   const paths = git(["diff", "--name-only", "-z", `${baseSha}...${headSha}`]).split("\0").filter(Boolean);
   const metadata = options.metadata ? JSON.parse(readFileSync(path.resolve(root, options.metadata), "utf8")) : cargoMetadata();
-  const plan = buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPaths: deriveCargoDependencyPaths(metadata) });
+  const dependencyPaths = [
+    ...deriveCargoDependencyPaths(metadata),
+    ...deriveCargoDependencyPaths(metadata, "identus-wasm-crypto"),
+  ];
+  const plan = buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPaths: [...new Set(dependencyPaths)] });
   const rendered = `${JSON.stringify(plan, null, 2)}\n`;
   if (options.output) writeFileSync(path.resolve(root, options.output), rendered, { mode: 0o600 });
   process.stdout.write(rendered);

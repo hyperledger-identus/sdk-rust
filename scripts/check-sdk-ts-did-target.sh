@@ -99,13 +99,16 @@ done
 mkdir -p "$root/target"
 scratch="$(mktemp -d "$root/target/.sdk-ts-did-target.XXXXXX")"
 artifact_dir="$scratch/artifacts"
+crypto_artifact_dir="$scratch/crypto-artifacts"
 ./scripts/build-sdk-ts-did-artifacts.sh --output "$artifact_dir"
 node scripts/assemble-sdk-ts-did-artifacts.mjs --verify "$artifact_dir" >/dev/null
+./scripts/build-sdk-ts-crypto-artifacts.sh --output "$crypto_artifact_dir"
 
 (
   cd "$package_root"
   npm ci --ignore-scripts
   SDK_TS_DID_ARTIFACTS="$artifact_dir" npm run sync-artifacts
+  SDK_TS_CRYPTO_ARTIFACTS="$crypto_artifact_dir" npm run sync-crypto-artifacts
   npm run build
 )
 

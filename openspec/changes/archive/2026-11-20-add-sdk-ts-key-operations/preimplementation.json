@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "repository": "hyperledger-identus/sdk-rust",
+  "issue": 611,
+  "change": "add-sdk-ts-key-operations",
+  "branch": "codex/feat/issue-611",
+  "baseRef": "origin/develop",
+  "baseSha": "d291a446ece0e932f7f00cbe19da34b72b36bb17",
+  "contractHeadSha": "327ff6cc8db1e2b97e4e61d9276da7e0b86f6030",
+  "createdAt": "2026-11-20T00:20:14.673Z",
+  "researchReady": true,
+  "constraintsReady": true,
+  "strictValidation": true
+}

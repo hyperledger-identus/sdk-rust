@@ -7,7 +7,7 @@ mode=${1:-smoke}
 selection=${2:-all}
 
 usage() {
-  printf 'Usage: %s {replay|smoke|soak} {public_jwk|public_cose|all}\n' "$0" >&2
+  printf 'Usage: %s {replay|smoke|soak} {public_jwk|public_cose|key_operations|all}\n' "$0" >&2
 }
 
 case "$mode" in
@@ -18,8 +18,8 @@ case "$mode" in
 esac
 
 case "$selection" in
-  public_jwk|public_cose) targets=("$selection") ;;
-  all) targets=(public_jwk public_cose) ;;
+  public_jwk|public_cose|key_operations) targets=("$selection") ;;
+  all) targets=(public_jwk public_cose key_operations) ;;
   *) usage; exit 2 ;;
 esac
 
@@ -56,6 +56,9 @@ for fuzz_target in "${targets[@]}"; do
     -workers=1
     -dict="$repo_root/fuzz/dictionaries/$fuzz_target.dict"
   )
+  if [[ "$fuzz_target" == "key_operations" ]]; then
+    common[0]=-max_len=1048704
+  fi
   mkdir -p "$repo_root/fuzz/artifacts/$fuzz_target"
 
   case "$mode" in

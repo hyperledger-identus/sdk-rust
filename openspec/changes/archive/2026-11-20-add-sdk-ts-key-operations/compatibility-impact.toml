@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 611
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The private TypeScript facade gains opt-in opaque Ed25519 and X25519 operations without activating wallet custody or external SDK-TS routes."
+ledger_ids     = [ "crypto.key-operations.typescript-migration.v1" ]

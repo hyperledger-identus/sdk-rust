@@ -1039,6 +1039,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "identus-wasm-crypto"
+version = "0.0.0"
+dependencies = [
+ "hex",
+ "identus-adapters-entropy",
+ "identus-crypto",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "identus-wasm-did"
 version = "0.0.0"
 dependencies = [

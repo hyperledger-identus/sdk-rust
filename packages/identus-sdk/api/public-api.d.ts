@@ -1,5 +1,5 @@
 export type DidErrorCode = "did.invalid_did" | "did.invalid_did_url" | "did.invalid_document" | "did.invalid_resolution_options" | "did.invalid_dereferencing_options" | "did.invalid_resolution_result" | "did.invalid_dereferencing_result" | "did.resolution_host_failure" | "did.dereferencing_host_failure" | "did.resolution_provider_unavailable" | "did.dereferencing_provider_unavailable" | "did.operation_aborted" | "did.observer_failure" | "did.peer.wrong_profile" | "did.peer.unsupported_algorithm" | "did.peer.malformed_encoding" | "did.peer.unsupported_codec" | "did.peer.unsupported_purpose" | "did.peer.invalid_input_document" | "did.peer.hash_mismatch" | "did.peer.long_form_required" | "did.peer.resource_limit" | "did.peer.projection_failure" | "did.prism.invalid_syntax" | "did.prism.invalid_wire" | "did.prism.invalid_operation" | "did.prism.invalid_state" | "did.prism.history_provider_unavailable" | "did.prism.history_host_failure" | "adapter.binding_contract" | "adapter.unsupported_lossy_mapping";
-export type CryptoErrorCode = "crypto.handle_disposed" | "crypto.invalid_private_key" | "crypto.invalid_public_key" | "crypto.invalid_signature" | "crypto.message_too_large" | "crypto.non_contributory_peer" | "crypto.entropy_unavailable" | "crypto.observer_failure" | "adapter.binding_contract";
+export type CryptoErrorCode = "crypto.handle_disposed" | "crypto.invalid_private_key" | "crypto.invalid_public_key" | "crypto.invalid_signature" | "crypto.message_too_large" | "crypto.non_contributory_peer" | "crypto.entropy_unavailable" | "crypto.observer_failure" | "crypto.hd.invalid_profile" | "crypto.hd.invalid_seed" | "crypto.hd.invalid_path" | "crypto.hd.forbidden_axis" | "crypto.hd.depth_overflow" | "crypto.hd.derivation_failed" | "crypto.hd.projection_failed" | "adapter.binding_contract";
 export type KeyOperation = "ed25519.generate" | "ed25519.import" | "ed25519.public-key" | "ed25519.sign" | "ed25519.verify" | "ed25519.dispose" | "x25519.generate" | "x25519.import" | "x25519.public-key" | "x25519.derive-shared-secret" | "x25519.dispose";
 export interface KeyOperationObservation {
     readonly operation: KeyOperation;
@@ -37,6 +37,58 @@ export interface KeyOperationsProvider {
     generateX25519(): X25519PrivateKeyHandle;
     importX25519(privateKey: Uint8Array): X25519PrivateKeyHandle;
 }
+export type HdDerivationProfile = "secp256k1-bip32-hardened-v1" | "ed25519-slip10-hardened-v1" | "ed25519-cardano-v2-v1";
+export type HdDerivationOperation = "hd.root" | "hd.private.derive" | "hd.private.public-key" | "hd.private.public-derivation" | "hd.private.dispose" | "hd.public.derive" | "hd.public.public-key" | "hd.public.dispose";
+export interface HdDerivationObservation {
+    readonly operation: HdDerivationOperation;
+    readonly profile: HdDerivationProfile;
+    readonly route: "rust-wasm";
+    readonly mappingId: "crypto.hd-derivation.typescript.v1";
+    readonly result: "success" | "error";
+    readonly errorCode: CryptoErrorCode | undefined;
+    readonly depth: number;
+    readonly durationMs: number;
+}
+export type HdDerivationObserver = (observation: HdDerivationObservation) => void;
+export interface HdDerivationProviderOptions {
+    readonly observer?: HdDerivationObserver;
+}
+export interface HdPublicKeyValue<Profile extends HdDerivationProfile = HdDerivationProfile> {
+    readonly profile: Profile;
+    readonly depth: number;
+    readonly bytes: Uint8Array;
+}
+export interface HdPrivateKeyHandle<Profile extends HdDerivationProfile = HdDerivationProfile> {
+    readonly profile: Profile;
+    readonly depth: number;
+    derive(path: string): HdPrivateKeyHandle<Profile>;
+    publicKey(): HdPublicKeyValue<Profile>;
+    dispose(): void;
+}
+export interface CardanoV2PrivateKeyHandle extends HdPrivateKeyHandle<"ed25519-cardano-v2-v1"> {
+    derive(path: string): CardanoV2PrivateKeyHandle;
+    publicDerivation(): CardanoV2PublicKeyHandle;
+}
+export interface CardanoV2PublicKeyHandle {
+    readonly profile: "ed25519-cardano-v2-v1";
+    readonly depth: number;
+    derive(path: string): CardanoV2PublicKeyHandle;
+    publicKey(): HdPublicKeyValue<"ed25519-cardano-v2-v1">;
+    dispose(): void;
+}
+export type HdPrivateKeyHandleFor<Profile extends HdDerivationProfile> = Profile extends "ed25519-cardano-v2-v1" ? CardanoV2PrivateKeyHandle : HdPrivateKeyHandle<Profile>;
+export interface HdDerivationProvider {
+    createRoot<Profile extends HdDerivationProfile>(profile: Profile, seed: Uint8Array): HdPrivateKeyHandleFor<Profile>;
+}
+export interface InjectedHdDerivationProviderSelection<Provider extends HdDerivationProvider = HdDerivationProvider> {
+    readonly kind: "injected";
+    readonly provider: Provider;
+}
+export interface WasmHdDerivationProviderSelection {
+    readonly kind: "wasm";
+    readonly options?: HdDerivationProviderOptions;
+}
+export type HdDerivationProviderSelection = InjectedHdDerivationProviderSelection | WasmHdDerivationProviderSelection;
 export interface InjectedKeyOperationsProviderSelection<Provider extends KeyOperationsProvider = KeyOperationsProvider> {
     readonly kind: "injected";
     readonly provider: Provider;

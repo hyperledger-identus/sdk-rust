@@ -42,6 +42,7 @@ FIELD_KEYS = {
     "relationshipCount", "url", "resultKind", "authentication", "keyAgreement",
     "serviceType", "serviceUri", "routingKey", "acceptCount",
     "publicKeyHex", "signatureHex", "sharedSecretHex",
+    "rootPublicKeyHex", "childPublicKeyHex", "childDepth",
 }
 AUTHORITIES = {
     "normative", "identus-contract", "consumer-regression", "implementation-regression", "exploratory"
@@ -60,6 +61,8 @@ OPERATIONS = {
     "crypto.secp256k1.verify",
     "crypto.ed25519.sign-verify",
     "crypto.x25519.derive-shared",
+    "crypto.hd.private-derive",
+    "crypto.hd.private-public-differential",
     "did-prism-vdr.operation.parse",
     "did-peer.numalgo4.create",
     "did-peer.numalgo4.parse-long",
@@ -90,6 +93,7 @@ CONSUMER_SELECTORS = {
     "typescript.sdk-ts-peer": "PeerDID.test.ts:Should create the peerDID correctly",
     "typescript.sdk-ts-prism": "PrismDID.test.ts:real example resolves correctly",
     "typescript.sdk-rust-crypto-key-operations": "packages/identus-sdk/tests/crypto-runtime.test.mjs",
+    "sdk-ts.apollo-hd-journeys": "packages/identus-sdk/tests/hd-vector-assertions.mjs",
 }
 MAX_GENERATED_REPEAT = 262_144
 
@@ -284,6 +288,11 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
             elif operation == "crypto.x25519.derive-shared":
                 allowed_fields = {"publicKeyHex", "sharedSecretHex"}
             elif operation in {
+                "crypto.hd.private-derive",
+                "crypto.hd.private-public-differential",
+            }:
+                allowed_fields = {"rootPublicKeyHex", "childPublicKeyHex", "childDepth"}
+            elif operation in {
                 "oid4vp.direct-post-response.construct",
                 "sdk.compiler-floor.evaluate",
                 "siopv2.did-authentication.roundtrip",
@@ -294,7 +303,7 @@ def validate_packet(path: Path, packet: dict[str, object], errors: list[str]) ->
             if set(fields) - allowed_fields:
                 errors.append(f"{identifier}.expected.fields contains fields unsupported by {operation}")
             for field, value in fields.items():
-                if field in {"relationshipCount", "acceptCount"}:
+                if field in {"relationshipCount", "acceptCount", "childDepth"}:
                     if not isinstance(value, int) or isinstance(value, bool) or value < 0:
                         errors.append(f"{identifier}.expected.fields.{field} must be a non-negative integer")
                     continue

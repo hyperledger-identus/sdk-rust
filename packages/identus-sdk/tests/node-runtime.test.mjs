@@ -37,6 +37,8 @@ test("Node CommonJS shares the ESM facade and executes every canonical DID vecto
   const require = createRequire(import.meta.url);
   const entry = require("../cjs/node.cjs");
   assert.deepEqual(Object.keys(entry), [
+    "createHdDerivationProvider",
+    "selectHdDerivationProvider",
     "createKeyOperationsProvider",
     "selectKeyOperationsProvider",
     "createDidProvider",
@@ -46,6 +48,14 @@ test("Node CommonJS shares the ESM facade and executes every canonical DID vecto
   const keyOperations = await entry.createKeyOperationsProvider();
   const { assertCryptoVectors } = await import("./crypto-vector-assertions.mjs");
   assert.equal(assertCryptoVectors(keyOperations), 2);
+  const hdDerivation = await entry.createHdDerivationProvider();
+  const { assertHdDerivationVectors } = await import("./hd-vector-assertions.mjs");
+  assert.equal(assertHdDerivationVectors(hdDerivation), 3);
+  const injectedHdDerivation = Object.freeze({ marker: "legacy" });
+  assert.strictEqual(
+    await entry.selectHdDerivationProvider({ kind: "injected", provider: injectedHdDerivation }),
+    injectedHdDerivation,
+  );
   const injectedKeyOperations = Object.freeze({ marker: "legacy" });
   assert.strictEqual(
     await entry.selectKeyOperationsProvider({ kind: "injected", provider: injectedKeyOperations }),

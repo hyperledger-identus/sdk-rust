@@ -8,6 +8,7 @@
     "\\.claude",
     "Cargo\\.lock",
     "flake\\.lock",
+    "fuzz/corpus/hd_derivation",
     "LICENSE"
   ]
 }

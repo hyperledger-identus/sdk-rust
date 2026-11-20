@@ -2703,3 +2703,134 @@ supersedes         = [  ]
 replaced_by        = ""
 external_records   = [ "crypto.key-operations.typescript-migration.v1", "crypto.key-operations.typescript.quality.v1" ]
 limitations        = "The vector proves primitive interoperability, not key custody, KDF, or protocol key agreement."
+
+[[sources]]
+id             = "bip0032.secp256k1"
+kind           = "standard"
+url            = "https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki"
+version        = "BIP 32 current pinned test-vector text"
+section        = "Test vector 1"
+authorship     = "Bitcoin BIPs contributors"
+license        = "BSD-2-Clause"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "slip0010.ed25519"
+kind           = "standard"
+url            = "https://github.com/satoshilabs/slips/blob/master/slip-0010.md"
+version        = "SLIP-0010 current pinned test-vector text"
+section        = "Test vector 1 for ed25519"
+authorship     = "SatoshiLabs SLIPs contributors"
+license        = "CC0-1.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "cip0003.cardano-v2"
+kind           = "standard"
+url            = "https://cips.cardano.org/cip/CIP-0003"
+version        = "CIP-0003 current pinned profile text"
+section        = "Icarus master key generation and derivation"
+authorship     = "Cardano Foundation CIP contributors"
+license        = "CC-BY-4.0"
+redistribution = "derived-cases-allowed"
+
+[[sources]]
+id             = "sdk-rust.crypto-hd-derivation"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-rust"
+revision       = "48b3c1dc34969016fe8fbf7bba1a68756b312d7a"
+path           = "crates/crypto/src/derivation"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[sources]]
+id             = "sdk-ts.apollo-hd-journeys"
+kind           = "repository"
+url            = "https://github.com/hyperledger-identus/sdk-ts"
+revision       = "4bf86ebf69d5e96616a148e4c973f831f95fa38e"
+path           = "packages/apollo/src"
+authorship     = "Hyperledger Identus contributors"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+
+[[packets]]
+id             = "crypto.hd-derivation.v1"
+capability     = "crypto.hd-derivation"
+schema_version = 1
+path           = "docs/conformance/fixtures/crypto-hd-derivation/v1/vectors.json"
+sha256         = "85262b4df4dce093c57020fe9aa9258cd706bd95bf506a64bff9313891bbf02b"
+authorship     = "SDK-Rust clean-room curation from BIP-0032, SLIP-0010, CIP-0003 and accepted SDK-TS journeys"
+license        = "Apache-2.0"
+redistribution = "allowed-with-attribution"
+public_data    = true
+targets        = [ "rust", "typescript" ]
+
+[[vectors]]
+id                 = "crypto.hd-derivation.secp256k1-bip32-vector1"
+packet             = "crypto.hd-derivation.v1"
+case               = "crypto.hd-derivation.secp256k1-bip32-vector1"
+capability         = "crypto.hd-derivation"
+authority          = "normative"
+source_ids         = [ "bip0032.secp256k1", "sdk-rust.crypto-hd-derivation", "sdk-ts.apollo-hd-journeys" ]
+source_locator     = "MAX_HD_DERIVATION_PATH_BYTES and BIP-0032 test vector 1 root and m/0' public projections"
+operation          = "crypto.hd.private-derive"
+expected           = "success"
+profile_scope      = "secp256k1-bip32-hardened-v1 with exact 16-byte seed and hardened child"
+boundary           = "positive"
+resource_class     = "bounded-seed-bounded-path"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_crypto::HDKey"
+language_selectors = [ "packages/identus-sdk/tests/hd-vector-assertions.mjs" ]
+owner_issue        = 612
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "crypto.hd-derivation.typescript-migration.v1", "crypto.hd-derivation.typescript.quality.v1" ]
+limitations        = "Only the hardened private subset is claimed; no soft or public BIP-32 derivation is implied."
+
+[[vectors]]
+id                 = "crypto.hd-derivation.ed25519-slip10-vector1"
+packet             = "crypto.hd-derivation.v1"
+case               = "crypto.hd-derivation.ed25519-slip10-vector1"
+capability         = "crypto.hd-derivation"
+authority          = "normative"
+source_ids         = [ "slip0010.ed25519", "sdk-rust.crypto-hd-derivation", "sdk-ts.apollo-hd-journeys" ]
+source_locator     = "MAX_HD_DERIVATION_PATH_BYTES and SLIP-0010 ed25519 test vector 1 root and m/0' public projections"
+operation          = "crypto.hd.private-derive"
+expected           = "success"
+profile_scope      = "ed25519-slip10-hardened-v1 with exact 16-byte seed and hardened child"
+boundary           = "positive"
+resource_class     = "bounded-seed-bounded-path"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_crypto::EdHDKey"
+language_selectors = [ "packages/identus-sdk/tests/hd-vector-assertions.mjs" ]
+owner_issue        = 612
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "crypto.hd-derivation.typescript-migration.v1", "crypto.hd-derivation.typescript.quality.v1" ]
+limitations        = "This profile is distinct from Cardano V2 and accepts hardened derivation only."
+
+[[vectors]]
+id                 = "crypto.hd-derivation.cardano-v2-soft-public"
+packet             = "crypto.hd-derivation.v1"
+case               = "crypto.hd-derivation.cardano-v2-soft-public"
+capability         = "crypto.hd-derivation"
+authority          = "consumer-regression"
+source_ids         = [ "cip0003.cardano-v2", "sdk-rust.crypto-hd-derivation", "sdk-ts.apollo-hd-journeys" ]
+source_locator     = "MAX_HD_DERIVATION_PATH_BYTES, accepted Apollo-compatible 64-byte seed representation, and Cardano V2 soft public/private differential"
+operation          = "crypto.hd.private-public-differential"
+expected           = "success"
+profile_scope      = "ed25519-cardano-v2-v1 root and m/0 soft child"
+boundary           = "positive"
+resource_class     = "fixed-seed-bounded-path"
+targets            = [ "rust", "typescript" ]
+rust_selector      = "identus_crypto::CardanoV2ExtendedPrivateKey"
+language_selectors = [ "packages/identus-sdk/tests/hd-vector-assertions.mjs" ]
+owner_issue        = 612
+active             = true
+supersedes         = [  ]
+replaced_by        = ""
+external_records   = [ "crypto.hd-derivation.typescript-migration.v1", "crypto.hd-derivation.typescript.quality.v1" ]
+limitations        = "The seed representation is the accepted Apollo compatibility boundary; mnemonic acquisition remains host-owned."

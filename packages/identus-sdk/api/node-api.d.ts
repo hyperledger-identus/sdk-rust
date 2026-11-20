@@ -1,6 +1,11 @@
-import type { DidProvider, DidProviderOptions, DidQueryEffects, PrismDidEffects, InjectedDidProviderSelection, PrismDidProvider, PrismDidQueryProvider, PeerWasmDidProviderSelection, KeyOperationsProvider, KeyOperationsProviderOptions, InjectedKeyOperationsProviderSelection, WasmKeyOperationsProviderSelection } from "./public.js";
+import type { DidProvider, DidProviderOptions, DidQueryEffects, PrismDidEffects, InjectedDidProviderSelection, PrismDidProvider, PrismDidQueryProvider, PeerWasmDidProviderSelection, KeyOperationsProvider, KeyOperationsProviderOptions, InjectedKeyOperationsProviderSelection, WasmKeyOperationsProviderSelection, HdDerivationProvider, HdDerivationProviderOptions, InjectedHdDerivationProviderSelection, WasmHdDerivationProviderSelection } from "./public.js";
 /** Create the explicit Node.js-WASM key-operations provider. */
 export declare function createKeyOperationsProvider(options?: KeyOperationsProviderOptions): Promise<KeyOperationsProvider>;
+/** Create the explicit Node.js-WASM HD-derivation provider. */
+export declare function createHdDerivationProvider(options?: HdDerivationProviderOptions): Promise<HdDerivationProvider>;
+/** Select an injected HD provider or Node.js WASM before initialization. */
+export declare function selectHdDerivationProvider<Provider extends HdDerivationProvider>(selection: InjectedHdDerivationProviderSelection<Provider>): Promise<Provider>;
+export declare function selectHdDerivationProvider(selection: WasmHdDerivationProviderSelection): Promise<HdDerivationProvider>;
 /** Select an injected key provider or Node.js WASM before initialization. */
 export declare function selectKeyOperationsProvider<Provider extends KeyOperationsProvider>(selection: InjectedKeyOperationsProviderSelection<Provider>): Promise<Provider>;
 export declare function selectKeyOperationsProvider(selection: WasmKeyOperationsProviderSelection): Promise<KeyOperationsProvider>;

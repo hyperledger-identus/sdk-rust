@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { test } from "node:test";
 
-import { createDidProvider, createDidQueryProvider, createKeyOperationsProvider, selectDidProvider } from "../dist/node.js";
+import { createDidProvider, createDidQueryProvider, createHdDerivationProvider, createKeyOperationsProvider, selectDidProvider } from "../dist/node.js";
 import { DidProviderBoundary, useDidProvider } from "../dist/react.js";
 import { assertAllVectors } from "./vector-assertions.mjs";
 import { loadVectors } from "./vector-loader.mjs";
@@ -23,6 +23,7 @@ import {
   runDidAdoptionRehearsal,
 } from "./adoption-journey.mjs";
 import { assertCryptoVectors } from "./crypto-vector-assertions.mjs";
+import { assertHdDerivationVectors } from "./hd-vector-assertions.mjs";
 
 const reactDocument = '{"id":"did:example:react-ssr"}';
 
@@ -39,6 +40,7 @@ function DidText({ document = reactDocument }) {
 
 test("React SSR crosses the Node provider without duplicated DID logic", async () => {
   assert.equal(assertCryptoVectors(await createKeyOperationsProvider()), 2);
+  assert.equal(assertHdDerivationVectors(await createHdDerivationProvider()), 3);
   const provider = await createDidProvider();
   assertAllVectors(provider, await loadVectors());
   assertAllDocumentVectors(provider, await loadDocumentVectors());

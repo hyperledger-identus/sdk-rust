@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-11-20`
-- Declaration count: `26`
+- Declaration count: `27`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -1169,3 +1169,48 @@ Commands are declared evidence routes; rendering this plan never executes them.
 ### `differential`
 
 - Rationale: Exact local policy, target builds, and named downstream compiler inspection are authoritative; no independent implementation defines this repository contract.
+
+## `crypto.hd-derivation.typescript.quality.v1`
+
+- Capability: `crypto.hd-derivation`
+- Slice: Profile-explicit deterministic HD derivation TypeScript facade
+- Owner: SDK-Rust TypeScript binding maintainers (issue #612)
+- Risk: Profile selection, path rules, seed lifecycle, public projection, derivation semantics, redaction or target packaging can diverge across Rust and JavaScript runtimes.
+- Targets: `package:identus-crypto`, `package:identus-typescript-sdk`, `package:identus-wasm-crypto`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
+- Vector IDs: `3` local catalog entries
+- Limitations: Private additive profile-explicit derivation only; no mnemonic acquisition, BIP-39 seed creation, private export, wallet custody, persistence, React Native, publication, stable API, certification or mdoc.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #612 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #612 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #612 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #612 |
+
+### `property`
+
+- Command: `cargo test -p identus-wasm-crypto && npm --prefix packages/identus-sdk test`
+- Budget: Exercise every profile, seed boundary, path grammar class, permitted and forbidden axis class, projection, idempotent disposal and use-after-dispose sequence.
+- Receipt: `source:packages/identus-sdk/tests/hd-provider.test.mjs`
+- Evidence revision: `459824bda49541b91494ae6eac2d3859eabcc1b0`
+
+### `fuzz`
+
+- Command: `nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak hd_derivation`
+- Budget: Run bounded profile, seed, path and public derivation inputs for 300 seconds with finite input, timeout and RSS limits.
+- Receipt: `source:fuzz/fuzz_targets/hd_derivation.rs`
+- Evidence revision: `87156727348f6b78a0708be0e8d6b87d8409e32e`
+
+### `benchmark`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh benchmark`
+- Budget: Measure deterministic artifact bytes plus root, three-axis private derivation and supported public derivation latency without coupling the result to Rust core CI.
+- Receipt: `source:packages/identus-sdk/tests/crypto-measurements.mjs`
+- Evidence revision: `87156727348f6b78a0708be0e8d6b87d8409e32e`
+
+### `differential`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh differential`
+- Budget: Compare exact child/private-derived public values, extended public values, depths, permitted axes and rejection classes for all named profiles.
+- Receipt: `source:packages/identus-sdk/tests/hd-vector-assertions.mjs`
+- Evidence revision: `87156727348f6b78a0708be0e8d6b87d8409e32e`

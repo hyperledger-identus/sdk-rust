@@ -611,13 +611,13 @@ review_triggers  = [ "new FFI payload", "streaming FFI", "binding support activa
 [[boundaries]]
 id               = "wasm-crypto-key-operations"
 package          = "identus-wasm-crypto"
-surface          = "TypeScript Ed25519 signing and verification plus X25519 public projection and shared-secret derivation over opaque Rust-owned private handles"
+surface          = "TypeScript Ed25519/X25519 key operations and profile-explicit HD derivation over opaque Rust-owned private/public handles"
 disposition      = "sdk-enforced"
-limits           = [ "ED25519_KEY_BYTES=32", "ED25519_SIGNATURE_BYTES=64", "X25519_KEY_BYTES=32", "MAX_KEY_OPERATION_MESSAGE_BYTES=1048576" ]
-evidence         = [ "crates/wasm-crypto/src/lib.rs", "packages/identus-sdk/src/internal/crypto-provider.ts", "packages/identus-sdk/tests/crypto-runtime.test.mjs" ]
-outer_obligation = "The JavaScript engine allocates typed-array input before bridge validation; callers own aliases and prior copies, while platform adapters own custody, persistence, permissions and transport."
-consumer_impact  = "The private facade rejects wrong fixed lengths, caps messages at one MiB, overwrites the supplied import buffer, keeps private bytes non-exportable and exposes explicit disposal without claiming host-level erasure."
-review_triggers  = [ "new algorithm", "private export", "message limit change", "host key object", "custody adapter", "React Native support", "artifact publication" ]
+limits           = [ "ED25519_KEY_BYTES=32", "ED25519_SIGNATURE_BYTES=64", "X25519_KEY_BYTES=32", "MAX_KEY_OPERATION_MESSAGE_BYTES=1048576", "MAX_HD_DERIVATION_PATH_BYTES=4096" ]
+evidence         = [ "crates/wasm-crypto/src/lib.rs", "packages/identus-sdk/src/internal/crypto-provider.ts", "packages/identus-sdk/src/internal/hd-provider.ts", "packages/identus-sdk/tests/crypto-runtime.test.mjs" ]
+outer_obligation = "The JavaScript engine allocates typed-array and string input before bridge validation; callers own aliases and prior copies, while platform adapters own mnemonic acquisition, custody, persistence, permissions and transport."
+consumer_impact  = "The private facade rejects wrong fixed lengths, caps messages at one MiB and HD paths at 4 KiB/255 axes, overwrites supplied secret buffers, keeps private bytes non-exportable and exposes explicit disposal without claiming host-level erasure."
+review_triggers  = [ "new algorithm or derivation profile", "private export", "message/path/seed limit change", "host key object", "mnemonic or custody adapter", "React Native support", "artifact publication" ]
 
 [[boundaries]]
 id               = "wasm-did-js-string"

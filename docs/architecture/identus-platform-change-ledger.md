@@ -21,6 +21,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. An additive 
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt-vc crate provides an exact bounded draft-22 profile with canonical dc+sd-jwt issuance, profile claims, caller-supplied issuer/type/status evidence and offline protocol integration.
 
+### `crypto.hd-derivation.typescript-migration.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade exposes named BIP-32, SLIP-0010 and Cardano V2 profiles through opaque private/public handles with bounded paths, public-only projection, lifecycle, redaction and isolated target artifacts.
+
 ### `crypto.key-operations.typescript-migration.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade exposes opaque Ed25519 signing and X25519 shared-secret handles with strict public projection, lifecycle, redaction and isolated target artifacts.
@@ -138,6 +142,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `credentials.sd-jwt.vc-draft22.v1`
 
 `unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters, sdk-swift, sdk-ts. Use the canonical dc+sd-jwt profile for new Rust integrations; keep legacy vc+sd-jwt migration isolated to issue #572.
+
+### `crypto.hd-derivation.typescript-migration.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Opt in through createHdDerivationProvider, select one named profile, and retain platform-owned mnemonic acquisition, custody, persistence and legacy routes until separate adoption decisions are accepted.
 
 ### `crypto.key-operations.typescript-migration.v1`
 
@@ -257,6 +265,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
+### `crypto.hd-derivation.typescript-migration.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The facade remains private, opt-in, non-default and unpublished.
+
 ### `crypto.key-operations.typescript-migration.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The facade remains private, opt-in, non-default and unpublished.
@@ -375,6 +387,10 @@ Fallback: No automatic fallback; canonical APIs keep rejecting vc+sd-jwt and con
 
 Fallback: Consumers retain their current SD-JWT VC implementation until they explicitly adopt a later released profile or language adapter. Rollback: Before publication remove the additive profile crate and proposed ledger record while preserving the RFC 9901 base, immutable vectors and decision history. Removal gate: Not applicable.
 
+### `crypto.hd-derivation.typescript-migration.v1`
+
+Fallback: No automatic profile, provider, retry, mnemonic, seed or legacy fallback follows initialization or operation failure. Rollback: Remove the unreleased provider and artifact before initialization without exporting or migrating private keys. Removal gate: A separate consumer-visible change may retire a legacy route only after named consumer adoption and accepted support, security, budget, publication and rollback evidence.
+
 ### `crypto.key-operations.typescript-migration.v1`
 
 Fallback: No automatic provider, algorithm, entropy, retry or legacy fallback follows initialization or operation failure. Rollback: Remove the unreleased provider and artifact before initialization without exporting or migrating private keys. Removal gate: A separate consumer-visible change may retire a legacy route only after named consumer adoption and accepted support, security, budget, publication and rollback evidence.
@@ -492,6 +508,10 @@ Visibility: behavior, public-api, security, wire. Only the verified draft-03 com
 ### `credentials.sd-jwt.vc-draft22.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. Exact draft-22 compact profile only; no HTTP, trust/authorization/status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption.
+
+### `crypto.hd-derivation.typescript-migration.v1`
+
+Visibility: behavior, error, public-api, security, target-support. Private profile-explicit derivation only; no mnemonic acquisition, BIP-39 seed creation, private export, wallet path policy, keystore, KMS, hardware, persistence, React Native, external adoption, publication, stable API, certification, release or mdoc.
 
 ### `crypto.key-operations.typescript-migration.v1`
 

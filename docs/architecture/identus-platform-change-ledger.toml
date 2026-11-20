@@ -112,6 +112,47 @@ supersedes                        = [  ]
 replaced_by                       = ""
 
 [[changes]]
+id                                = "crypto.hd-derivation.typescript-migration.v1"
+capability                        = "crypto.hd-derivation"
+lifecycle_state                   = "active"
+issue                             = 612
+pull_request                      = 622
+change_class                      = "additive"
+release_note_class                = "added"
+visibility                        = [ "behavior", "error", "public-api", "security", "target-support" ]
+affected_packages                 = [ "identus-crypto", "identus-typescript-sdk", "identus-wasm-crypto" ]
+affected_consumers                = [ "sdk-rust-adopters", "sdk-ts" ]
+source_version                    = "unreleased"
+target_version                    = "unreleased"
+compatibility                     = "compatible"
+old_behavior                      = "The private TypeScript package has no capability-named Rust-backed hierarchical derivation facade."
+new_behavior                      = "The additive private facade exposes named BIP-32, SLIP-0010 and Cardano V2 profiles through opaque private/public handles with bounded paths, public-only projection, lifecycle, redaction and isolated target artifacts."
+migration_action                  = "Opt in through createHdDerivationProvider, select one named profile, and retain platform-owned mnemonic acquisition, custody, persistence and legacy routes until separate adoption decisions are accepted."
+replacement                       = "Private additive profile-explicit HD derivation facade backed by identus-crypto."
+no_replacement_rationale          = ""
+first_compatible_version          = "unreleased"
+last_compatible_version           = "unreleased"
+compatibility_window              = "The facade remains private, opt-in, non-default and unpublished."
+deprecation_phase                 = "proposed"
+legacy_bug_policy                 = "reject-as-unsafe"
+mapping_disposition               = "required"
+mapping_ids                       = [ "crypto.hd-derivation.typescript.v1" ]
+mapping_rationale                 = "Named profile selection, opaque lifecycle, path grammar and public projection form a cross-language compatibility contract."
+vector_ids                        = [ "crypto.hd-derivation.cardano-v2-soft-public", "crypto.hd-derivation.ed25519-slip10-vector1", "crypto.hd-derivation.secp256k1-bip32-vector1" ]
+quality_declaration_ids           = [ "crypto.hd-derivation.typescript.quality.v1" ]
+observability                     = "Record only operation, profile, route, depth, stable result category and bounded duration; never record seeds, paths, private/chain-code material, errors, stacks or WASM memory."
+fallback                          = "No automatic profile, provider, retry, mnemonic, seed or legacy fallback follows initialization or operation failure."
+rollback                          = "Remove the unreleased provider and artifact before initialization without exporting or migrating private keys."
+rollback_restores_unsafe_behavior = false
+removal_gate                      = "A separate consumer-visible change may retire a legacy route only after named consumer adoption and accepted support, security, budget, publication and rollback evidence."
+evidence_selectors                = [ "docs/architecture/language-adapter-mappings.toml#crypto.hd-derivation.typescript.v1", "docs/architecture/quality-evidence-declarations.toml#crypto.hd-derivation.typescript.quality.v1", "docs/conformance/cross-language-vector-catalog.toml#crypto.hd-derivation.cardano-v2-soft-public", "docs/conformance/cross-language-vector-catalog.toml#crypto.hd-derivation.ed25519-slip10-vector1", "docs/conformance/cross-language-vector-catalog.toml#crypto.hd-derivation.secp256k1-bip32-vector1" ]
+evidence_artifacts                = [ "crates/wasm-crypto/src/lib.rs", "docs/conformance/sdk-ts-crypto-hd-derivation-quality.md", "packages/identus-sdk/src/internal/hd-provider.ts", "packages/identus-sdk/tests/hd-vector-assertions.mjs" ]
+limitations                       = "Private profile-explicit derivation only; no mnemonic acquisition, BIP-39 seed creation, private export, wallet path policy, keystore, KMS, hardware, persistence, React Native, external adoption, publication, stable API, certification, release or mdoc."
+active                            = true
+supersedes                        = [  ]
+replaced_by                       = ""
+
+[[changes]]
 id                                = "crypto.key-operations.typescript-migration.v1"
 capability                        = "crypto.key-operations"
 lifecycle_state                   = "active"

@@ -328,8 +328,8 @@ path           = "crates/wasm-crypto"
 layer          = "outer-boundary"
 classification = "implemented"
 public_api     = "experimental"
-owner_issue    = "#611"
-summary        = "Experimental WASM facade for opaque Ed25519 and X25519 private handles with bounded TypeScript key operations; unpublished and unsupported."
+owner_issue    = "#612"
+summary        = "Experimental WASM facade for opaque Ed25519/X25519 key operations and profile-explicit HD private/public handles with bounded TypeScript projection; unpublished and unsupported."
 
 [[packages]]
 name           = "identus-conformance"

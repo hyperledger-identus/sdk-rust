@@ -1,7 +1,7 @@
 import { createElement, useEffect } from "react";
 import { hydrateRoot } from "react-dom/client";
 
-import { createDidProvider, createDidQueryProvider, createKeyOperationsProvider, selectDidProvider } from "../dist/browser.js";
+import { createDidProvider, createDidQueryProvider, createHdDerivationProvider, createKeyOperationsProvider, selectDidProvider } from "../dist/browser.js";
 import { DidProviderBoundary, useDidProvider } from "../dist/react.js";
 import { assertAllVectors } from "./vector-assertions.mjs";
 import { assertAllDocumentVectors } from "./document-vector-assertions.mjs";
@@ -17,6 +17,7 @@ import {
   runDidAdoptionRehearsal,
 } from "./adoption-journey.mjs";
 import { assertCryptoVectors } from "./crypto-vector-assertions.mjs";
+import { assertHdDerivationVectors } from "./hd-vector-assertions.mjs";
 
 declare global {
   interface Window {
@@ -47,6 +48,9 @@ try {
   const provider = await createDidProvider();
   if (assertCryptoVectors(await createKeyOperationsProvider()) !== 2) {
     throw new Error("crypto vectors failed");
+  }
+  if (assertHdDerivationVectors(await createHdDerivationProvider()) !== 3) {
+    throw new Error("HD derivation vectors failed");
   }
   const legacy = createLegacyAdoptionFixture().provider;
   const vectors = window.__identusDidVectors;

@@ -93,6 +93,7 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "docs/conformance/fixtures/did-resolution/v1/vectors.json",
     "docs/conformance/fixtures/did-peer/v1/vectors.json",
     "docs/conformance/fixtures/crypto-key-operations/v1/vectors.json",
+    "docs/conformance/fixtures/crypto-hd-derivation/v1/vectors.json",
     "docs/conformance/sdk-ts-did-document-quality.md",
     "docs/conformance/sdk-ts-did-resolution-quality.md",
     "docs/conformance/sdk-ts-peer-did-quality.md",
@@ -102,11 +103,13 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "fuzz/fuzz_targets/did_document.rs",
     "fuzz/fuzz_targets/did_resolution.rs",
     "fuzz/fuzz_targets/peer_did.rs",
+    "fuzz/fuzz_targets/hd_derivation.rs",
     "openspec/changes/add-sdk-ts-did-canary/specs/sdk-ts-did-facade/spec.md",
     "openspec/specs/sdk-ts-did-document/spec.md",
     "openspec/specs/sdk-ts-did-resolution/spec.md",
     "openspec/changes/add-sdk-ts-peer-did-method/specs/sdk-ts-peer-did-method/spec.md",
     "openspec/changes/add-sdk-ts-prism-did-method/specs/sdk-ts-prism-did-method/spec.md",
+    "openspec/specs/sdk-ts-hd-derivation/spec.md",
     "nix/devshells/typescript.nix",
     "scripts/assemble-sdk-ts-did-artifacts.mjs",
     "scripts/build-sdk-ts-did-artifacts.sh",
@@ -171,6 +174,16 @@ test("crypto source and vector signals remain closed planner and aggregator inpu
     "docs/conformance/fixtures/crypto-key-operations/v1/vectors.json",
   ]);
   assert.deepEqual(bindingPlan.signals, ["crypto-binding-source", "shared-crypto-vectors"]);
+  assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
+  assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");
+});
+
+test("HD derivation quality evidence remains a closed crypto signal", () => {
+  const bindingPlan = plan([
+    "docs/conformance/fixtures/crypto-hd-derivation/v1/vectors.json",
+    "fuzz/fuzz_targets/hd_derivation.rs",
+  ]);
+  assert.deepEqual(bindingPlan.signals, ["crypto-hd-quality-evidence", "shared-crypto-vectors"]);
   assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
   assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");
 });

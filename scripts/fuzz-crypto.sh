@@ -7,7 +7,7 @@ mode=${1:-smoke}
 selection=${2:-all}
 
 usage() {
-  printf 'Usage: %s {replay|smoke|soak} {public_jwk|public_cose|key_operations|all}\n' "$0" >&2
+  printf 'Usage: %s {replay|smoke|soak} {public_jwk|public_cose|key_operations|hd_derivation|all}\n' "$0" >&2
 }
 
 case "$mode" in
@@ -18,8 +18,8 @@ case "$mode" in
 esac
 
 case "$selection" in
-  public_jwk|public_cose|key_operations) targets=("$selection") ;;
-  all) targets=(public_jwk public_cose key_operations) ;;
+  public_jwk|public_cose|key_operations|hd_derivation) targets=("$selection") ;;
+  all) targets=(public_jwk public_cose key_operations hd_derivation) ;;
   *) usage; exit 2 ;;
 esac
 

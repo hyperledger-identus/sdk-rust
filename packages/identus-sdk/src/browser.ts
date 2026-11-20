@@ -13,6 +13,11 @@ import type {
   KeyOperationsProviderSelection,
   InjectedKeyOperationsProviderSelection,
   WasmKeyOperationsProviderSelection,
+  HdDerivationProvider,
+  HdDerivationProviderOptions,
+  HdDerivationProviderSelection,
+  InjectedHdDerivationProviderSelection,
+  WasmHdDerivationProviderSelection,
 } from "./public.js";
 import type { DidParseError as GeneratedDidParseError } from "../artifacts/web/identus_wasm_did.js";
 import { adaptGeneratedBinding } from "./internal/generated-binding.js";
@@ -23,6 +28,7 @@ import {
 } from "./internal/provider.js";
 import { selectDidProviderWith } from "./internal/selection.js";
 import { createRustKeyOperationsProvider } from "./internal/crypto-provider.js";
+import { createRustHdDerivationProvider } from "./internal/hd-provider.js";
 
 const initialize = retryableSingleton(async () => {
   const generated = await import("../artifacts/web/identus_wasm_did.js");
@@ -48,6 +54,32 @@ export async function createKeyOperationsProvider(
     generateX25519: generated.X25519PrivateHandle.generate,
     importX25519: generated.X25519PrivateHandle.importBytes,
   }, options);
+}
+
+/** Create the explicit browser-WASM HD-derivation provider. */
+export async function createHdDerivationProvider(
+  options: HdDerivationProviderOptions = {},
+): Promise<HdDerivationProvider> {
+  const generated = await initializeCrypto();
+  return createRustHdDerivationProvider({
+    hdDerivationBindingApiVersion: generated.hd_derivation_binding_api_version,
+    createRoot: generated.HdPrivateHandle.fromSeed,
+  }, options);
+}
+
+/** Select an injected HD provider or browser WASM before initialization. */
+export function selectHdDerivationProvider<Provider extends HdDerivationProvider>(
+  selection: InjectedHdDerivationProviderSelection<Provider>,
+): Promise<Provider>;
+export function selectHdDerivationProvider(
+  selection: WasmHdDerivationProviderSelection,
+): Promise<HdDerivationProvider>;
+export function selectHdDerivationProvider(
+  selection: HdDerivationProviderSelection,
+): Promise<HdDerivationProvider> {
+  return selection.kind === "injected"
+    ? Promise.resolve(selection.provider)
+    : createHdDerivationProvider(selection.options);
 }
 
 /** Select an injected key provider or browser WASM before initialization. */

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "packetId": "crypto.hd-derivation.v1",
+  "capability": "crypto.hd-derivation",
+  "cases": [
+    {
+      "id": "crypto.hd-derivation.secp256k1-bip32-vector1",
+      "operation": "crypto.hd.private-derive",
+      "input": { "literal": "{\"profile\":\"secp256k1-bip32-hardened-v1\",\"seedHex\":\"000102030405060708090a0b0c0d0e0f\",\"path\":\"m/0'\"}" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "rootPublicKeyHex": "0339a36013301597daef41fbe593a02cc513d0b55527ec2df1050e2e8ff49c85c2",
+          "childPublicKeyHex": "035a784662a4a20a65bf6aab9ae98a6c068a81c52e4b032c0fb5400c706cfccc56",
+          "childDepth": 1
+        }
+      }
+    },
+    {
+      "id": "crypto.hd-derivation.ed25519-slip10-vector1",
+      "operation": "crypto.hd.private-derive",
+      "input": { "literal": "{\"profile\":\"ed25519-slip10-hardened-v1\",\"seedHex\":\"000102030405060708090a0b0c0d0e0f\",\"path\":\"m/0'\"}" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "rootPublicKeyHex": "a4b2856bfec510abab89753fac1ac0e1112364e7d250545963f135f2a33188ed",
+          "childPublicKeyHex": "8c8a13df77a28f3445213a0f432fde644acaa215fc72dcdf300d5efaa85d350c",
+          "childDepth": 1
+        }
+      }
+    },
+    {
+      "id": "crypto.hd-derivation.cardano-v2-soft-public",
+      "operation": "crypto.hd.private-public-differential",
+      "input": { "literal": "{\"profile\":\"ed25519-cardano-v2-v1\",\"seedByte\":7,\"seedLength\":64,\"path\":\"m/0\"}" },
+      "expected": {
+        "kind": "success",
+        "errorCode": null,
+        "redacted": null,
+        "fields": {
+          "rootPublicKeyHex": "ae73682c5092217b9b3b1815c3c15f9dff1eaf3b36ab11d9b418fc7d85b37f740707070707070707070707070707070707070707070707070707070707070707",
+          "childPublicKeyHex": "a8640d30b7c1d0b6c8d4c124c7f00f5ca09f6fdd68da02a280887a92d7699eb2b48c93b49bed79ceab6a317c3d3c7de8d3ac4e0d1574fc78f1c5275f47319f26",
+          "childDepth": 1
+        }
+      }
+    }
+  ]
+}

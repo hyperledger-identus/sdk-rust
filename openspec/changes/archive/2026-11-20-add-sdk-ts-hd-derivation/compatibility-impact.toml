@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 612
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The implementation adds an opt-in private TypeScript API, new WASM contract, stable errors and target artifacts while retaining all legacy routes, mnemonic acquisition and custody outside the facade."
+ledger_ids     = [ "crypto.hd-derivation.typescript-migration.v1" ]

@@ -657,6 +657,8 @@ mod tests {
         ));
 
         let cardano = HdPrivateKey::from_seed(ED25519_CARDANO_V2_V1, &[7; 64]).unwrap();
+        let mixed = cardano.derive("m/0'/1").unwrap();
+        assert_eq!(mixed.depth(), 2);
         let public = cardano.cardano_public().unwrap();
         assert!(matches!(
             public.derive("m/0'"),

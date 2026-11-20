@@ -21,6 +21,7 @@ import type {
 
 const BINDING_API_VERSION = 1;
 const CARDANO_PROFILE = "ed25519-cardano-v2-v1" as const;
+const MAPPING_ID = "crypto.hd-derivation.typescript.v1" as const;
 const PROFILES: ReadonlySet<string> = new Set<HdDerivationProfile>([
   "secp256k1-bip32-hardened-v1",
   "ed25519-slip10-hardened-v1",
@@ -53,6 +54,13 @@ function mapFailure(error: unknown): CryptoError {
 
 function requireProfile(value: unknown): HdDerivationProfile {
   if (typeof value !== "string" || !PROFILES.has(value)) throw bindingFailure();
+  return value as HdDerivationProfile;
+}
+
+function requireInputProfile(value: unknown): HdDerivationProfile {
+  if (typeof value !== "string" || !PROFILES.has(value)) {
+    throw new CryptoError("crypto.hd.invalid_profile");
+  }
   return value as HdDerivationProfile;
 }
 
@@ -117,6 +125,7 @@ function observe<T>(
           operation,
           profile,
           route: "rust-wasm" as const,
+          mappingId: MAPPING_ID,
           result,
           errorCode,
           depth,
@@ -299,25 +308,27 @@ export function createRustHdDerivationProvider(
       seed: Uint8Array,
     ): HdPrivateKeyHandleFor<Profile> {
       let copiedSeed: Uint8Array | undefined;
+      const suppliedSeed = seed instanceof Uint8Array ? seed : undefined;
       try {
-        if (!(seed instanceof Uint8Array)) throw new CryptoError("crypto.hd.invalid_seed");
-        copiedSeed = new Uint8Array(seed);
+        const checkedProfile = requireInputProfile(profile);
+        if (suppliedSeed === undefined) throw new CryptoError("crypto.hd.invalid_seed");
+        copiedSeed = new Uint8Array(suppliedSeed);
         const raw = observe(
           "hd.root",
-          profile,
+          checkedProfile,
           0,
           options.observer,
-          () => binding.createRoot(profile, copiedSeed as Uint8Array),
+          () => binding.createRoot(checkedProfile, copiedSeed as Uint8Array),
           destroyRaw,
         );
         return wrapPrivate(
           raw,
-          profile,
+          checkedProfile,
           options.observer,
         ) as unknown as HdPrivateKeyHandleFor<Profile>;
       } finally {
         copiedSeed?.fill(0);
-        seed.fill(0);
+        suppliedSeed?.fill(0);
       }
     },
   });

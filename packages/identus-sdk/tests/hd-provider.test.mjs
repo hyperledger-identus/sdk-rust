@@ -73,8 +73,9 @@ test("Cardano public handles preserve profile, depth, and bounded observations",
   root.dispose();
   assert.deepEqual(
     Object.keys(observations[0]).sort(),
-    ["depth", "durationMs", "errorCode", "operation", "profile", "result", "route"],
+    ["depth", "durationMs", "errorCode", "mappingId", "operation", "profile", "result", "route"],
   );
+  assert.equal(observations[0].mappingId, "crypto.hd-derivation.typescript.v1");
   assert.equal(JSON.stringify(observations).includes("seed"), false);
 });
 
@@ -97,4 +98,23 @@ test("binding drift and observer failures fail closed without secret diagnostics
   );
   assert.deepEqual(seed, new Uint8Array(16));
   assert.deepEqual(raw.state(), { disposed: true, freeCount: 1 });
+});
+
+test("rejects untyped JavaScript ingress with stable bounded errors", () => {
+  const provider = createRustHdDerivationProvider({
+    hdDerivationBindingApiVersion: () => 1,
+    createRoot: () => { throw new Error("binding must not run"); },
+  });
+  assert.throws(
+    () => provider.createRoot("ed25519-slip10-hardened-v1", null),
+    (error) => error instanceof CryptoError
+      && error.code === "crypto.hd.invalid_seed"
+      && error.stack === undefined,
+  );
+  assert.throws(
+    () => provider.createRoot("unknown-profile", new Uint8Array(16)),
+    (error) => error instanceof CryptoError
+      && error.code === "crypto.hd.invalid_profile"
+      && error.stack === undefined,
+  );
 });

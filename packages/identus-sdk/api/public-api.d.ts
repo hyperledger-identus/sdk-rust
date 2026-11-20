@@ -43,6 +43,7 @@ export interface HdDerivationObservation {
     readonly operation: HdDerivationOperation;
     readonly profile: HdDerivationProfile;
     readonly route: "rust-wasm";
+    readonly mappingId: "crypto.hd-derivation.typescript.v1";
     readonly result: "success" | "error";
     readonly errorCode: CryptoErrorCode | undefined;
     readonly depth: number;

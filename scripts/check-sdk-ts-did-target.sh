@@ -145,6 +145,7 @@ run_browser() {
     packages/identus-sdk/tests/document-vector-assertions.mjs \
     packages/identus-sdk/tests/resolution-vector-assertions.mjs \
     packages/identus-sdk/tests/peer-vector-assertions.mjs \
+    packages/identus-sdk/tests/prism-vector-assertions.mjs \
     packages/identus-sdk/tests/adoption-journey.mjs \
     packages/identus-sdk/tests/browser-runtime.mjs)"
   write_receipt browser selected success "$digest"
@@ -163,6 +164,7 @@ run_nodejs() {
     packages/identus-sdk/tests/document-vector-assertions.mjs \
     packages/identus-sdk/tests/resolution-vector-assertions.mjs \
     packages/identus-sdk/tests/peer-vector-assertions.mjs \
+    packages/identus-sdk/tests/prism-vector-assertions.mjs \
     packages/identus-sdk/tests/adoption-journey.mjs \
     packages/identus-sdk/tests/node-runtime.test.mjs)"
   write_receipt nodejs selected success "$digest"
@@ -181,6 +183,7 @@ run_react_web() {
     packages/identus-sdk/tests/document-vector-assertions.mjs \
     packages/identus-sdk/tests/resolution-vector-assertions.mjs \
     packages/identus-sdk/tests/peer-vector-assertions.mjs \
+    packages/identus-sdk/tests/prism-vector-assertions.mjs \
     packages/identus-sdk/tests/adoption-journey.mjs \
     packages/identus-sdk/tests/react-runtime.test.mjs \
     packages/identus-sdk/tests/react-browser-fixture.tsx \

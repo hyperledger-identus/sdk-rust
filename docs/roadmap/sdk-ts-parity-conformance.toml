@@ -301,20 +301,20 @@ id                  = "did.method.prism"
 relation            = "compatible-adapter"
 state               = "partial"
 rationale           = "Rust owns portable PRISM method semantics; Cardano effects and runtime policy remain downstream."
-rust_surface        = "Portable PRISM method semantics are consumer-proven downstream but are not yet a complete SDK-Rust core and binding surface."
-target_surface      = "Rust-owned portable PRISM identifier and document semantics; network, ledger, persistence, and service composition stay injected."
-applicable_targets  = [ "browser", "nodejs", "react-web", "react-native" ]
-target_states       = { browser = "blocked", nodejs = "blocked", react-web = "blocked", react-native = "blocked" }
-missing_dimensions  = [ "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
-missing_proof       = "SDK-Rust integration boundary, cross-SDK vectors, typed binding surface, resolver adapter E2E tests, and rollback evidence."
-required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "consumer-proof", "rollback" ]
-known_deviations    = [ "Cardano observation, submission, persistence, and service composition are not SDK-Rust parity targets." ]
-evidence            = [ "https://github.com/hyperledger-identus/neoprism/pull/324", "https://github.com/hyperledger-identus/neoprism/pull/346" ]
-owner_issue         = 502
-next_action         = "Define the SDK-TS PRISM facade over the proven portable boundary."
-consumer            = "NeoPRISM main at merged PR 324"
-rollback            = "NeoPRISM retains its compatibility facade and downstream effects."
-non_claims          = [ "Cardano client ownership", "SDK-TS activation" ]
+rust_surface        = "Portable PRISM canonical/long-form identifiers, public-material initial state, exact signed operations, authenticated atomic history reduction, tombstones, and generic DID Document projection."
+target_surface      = "Private capability-named TypeScript facade for public-material creation, parsing, local long-form projection, and one injected exact-history effect; network, ledger, persistence, and service composition stay downstream."
+applicable_targets  = [ "browser", "nodejs", "react-web" ]
+target_states       = { browser = "partial", nodejs = "partial", react-web = "partial", react-native = "not-applicable" }
+missing_dimensions  = [ "resource-security", "target-runtime" ]
+missing_proof       = "Dedicated TypeScript adapter fuzz, exact-revision latency/RSS measurement, accepted target budgets, external SDK-TS activation, publication/support decisions, and a separate React Native native binding remain open."
+required_dimensions = [ "normative-profile", "rust-contract", "adapter-mapping", "shared-vectors", "error-behavior", "resource-security", "target-runtime", "consumer-proof", "rollback" ]
+known_deviations    = [ "Cardano observation, submission, persistence, indexing, timestamps, and service composition are not SDK-Rust parity targets.", "The host injects ordered exact signed operations rather than a document or transport result.", "Private key generation, signing, derivation, custody, and agent lifecycle stay platform-owned.", "React Native requires a separately qualified native binding and is not inferred from WASM evidence." ]
+evidence            = [ "docs/architecture/language-adapter-mappings.toml", "docs/architecture/quality-evidence-declarations.toml", "docs/conformance/fixtures/did-prism/preprod-2026-09-10.json", "docs/conformance/sdk-ts-prism-did-donor.toml", "docs/conformance/sdk-ts-prism-did-quality.md", "packages/identus-sdk/tests/prism-vector-assertions.mjs", "https://github.com/hyperledger-identus/neoprism/pull/324", "https://github.com/hyperledger-identus/neoprism/pull/346" ]
+owner_issue         = 610
+next_action         = "Complete dedicated adapter fuzz and exact-revision measurements before any support, publication, external activation, or native-target decision."
+consumer            = "Pinned SDK-TS 8.1.4 PRISM identifier and resolver journeys plus NeoPRISM immutable differential evidence"
+rollback            = "Select a provider without PRISM capability before initialization; no canonical or host rejection triggers automatic fallback."
+non_claims          = [ "Cardano client ownership", "VDR persistence or indexing", "private key custody or signing", "external SDK-TS activation", "React Native support", "publication", "stable API" ]
 
 [[capability]]
 id                  = "did.resolution"

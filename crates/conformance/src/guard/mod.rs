@@ -87,6 +87,7 @@ pub(super) fn check_dep_edge(source: &str, target: &str) -> Result<(), String> {
             ("identus-prism-vdr", "identus-prism-did")
                 | ("identus-prism-indexer", "identus-prism-did")
                 | ("identus-prism-indexer", "identus-prism-vdr")
+                | ("identus-wasm-did", "identus-prism-did")
         );
         if !permitted {
             return Err(format!(

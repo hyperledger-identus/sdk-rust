@@ -226,6 +226,41 @@ const ordinaryPeerOutputBytes = Buffer.byteLength(
 const nearLimitPeerOutputBytes = Buffer.byteLength(
   JSON.stringify(provider.createPeerDidNumalgo4(nearLimitPeerInput)),
 );
+const prismPublicKey = "AuRZmOGBFxE4NblytDeE-2tkcLciyy3BccX7oAJlvIDu";
+const ordinaryPrismInput = Object.freeze({
+  keys: Object.freeze([Object.freeze({
+    id: "master0",
+    usage: "master",
+    curve: "secp256k1",
+    publicKey: prismPublicKey,
+  })]),
+});
+const maxProfilePrismInput = Object.freeze({
+  keys: Object.freeze(Array.from({ length: 50 }, (_, index) => Object.freeze({
+    id: `master-${index}`,
+    usage: "master",
+    curve: "secp256k1",
+    publicKey: prismPublicKey,
+  }))),
+});
+const ordinaryPrismCreate = measure(() => provider.createPrismDid(ordinaryPrismInput));
+const maxProfilePrismCreate = measure(() => provider.createPrismDid(maxProfilePrismInput));
+const ordinaryPrismCreateOutputBytes = Buffer.byteLength(
+  JSON.stringify(provider.createPrismDid(ordinaryPrismInput)),
+);
+const maxProfilePrismCreateOutputBytes = Buffer.byteLength(
+  JSON.stringify(provider.createPrismDid(maxProfilePrismInput)),
+);
+const prismCanonicalDid = "did:prism:44fb82ad3544a8c8acb763c01a6fc7d92d81c38104096319345a4618d1a4275c";
+const prismSignedCreate = "CgdtYXN0ZXIwEkgwRgIhALjle4EjdeqePDrnlFnIaVoUlBm_aMLp4YoYXd3OSwivAiEAql-m3H3ufA0Lkc4FwgRSfoS7qe-H4nhwhRLQyRrCQDwaQQo_Cj0SOwoHbWFzdGVyMBABSi4KCXNlY3AyNTZrMRIhAuRZmOGBFxE4NblytDeE-2tkcLciyy3BccX7oAJlvIDu";
+const prismQueryProvider = await createDidQueryProvider({
+  history: { history: async () => [prismSignedCreate] },
+});
+const ordinaryPrismHistory = await measureAsync(() =>
+  prismQueryProvider.resolvePrismDid(prismCanonicalDid));
+const ordinaryPrismHistoryOutputBytes = Buffer.byteLength(
+  JSON.stringify(await prismQueryProvider.resolvePrismDid(prismCanonicalDid)),
+);
 const resolutionDid = "did:example:measurement";
 const ordinaryResolutionValue = JSON.stringify({
   didResolutionMetadata: { contentType: "application/did+json" },
@@ -312,6 +347,27 @@ const report = Object.freeze({
         ...nearLimitPeer,
         inputBytes: Buffer.byteLength(JSON.stringify(nearLimitPeerInput)),
         outputBytes: nearLimitPeerOutputBytes,
+      }),
+    }),
+    prism: Object.freeze({
+      create: Object.freeze({
+        ordinary: Object.freeze({
+          ...ordinaryPrismCreate,
+          inputBytes: Buffer.byteLength(JSON.stringify(ordinaryPrismInput)),
+          outputBytes: ordinaryPrismCreateOutputBytes,
+        }),
+        maxProfile: Object.freeze({
+          ...maxProfilePrismCreate,
+          inputBytes: Buffer.byteLength(JSON.stringify(maxProfilePrismInput)),
+          outputBytes: maxProfilePrismCreateOutputBytes,
+        }),
+      }),
+      signedHistory: Object.freeze({
+        ordinary: Object.freeze({
+          ...ordinaryPrismHistory,
+          inputBytes: Buffer.byteLength(prismSignedCreate),
+          outputBytes: ordinaryPrismHistoryOutputBytes,
+        }),
       }),
     }),
     resolution: Object.freeze({

@@ -73,6 +73,7 @@ try {
     const { assertAllDocumentVectors } = await import("/tests/document-vector-assertions.mjs");
     const { assertAllResolutionVectors } = await import("/tests/resolution-vector-assertions.mjs");
     const { assertAllPeerVectors } = await import("/tests/peer-vector-assertions.mjs");
+    const { assertPrismHistoryVector, assertPrismStaticVectors } = await import("/tests/prism-vector-assertions.mjs");
     const { runDidAdoptionRehearsal } = await import("/tests/adoption-journey.mjs");
     const peerless = Object.freeze({
       parseDid: (value) => Object.freeze({
@@ -95,6 +96,8 @@ try {
       assertAllVectors(provider, didVectors);
       assertAllDocumentVectors(provider, documentVectors);
       assertAllPeerVectors(provider, peerVectors);
+      assertPrismStaticVectors(provider);
+      await assertPrismHistoryVector(createDidQueryProvider);
       await assertAllResolutionVectors(createDidQueryProvider, resolutionVectors);
       const rehearsal = await runDidAdoptionRehearsal({
         target: "browser",

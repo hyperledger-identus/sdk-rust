@@ -8,6 +8,10 @@ import { assertAllDocumentVectors } from "./document-vector-assertions.mjs";
 import { assertAllResolutionVectors } from "./resolution-vector-assertions.mjs";
 import { assertAllPeerVectors } from "./peer-vector-assertions.mjs";
 import {
+  assertPrismHistoryVector,
+  assertPrismStaticVectors,
+} from "./prism-vector-assertions.mjs";
+import {
   DID_ADOPTION_JOURNEY,
   createLegacyAdoptionFixture,
   runDidAdoptionRehearsal,
@@ -74,6 +78,8 @@ try {
   assertAllVectors(provider, vectors);
   assertAllDocumentVectors(provider, documentVectors);
   assertAllPeerVectors(provider, peerVectors);
+  assertPrismStaticVectors(provider);
+  await assertPrismHistoryVector(createDidQueryProvider);
   await assertAllResolutionVectors(createDidQueryProvider, resolutionVectors);
   const text = rustRoot.textContent ?? "";
   if (

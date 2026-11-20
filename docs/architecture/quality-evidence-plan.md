@@ -5,7 +5,7 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
 - Evidence evaluated: `2026-11-19`
-- Declaration count: `24`
+- Declaration count: `25`
 
 ## `oid4vp.redirect-response.quality.v1`
 
@@ -367,6 +367,51 @@ Commands are declared evidence routes; rendering this plan never executes them.
 - Budget: Verify both pinned public Preprod create envelopes and compare exact operation ID, DID suffix, signature and projected document evidence offline.
 - Receipt: `source:crates/conformance/tests/cross_language_prism_vectors.rs`
 - Evidence revision: `5ce2deaf9ca61642fc8b81ee4baa593bababe98f`
+
+## `did.prism.typescript.quality.v1`
+
+- Capability: `did.prism`
+- Slice: Private TypeScript PRISM DID method facade
+- Owner: SDK-Rust TypeScript binding maintainers (issue #610)
+- Risk: A language facade can drift from canonical PRISM identifiers and authenticated state, accept secret-shaped or unbounded values, trust host-projected state, leak generated ownership, or differ across target loaders.
+- Targets: `package:identus-typescript-sdk`, `package:identus-wasm-did`, `package:identus-prism-did`, `consumer:sdk-ts`, `runtime:browser`, `runtime:nodejs`, `runtime:react-web`
+- Vector IDs: `3` local catalog entries
+- Limitations: Private additive public-material and exact-history facade only; no Cardano, VDR persistence, indexing, networking, retry, cache, private keys, signing, custody, agent runtime, React Native, external adoption, publication, support, release, stable API, certification, production claim, or mdoc.
+
+| Class | Disposition | Lane | Cadence | Freshness | Owner issue |
+| --- | --- | --- | --- | --- | ---: |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #610 |
+| `fuzz` | `satisfied` | `focused` | `on-change` | `source-bound` | #610 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #610 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #610 |
+
+### `property`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all && nix develop --command cargo test -p identus-wasm-did`
+- Budget: Execute deterministic create/parse/local projection and injected authenticated history through each target, plus strict ingress, abort, redaction, exact-free, observer, and rollback boundaries.
+- Receipt: `source:docs/conformance/sdk-ts-prism-did-quality.md`
+- Evidence revision: `155f0f982ec14a70ec22ac9a42a1fb996242125d`
+
+### `fuzz`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh adapter-fuzz`
+- Budget: Execute 2048 deterministic hostile cases across PRISM create/history serializers and generated DID/state projections with bounded strings and collections.
+- Receipt: `source:docs/conformance/sdk-ts-prism-did-quality.md`
+- Evidence revision: `a76772a05fc2d76dea63addbda84572f3e27f77f`
+
+### `benchmark`
+
+- Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh measurements`
+- Budget: Measure exact artifact deltas plus representative and maximum-key-profile PRISM creation and public signed-history reduction without activating a support threshold.
+- Receipt: `source:docs/conformance/sdk-ts-prism-did-quality.md`
+- Evidence revision: `cac2e4305b060d217aaa51d9391acc5ffcac42b8`
+
+### `differential`
+
+- Command: `cargo test -p identus-conformance --test cross_language_prism_vectors && nix develop .#typescript --command ./scripts/check-sdk-ts-did-target.sh all`
+- Budget: Verify the pinned exact signed create envelope and canonical suffix in Rust, then execute the same envelope through every applicable TypeScript target.
+- Receipt: `source:docs/conformance/sdk-ts-prism-did-quality.md`
+- Evidence revision: `155f0f982ec14a70ec22ac9a42a1fb996242125d`
 
 ## `did.prism.vdr-indexing.quality.v1`
 

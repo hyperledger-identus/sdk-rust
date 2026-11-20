@@ -261,6 +261,32 @@ export class PeerDidNumalgo4View {
 }
 
 /**
+ * Owned JavaScript result for authenticated PRISM history reduction.
+ */
+export class PrismDidStateView {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    readonly canonicalDid: string;
+    readonly deactivated: boolean;
+    readonly requestedDid: string;
+    readonly resolvedDocument: string | undefined;
+}
+
+/**
+ * Owned JavaScript result for validated PRISM identifier operations.
+ */
+export class PrismDidView {
+    private constructor();
+    free(): void;
+    [Symbol.dispose](): void;
+    readonly canonicalDid: string;
+    readonly form: string;
+    readonly requestedDid: string;
+    readonly resolvedDocument: string | undefined;
+}
+
+/**
  * Return the binding contract version.
  */
 export function bindingApiVersion(): number;
@@ -274,6 +300,11 @@ export function createPeerDidNumalgo2Compatibility(input_json: string): PeerDidN
  * Create and locally resolve the current numalgo-4 profile.
  */
 export function createPeerDidNumalgo4(input_document_json: string): PeerDidNumalgo4View;
+
+/**
+ * Create and locally project a self-certifying long-form PRISM DID.
+ */
+export function createPrismDid(input_json: string): PrismDidView;
 
 /**
  * Parse a bounded DID into an owned JavaScript view.
@@ -321,6 +352,11 @@ export function parsePeerDidNumalgo4Long(long_form: string): PeerDidNumalgo4View
 export function parsePeerDidNumalgo4Short(short_form: string): PeerDidNumalgo4ShortView;
 
 /**
+ * Validate a canonical or self-certifying long-form PRISM DID.
+ */
+export function parsePrismDid(value: string): PrismDidView;
+
+/**
  * Validate and normalize one DID URL dereferencing request before host invocation.
  */
 export function prepareDidDereferencing(did_url: string, options_json: string): DidDereferencingRequestView;
@@ -331,14 +367,38 @@ export function prepareDidDereferencing(did_url: string, options_json: string): 
 export function prepareDidResolution(did: string, options_json: string): DidResolutionRequestView;
 
 /**
+ * Authentically reduce a bounded exact signed-operation history.
+ */
+export function reducePrismDidHistory(value: string, history_json: string): PrismDidStateView;
+
+/**
  * Resolve a short form only with matching caller-supplied long-form material.
  */
 export function resolvePeerDidNumalgo4Short(short_form: string, long_form: string): PeerDidNumalgo4View;
+
+/**
+ * Resolve only the embedded initial state of a long-form PRISM DID.
+ */
+export function resolvePrismDidLongForm(value: string): PrismDidView;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly __wbg_prismdidstateview_free: (a: number, b: number) => void;
+    readonly __wbg_prismdidview_free: (a: number, b: number) => void;
+    readonly createPrismDid: (a: number, b: number) => [number, number, number];
+    readonly parsePrismDid: (a: number, b: number) => [number, number, number];
+    readonly prismdidstateview_canonicalDid: (a: number) => [number, number];
+    readonly prismdidstateview_deactivated: (a: number) => number;
+    readonly prismdidstateview_requestedDid: (a: number) => [number, number];
+    readonly prismdidstateview_resolvedDocument: (a: number) => [number, number];
+    readonly prismdidview_canonicalDid: (a: number) => [number, number];
+    readonly prismdidview_form: (a: number) => [number, number];
+    readonly prismdidview_requestedDid: (a: number) => [number, number];
+    readonly prismdidview_resolvedDocument: (a: number) => [number, number];
+    readonly reducePrismDidHistory: (a: number, b: number, c: number, d: number) => [number, number, number];
+    readonly resolvePrismDidLongForm: (a: number, b: number) => [number, number, number];
     readonly __wbg_peerdidnumalgo2compatibilityview_free: (a: number, b: number) => void;
     readonly __wbg_peerdidnumalgo4shortview_free: (a: number, b: number) => void;
     readonly __wbg_peerdidnumalgo4view_free: (a: number, b: number) => void;

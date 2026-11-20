@@ -144,12 +144,18 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
         || relative === "scripts/fuzz-did-peer.sh") {
       addSignal(signals, targetSignals, "peer-quality-evidence");
     }
+    if (relative === "docs/conformance/sdk-ts-prism-did-quality.md"
+        || relative === "docs/conformance/sdk-ts-prism-did-donor.toml") {
+      addSignal(signals, targetSignals, "prism-quality-evidence");
+    }
     if (relative.startsWith("openspec/specs/sdk-ts-parity-conformance/")
         || relative.startsWith("openspec/specs/sdk-ts-did-document/")
         || relative.startsWith("openspec/specs/sdk-ts-did-resolution/")
         || relative.startsWith("openspec/specs/sdk-ts-peer-did-method/")
+        || relative.startsWith("openspec/specs/sdk-ts-prism-did-method/")
         || relative.startsWith("openspec/changes/add-sdk-ts-did-canary/")
         || relative.startsWith("openspec/changes/add-sdk-ts-peer-did-method/")
+        || relative.startsWith("openspec/changes/add-sdk-ts-prism-did-method/")
         || relative === "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md") {
       addSignal(signals, targetSignals, "target-contract");
     }

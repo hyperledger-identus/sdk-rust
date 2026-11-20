@@ -1,0 +1,6 @@
+schema_version = 1
+issue          = 610
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The private TypeScript facade gains a typed PRISM DID method and injected portable-history boundary without activating Cardano, networking, persistence, or any external SDK-TS route."
+ledger_ids     = [ "did.prism.typescript-migration.v1" ]

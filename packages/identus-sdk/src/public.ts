@@ -22,6 +22,12 @@ export type DidErrorCode =
   | "did.peer.long_form_required"
   | "did.peer.resource_limit"
   | "did.peer.projection_failure"
+  | "did.prism.invalid_syntax"
+  | "did.prism.invalid_wire"
+  | "did.prism.invalid_operation"
+  | "did.prism.invalid_state"
+  | "did.prism.history_provider_unavailable"
+  | "did.prism.history_host_failure"
   | "adapter.binding_contract"
   | "adapter.unsupported_lossy_mapping";
 
@@ -161,6 +167,73 @@ export interface PeerDidNumalgo2CompatibilityValue {
   readonly profile: "numalgo2-compatibility";
   readonly did: DidValue;
   readonly document: DidDocumentValue;
+}
+
+export type PrismDidKeyUsage =
+  | "master"
+  | "issuing"
+  | "keyAgreement"
+  | "authentication"
+  | "revocation"
+  | "capabilityInvocation"
+  | "capabilityDelegation"
+  | "vdr";
+
+export type PrismDidKeyCurve = "secp256k1" | "Ed25519" | "X25519";
+
+export interface PrismDidPublicKeyInput {
+  readonly id: string;
+  readonly usage: PrismDidKeyUsage;
+  readonly curve: PrismDidKeyCurve;
+  /** Unpadded base64url public-key bytes. */
+  readonly publicKey: string;
+}
+
+export interface PrismDidServiceInput {
+  readonly id: string;
+  readonly type: string | readonly string[];
+  readonly serviceEndpoint: DidServiceEndpointValue;
+}
+
+export interface PrismDidCreateInput {
+  readonly keys: readonly PrismDidPublicKeyInput[];
+  readonly services?: readonly PrismDidServiceInput[];
+  readonly contexts?: readonly string[];
+}
+
+export interface PrismDidValue {
+  readonly form: "canonical" | "long-form";
+  readonly did: DidValue;
+  readonly canonicalDid: DidValue;
+  readonly document: DidDocumentValue | undefined;
+}
+
+export type PrismDidStateValue =
+  | Readonly<{
+      status: "active";
+      did: DidValue;
+      canonicalDid: DidValue;
+      document: DidDocumentValue;
+    }>
+  | Readonly<{
+      status: "deactivated";
+      did: DidValue;
+      canonicalDid: DidValue;
+      document: undefined;
+    }>;
+
+export interface PrismDidHistoryRequestValue {
+  readonly did: DidValue;
+  readonly canonicalDid: DidValue;
+  readonly signal: AbortSignal | undefined;
+}
+
+export interface PrismDidHistoryEffect {
+  history(request: PrismDidHistoryRequestValue): Promise<readonly string[]>;
+}
+
+export interface PrismDidEffects {
+  readonly history?: PrismDidHistoryEffect;
 }
 
 export type DidResolutionStandardErrorKind =
@@ -311,7 +384,11 @@ export type DidOperation =
   | "did.peer.numalgo4.parse-short"
   | "did.peer.numalgo4.resolve-short"
   | "did.peer.numalgo2-compatibility.create"
-  | "did.peer.numalgo2-compatibility.parse";
+  | "did.peer.numalgo2-compatibility.parse"
+  | "did.prism.create"
+  | "did.prism.parse"
+  | "did.prism.resolve-long-form"
+  | "did.prism.resolve-history";
 
 export type DidProviderRoute = "browser-wasm" | "node-wasm" | "legacy";
 
@@ -322,6 +399,7 @@ export type DidMappingId =
   | "did.resolution.typescript.host-v1"
   | "did.peer.typescript.numalgo4-v1"
   | "did.peer.typescript.numalgo2-compat-v1"
+  | "did.prism.typescript.v1"
   | "did.error.invalid-did.typescript.legacy-v1"
   | "did.error.invalid-did-url.typescript.legacy-v1";
 
@@ -363,6 +441,13 @@ export interface PeerDidProvider extends DidProvider {
   ): PeerDidNumalgo2CompatibilityValue;
 }
 
+/** Explicit PRISM DID capability layered over peer and core DID values. */
+export interface PrismDidProvider extends PeerDidProvider {
+  createPrismDid(input: PrismDidCreateInput): PrismDidValue;
+  parsePrismDid(value: string): PrismDidValue;
+  resolvePrismDidLongForm(value: string): PrismDidValue;
+}
+
 export interface InjectedDidProviderSelection<
   Provider extends DidProvider = DidProvider,
 > {
@@ -402,6 +487,14 @@ export interface DidQueryProvider
 export interface PeerDidQueryProvider
   extends DidQueryProvider, PeerDidProvider {}
 
+export interface PrismDidQueryProvider
+  extends DidQueryProvider, PrismDidProvider {
+  resolvePrismDid(
+    did: string,
+    context?: DidOperationContext,
+  ): Promise<PrismDidStateValue>;
+}
+
 export type DidProviderFactory = (
   options?: DidProviderOptions,
 ) => Promise<DidProvider>;
@@ -419,6 +512,15 @@ export type PeerDidQueryProviderFactory = (
   effects: DidQueryEffects,
   options?: DidProviderOptions,
 ) => Promise<PeerDidQueryProvider>;
+
+export type PrismDidProviderFactory = (
+  options?: DidProviderOptions,
+) => Promise<PrismDidProvider>;
+
+export type PrismDidQueryProviderFactory = (
+  effects: DidQueryEffects & PrismDidEffects,
+  options?: DidProviderOptions,
+) => Promise<PrismDidQueryProvider>;
 
 const ERROR_MESSAGES: Readonly<Record<DidErrorCode, string>> = Object.freeze({
   "did.invalid_did": "DID value is invalid",
@@ -444,6 +546,12 @@ const ERROR_MESSAGES: Readonly<Record<DidErrorCode, string>> = Object.freeze({
   "did.peer.long_form_required": "Peer DID long form is required",
   "did.peer.resource_limit": "Peer DID resource limit was exceeded",
   "did.peer.projection_failure": "Peer DID projection failed",
+  "did.prism.invalid_syntax": "PRISM DID syntax is invalid",
+  "did.prism.invalid_wire": "PRISM operation encoding is invalid",
+  "did.prism.invalid_operation": "PRISM DID operation is invalid",
+  "did.prism.invalid_state": "PRISM DID state transition is invalid",
+  "did.prism.history_provider_unavailable": "PRISM DID history provider is unavailable",
+  "did.prism.history_host_failure": "PRISM DID history host failed",
   "adapter.binding_contract": "DID binding contract failed",
   "adapter.unsupported_lossy_mapping": "DID document cannot be projected safely",
 });

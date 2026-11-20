@@ -5,13 +5,13 @@ import type {
   DidProviderOptions,
   DidProviderSelection,
   InjectedDidProviderSelection,
-  PeerDidProvider,
+  PrismDidProvider,
   PeerWasmDidProviderSelection,
 } from "../public.js";
 
 export type PeerDidProviderInitializer = (
   options?: DidProviderOptions,
-) => Promise<PeerDidProvider>;
+) => Promise<PrismDidProvider>;
 
 export function selectDidProviderWith<Provider extends DidProvider>(
   selection: InjectedDidProviderSelection<Provider>,
@@ -21,7 +21,7 @@ export function selectDidProviderWith<Provider extends DidProvider>(
 export function selectDidProviderWith(
   selection: PeerWasmDidProviderSelection,
   initializePeerProvider: PeerDidProviderInitializer,
-): Promise<PeerDidProvider>;
+): Promise<PrismDidProvider>;
 
 export function selectDidProviderWith(
   selection: DidProviderSelection,

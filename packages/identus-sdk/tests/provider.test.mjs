@@ -33,7 +33,7 @@ function owned(fields) {
 
 function binding(overrides = {}) {
   return {
-    bindingApiVersion: () => 4,
+    bindingApiVersion: () => 5,
     isParseError: (error) => error?.kind === "parse",
     parseDid: () => {
       throw new Error("parseDid mock is missing");
@@ -73,6 +73,18 @@ function binding(overrides = {}) {
     },
     parsePeerDidNumalgo2Compatibility: () => {
       throw new Error("parsePeerDidNumalgo2Compatibility mock is missing");
+    },
+    createPrismDid: () => {
+      throw new Error("createPrismDid mock is missing");
+    },
+    parsePrismDid: () => {
+      throw new Error("parsePrismDid mock is missing");
+    },
+    resolvePrismDidLongForm: () => {
+      throw new Error("resolvePrismDidLongForm mock is missing");
+    },
+    reducePrismDidHistory: () => {
+      throw new Error("reducePrismDidHistory mock is missing");
     },
     ...overrides,
   };
@@ -911,6 +923,247 @@ test("peer observation failure is terminal after generated ownership closes", ()
       && error.code === "did.observer_failure"
       && !error.message.includes("observer detail"),
   );
+});
+
+test("projects a PRISM create result and frees generated ownership exactly once", () => {
+  const raw = owned({
+    requestedDid: "did:prism:long",
+    canonicalDid: "did:prism:canonical",
+    form: "long-form",
+    resolvedDocument: '{"id":"did:prism:long"}',
+  });
+  const requested = owned({
+    value: "did:prism:long",
+    method: "prism",
+    methodSpecificId: "long",
+  });
+  const canonical = owned({
+    value: "did:prism:canonical",
+    method: "prism",
+    methodSpecificId: "canonical",
+  });
+  const document = owned({
+    serialized: '{"id":"did:prism:long"}',
+    id: "did:prism:long",
+  });
+  const dids = [requested.value, canonical.value];
+  let serialized;
+  const provider = createRustDidProvider(binding({
+    createPrismDid(value) {
+      serialized = value;
+      return raw.value;
+    },
+    parseDid: () => dids.shift(),
+    parseDidDocument: () => document.value,
+  }), "node-wasm");
+
+  const value = provider.createPrismDid({
+    keys: [{
+      id: "master0",
+      usage: "master",
+      curve: "secp256k1",
+      publicKey: "AuRZmOGBFxE4NblytDeE-2tkcLciyy3BccX7oAJlvIDu",
+    }],
+  });
+
+  assert.deepEqual(JSON.parse(serialized), {
+    keys: [{
+      id: "master0",
+      usage: "master",
+      curve: "secp256k1",
+      publicKey: "AuRZmOGBFxE4NblytDeE-2tkcLciyy3BccX7oAJlvIDu",
+    }],
+  });
+  assert.equal(value.form, "long-form");
+  assert.equal(value.did.serialized, "did:prism:long");
+  assert.equal(value.canonicalDid.serialized, "did:prism:canonical");
+  assert.equal(value.document.id.serialized, "did:prism:long");
+  assert.equal(Object.isFrozen(value), true);
+  assert.equal(Object.isFrozen(value.document), true);
+  assert.equal(raw.freeCount(), 1);
+  assert.equal(requested.freeCount(), 1);
+  assert.equal(canonical.freeCount(), 1);
+  assert.equal(document.freeCount(), 1);
+});
+
+test("rejects hostile PRISM creation input before entering the binding", () => {
+  let called = false;
+  const provider = createRustDidProvider(binding({
+    createPrismDid() {
+      called = true;
+    },
+  }), "browser-wasm");
+  const secret = "do-not-retain";
+
+  assert.throws(
+    () => provider.createPrismDid({
+      keys: [{
+        id: "master0",
+        usage: "master",
+        curve: "secp256k1",
+        publicKey: "AuRZmOGBFxE4NblytDeE-2tkcLciyy3BccX7oAJlvIDu",
+        privateKey: secret,
+      }],
+    }),
+    (error) => error instanceof DidError
+      && error.code === "did.prism.invalid_operation"
+      && !JSON.stringify(error).includes(secret),
+  );
+  assert.equal(called, false);
+});
+
+test("resolves PRISM history through one frozen injected effect", async () => {
+  const canonical = "did:prism:canonical";
+  const parsed = owned({
+    requestedDid: canonical,
+    canonicalDid: canonical,
+    form: "canonical",
+    resolvedDocument: undefined,
+  });
+  const state = owned({
+    requestedDid: canonical,
+    canonicalDid: canonical,
+    deactivated: false,
+    resolvedDocument: `{"id":"${canonical}"}`,
+  });
+  const dids = Array.from({ length: 4 }, () => owned({
+    value: canonical,
+    method: "prism",
+    methodSpecificId: "canonical",
+  }));
+  let didIndex = 0;
+  const document = owned({
+    serialized: `{"id":"${canonical}"}`,
+    id: canonical,
+  });
+  let historyJson;
+  let request;
+  const provider = createRustDidQueryProvider(binding({
+    parsePrismDid: () => parsed.value,
+    reducePrismDidHistory(did, value) {
+      assert.equal(did, canonical);
+      historyJson = value;
+      return state.value;
+    },
+    parseDid: () => dids[didIndex++].value,
+    parseDidDocument: () => document.value,
+  }), "node-wasm", {
+    history: {
+      async history(value) {
+        request = value;
+        return ["CgAB"];
+      },
+    },
+  });
+
+  const value = await provider.resolvePrismDid(canonical);
+
+  assert.equal(Object.isFrozen(request), true);
+  assert.equal(Object.isFrozen(request.did), true);
+  assert.equal(request.did.serialized, canonical);
+  assert.deepEqual(JSON.parse(historyJson), { operations: ["CgAB"] });
+  assert.equal(value.status, "active");
+  assert.equal(value.document.id.serialized, canonical);
+  assert.equal(Object.isFrozen(value), true);
+  assert.equal(parsed.freeCount(), 1);
+  assert.equal(state.freeCount(), 1);
+  assert.equal(document.freeCount(), 1);
+  for (const did of dids) assert.equal(did.freeCount(), 1);
+});
+
+test("fails closed for unavailable, malformed, rejected, and aborted PRISM history", async () => {
+  const canonical = "did:prism:canonical";
+  let parseCalls = 0;
+  const unavailable = createRustDidQueryProvider(binding({
+    parsePrismDid() {
+      parseCalls += 1;
+    },
+  }), "node-wasm", {});
+  await assert.rejects(
+    unavailable.resolvePrismDid(canonical),
+    (error) => error instanceof DidError
+      && error.code === "did.prism.history_provider_unavailable",
+  );
+  assert.equal(parseCalls, 0);
+
+  const controller = new AbortController();
+  controller.abort();
+  await assert.rejects(
+    unavailable.resolvePrismDid(canonical, { signal: controller.signal }),
+    (error) => error instanceof DidError && error.code === "did.operation_aborted",
+  );
+  assert.equal(parseCalls, 0);
+
+  const duringEffect = new AbortController();
+  const parsedDuringEffect = owned({
+    requestedDid: canonical,
+    canonicalDid: canonical,
+    form: "canonical",
+    resolvedDocument: undefined,
+  });
+  const didsDuringEffect = [0, 1].map(() => owned({
+    value: canonical,
+    method: "prism",
+    methodSpecificId: "canonical",
+  }));
+  let didDuringEffectIndex = 0;
+  let reduceAfterAbortCalls = 0;
+  const cancelled = createRustDidQueryProvider(binding({
+    parsePrismDid: () => parsedDuringEffect.value,
+    parseDid: () => didsDuringEffect[didDuringEffectIndex++].value,
+    reducePrismDidHistory() {
+      reduceAfterAbortCalls += 1;
+    },
+  }), "node-wasm", {
+    history: {
+      async history() {
+        duringEffect.abort();
+        return ["CgAB"];
+      },
+    },
+  });
+  await assert.rejects(
+    cancelled.resolvePrismDid(canonical, { signal: duringEffect.signal }),
+    (error) => error instanceof DidError && error.code === "did.operation_aborted",
+  );
+  assert.equal(reduceAfterAbortCalls, 0);
+  assert.equal(parsedDuringEffect.freeCount(), 1);
+  for (const did of didsDuringEffect) assert.equal(did.freeCount(), 1);
+
+  for (const returnHistory of [
+    async () => ["="],
+    async () => { throw new Error("host detail"); },
+  ]) {
+    const parsed = owned({
+      requestedDid: canonical,
+      canonicalDid: canonical,
+      form: "canonical",
+      resolvedDocument: undefined,
+    });
+    const dids = [0, 1].map(() => owned({
+      value: canonical,
+      method: "prism",
+      methodSpecificId: "canonical",
+    }));
+    let reduceCalls = 0;
+    const provider = createRustDidQueryProvider(binding({
+      parsePrismDid: () => parsed.value,
+      parseDid: () => dids.shift().value,
+      reducePrismDidHistory() {
+        reduceCalls += 1;
+      },
+    }), "node-wasm", {
+      history: { history: returnHistory },
+    });
+    await assert.rejects(
+      provider.resolvePrismDid(canonical),
+      (error) => error instanceof DidError
+        && ["did.prism.invalid_wire", "did.prism.history_host_failure"].includes(error.code)
+        && !error.message.includes("host detail"),
+    );
+    assert.equal(reduceCalls, 0);
+    assert.equal(parsed.freeCount(), 1);
+  }
 });
 
 test("resolves through one injected host after closing request ownership", async () => {

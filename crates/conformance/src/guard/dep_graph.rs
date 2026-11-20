@@ -258,6 +258,8 @@ fn prism_method_family_retains_its_exact_inward_graph() {
     assert!(check_dep_edge("identus-prism-vdr", "identus-prism-indexer").is_err());
     assert!(check_dep_edge("identus-did", "identus-prism-did").is_err());
     assert!(check_dep_edge("identus-crypto", "identus-prism-vdr").is_err());
+    assert!(check_dep_edge("identus-wasm-did", "identus-prism-did").is_ok());
+    assert!(check_dep_edge("identus-uniffi-did", "identus-prism-did").is_err());
 }
 
 #[test]
@@ -276,6 +278,7 @@ fn uniffi_did_adapter_is_an_outer_boundary_over_did_core() {
 #[test]
 fn wasm_did_adapter_is_an_outer_boundary_over_did_core() {
     assert!(check_dep_edge("identus-wasm-did", "identus-did").is_ok());
+    assert!(check_dep_edge("identus-wasm-did", "identus-prism-did").is_ok());
     assert!(check_dep_edge("identus-did", "identus-wasm-did").is_err());
 }
 

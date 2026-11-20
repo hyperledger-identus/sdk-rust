@@ -59,3 +59,17 @@ PeerDidProviderFactory
 PeerDidQueryProvider
 PeerDidQueryProviderFactory
 PeerWasmDidProviderSelection
+PrismDidCreateInput
+PrismDidEffects
+PrismDidHistoryEffect
+PrismDidHistoryRequestValue
+PrismDidKeyCurve
+PrismDidKeyUsage
+PrismDidProvider
+PrismDidProviderFactory
+PrismDidPublicKeyInput
+PrismDidQueryProvider
+PrismDidQueryProviderFactory
+PrismDidServiceInput
+PrismDidStateValue
+PrismDidValue

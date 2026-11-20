@@ -67,6 +67,20 @@ export interface RawPeerDidNumalgo2CompatibilityView extends RawOwnedValue {
   readonly resolvedDocument: unknown;
 }
 
+export interface RawPrismDidView extends RawOwnedValue {
+  readonly requestedDid: unknown;
+  readonly canonicalDid: unknown;
+  readonly form: unknown;
+  readonly resolvedDocument: unknown;
+}
+
+export interface RawPrismDidStateView extends RawOwnedValue {
+  readonly requestedDid: unknown;
+  readonly canonicalDid: unknown;
+  readonly deactivated: unknown;
+  readonly resolvedDocument: unknown;
+}
+
 export interface RawDidParseError extends RawOwnedValue {
   readonly code: unknown;
 }
@@ -102,5 +116,12 @@ export interface RawDidBinding {
   parsePeerDidNumalgo2Compatibility(
     value: string,
   ): RawPeerDidNumalgo2CompatibilityView;
+  parsePrismDid(value: string): RawPrismDidView;
+  createPrismDid(inputJson: string): RawPrismDidView;
+  resolvePrismDidLongForm(value: string): RawPrismDidView;
+  reducePrismDidHistory(
+    value: string,
+    historyJson: string,
+  ): RawPrismDidStateView;
   isParseError(error: unknown): error is RawDidParseError;
 }

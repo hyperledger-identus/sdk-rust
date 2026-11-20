@@ -82,6 +82,8 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "docs/conformance/sdk-ts-did-resolution-quality.md",
     "docs/conformance/sdk-ts-peer-did-quality.md",
     "docs/conformance/sdk-ts-peer-did-donor.toml",
+    "docs/conformance/sdk-ts-prism-did-quality.md",
+    "docs/conformance/sdk-ts-prism-did-donor.toml",
     "fuzz/fuzz_targets/did_document.rs",
     "fuzz/fuzz_targets/did_resolution.rs",
     "fuzz/fuzz_targets/peer_did.rs",
@@ -89,6 +91,7 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "openspec/specs/sdk-ts-did-document/spec.md",
     "openspec/specs/sdk-ts-did-resolution/spec.md",
     "openspec/changes/add-sdk-ts-peer-did-method/specs/sdk-ts-peer-did-method/spec.md",
+    "openspec/changes/add-sdk-ts-prism-did-method/specs/sdk-ts-prism-did-method/spec.md",
     "nix/devshells/typescript.nix",
     "scripts/assemble-sdk-ts-did-artifacts.mjs",
     "scripts/build-sdk-ts-did-artifacts.sh",
@@ -157,6 +160,14 @@ test("resolution quality evidence remains a closed planner and aggregator signal
 test("peer quality evidence remains a closed planner and aggregator signal", () => {
   const bindingPlan = plan(["docs/conformance/sdk-ts-peer-did-quality.md"]);
   assert.deepEqual(bindingPlan.signals, ["peer-quality-evidence"]);
+  assert.deepEqual(bindingTargets.filter((target) => bindingPlan.targets[target].selected), bindingTargets);
+  assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
+  assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");
+});
+
+test("PRISM quality evidence remains a closed planner and aggregator signal", () => {
+  const bindingPlan = plan(["docs/conformance/sdk-ts-prism-did-quality.md"]);
+  assert.deepEqual(bindingPlan.signals, ["prism-quality-evidence"]);
   assert.deepEqual(bindingTargets.filter((target) => bindingPlan.targets[target].selected), bindingTargets);
   assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
   assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");

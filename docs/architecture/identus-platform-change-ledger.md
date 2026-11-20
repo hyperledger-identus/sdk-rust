@@ -53,6 +53,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-prism-did crate constructs and validates exact bounded PRISM operations, authenticates and reduces DID state, and projects generic DID documents under a separate native output budget without chain coupling.
 
+### `did.prism.typescript-migration.v1`
+
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade creates and parses bounded public-material long-form PRISM DIDs, projects their local initial state, and resolves canonical signed history through an injected effect and canonical Rust reduction across Browser, Node.js, and React Web.
+
 ### `did.prism.vdr-indexing.portable-core.v1`
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive crates parse and authorize bounded PRISM VDR operations, resolve finite ancestry, plan complete ordered transactions, and expose replay-safe atomic commit ports without chain or persistence effects.
@@ -162,6 +166,10 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `did.prism.portable-method.v1`
 
 `unreleased` → `unreleased` for neoprism, sdk-swift, sdk-ts. No migration action required.
+
+### `did.prism.typescript-migration.v1`
+
+`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Opt in only through the private PRISM DID provider and retain separately owned SDK-TS and platform routes until consumer rehearsal, support, budget, publication, and default-switch decisions are accepted.
 
 ### `did.prism.vdr-indexing.portable-core.v1`
 
@@ -273,6 +281,10 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
+### `did.prism.typescript-migration.v1`
+
+Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The facade remains private, opt-in, non-default, and unpublished; no external compatibility window starts in this train.
+
 ### `did.prism.vdr-indexing.portable-core.v1`
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
@@ -383,6 +395,10 @@ Fallback: Consumers retain their existing peer DID implementation until an expli
 
 Fallback: Consumers remain on their existing PRISM implementation until this experimental crate and their own canary are accepted. Rollback: Remove the additive dependency or revert the consuming adapter; existing SDK-Rust crates retain their previous behavior. Removal gate: Not applicable.
 
+### `did.prism.typescript-migration.v1`
+
+Fallback: No automatic transport, retry, parser, resolver, history, or legacy implementation fallback; canonical rejection and host rejection are terminal, and rollback selects a provider without PRISM capability before initialization. Rollback: Remove the unreleased provider, adapter mapping, TypeScript evidence, and target assertions while preserving the merged generic DID and peer canaries, Rust PRISM method crate, and unchanged external SDK-TS behavior. Removal gate: A separate consumer-visible change may retire a legacy route only after named consumers adopt the Rust-backed facade, accepted transport/cancellation budgets and support/rollback evidence exist, and an announced migration window elapses.
+
 ### `did.prism.vdr-indexing.portable-core.v1`
 
 Fallback: Consumers remain on their existing PRISM storage and indexing implementation until an explicit downstream canary accepts these additive crates. Rollback: Remove the additive crate dependencies before publication; existing SDK-Rust crates and downstream implementations retain their prior behavior. Removal gate: Not applicable.
@@ -492,6 +508,10 @@ Visibility: behavior, public-api, security, target-support, wire. No custody, pr
 ### `did.prism.portable-method.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. The 32 MiB native projection budget does not widen generic hostile JSON ingress. Non-terminal retired identifiers are capped at 4096 per kind; exceeding that profile is a distinct resolution-failing resource outcome, while terminal deactivation discards obsolete tombstones. No Cardano indexing, VDR payload interpretation, persistence, HTTP, CLI, node composition, custody, product policy or completed downstream adoption is claimed.
+
+### `did.prism.typescript-migration.v1`
+
+Visibility: behavior, error, public-api, runtime-requirement, target-support, wire. Private public-material creation, parsing, local long-form projection, and injected exact signed-history reduction only; no Cardano/VDR access, indexing, persistence, ambient networking, private keys, signing, custody, agent runtime, React Native/native binding, external adoption, support, publication, stable API, certification, production claim, release, or mdoc.
 
 ### `did.prism.vdr-indexing.portable-core.v1`
 

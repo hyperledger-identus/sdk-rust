@@ -17,6 +17,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `did-resolution.source.identus-did.v1` | `active` | `identus-did` | `d3cdc6719fb040da2753dbfde9c3a784c85dafb2` | `crates/did/src/resolution/wire.rs` | 1826 | `8383078cee088b9625c142fa650ace84137df5ee3eeae2906c974ef20aee19b7` | `sha1:b928986219a26d07dcbcffcb77cbbf920b435be0` |
 | `did-peer.source.identus-did-peer.v1` | `active` | `identus-did-peer` | `bd1981372fcb08772d1196131a0cf26291fad9cb` | `crates/did-peer/src/numalgo4.rs` | 28041 | `d71712f2c0f81adb9b20a78fc7fa0f924c764095c10c7855e5c8bc3633b9066f` | `sha1:4403dd928cfab3658dd35d4914f49cb62c5f47a3` |
 | `did-peer-numalgo2.source.identus-did-peer.v1` | `active` | `identus-did-peer` | `f7dc731108cfb7d160732dea9bed84c9d0b9cff7` | `crates/did-peer/src/numalgo2_compat.rs` | 39912 | `cd70472044edcb3d30541ee8fe8ee711778cecc3b2a097efba01cc3b9454f582` | `sha1:e64e949cab278b4dfe49a61e644e2e40971ba333` |
+| `did-prism.source.identus-prism-did.v1` | `active` | `identus-prism-did` | `0482b7066a8806e588cd9494e903f5aee1e4c324` | `crates/prism-did/src/limits.rs` | 1874 | `ec56362ac49c302b66de0d16a9374541c0d8f2dcd1a521618da3f8b88c5231b4` | `sha1:94cfca8c5da124c093d6ca5f85cc6845f3985828` |
 
 ## Mappings
 
@@ -30,6 +31,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `did.resolution.typescript.host-v1` | value | `@hyperledger/identus-sdk` `DidResolutionProvider` | rust-to-language | lossy | none |
 | `did.peer.typescript.numalgo4-v1` | value | `@hyperledger/identus-sdk` `DidProvider` | bidirectional | lossy | none |
 | `did.peer.typescript.numalgo2-compat-v1` | value | `@hyperledger/identus-sdk` `DidProvider` | bidirectional | lossless | none |
+| `did.prism.typescript.v1` | value | `@hyperledger/identus-sdk` `PrismDidProvider` | bidirectional | lossless | none |
 
 ## `did.value.typescript.legacy-v1`
 
@@ -350,3 +352,36 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | --- | --- | --- | --- | --- |
 | `public keys and services` | `PeerDidNumalgo2CompatibilityInput` | closed-public-material-dto | language-to-rust | true |
 | `DID and DID document` | `PeerDidNumalgo2CompatibilityValue` | frozen-owned-projection | rust-to-language | true |
+
+## `did.prism.typescript.v1`
+
+- Record: capability `did.prism`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
+- Cargo package: `identus-prism-did`.
+- Rust API: `identus_prism_did::PrismDidState` from source `did-prism.source.identus-prism-did.v1` at `0482b7066a8806e588cd9494e903f5aee1e4c324` (unreleased-workspace-0.0.0).
+- Canonical semantics: Bounded canonical and long-form identifiers, public-material initial state, authenticated exact signed history, atomic state reduction, and generic DID Document projection.
+- Canonical bound: `MAX_SIGNED_OPERATION_BYTES` in `crates/prism-did/src/limits.rs`.
+- Language source: `typescript` package `@hyperledger/identus-sdk`, target `browser-node-react-web`, symbol `PrismDidProvider`, version `0.0.0` at `155f0f982ec14a70ec22ac9a42a1fb996242125d`, path `packages/identus-sdk/src/public.ts`.
+- Language evidence: license `Apache-2.0`; shape state `private-canary`.
+- Compatibility: additive, bidirectional, lossless; window `>=0.0.0,<0.0.1`; phase `none`.
+- Version negotiation: binding-api-version-5
+- Consumers: `sdk-ts`.
+- Resource policy: canonical component at most 131072 bytes; complete language-adapter ingress at most 25165824 bytes; redaction `caller-input`; sensitive fields: `did`, `signed-operation`, `public-key`, `service`, `document`, `host-error`, `generated-error`.
+- Ownership: async `adapter`; cancellation `adapter`.
+- Migration: Use capability-named PRISM values and inject only ordered exact signed-operation base64url history; keep Cardano, persistence, indexing, retry, cache, key custody, and signing in their owning hosts.
+- Replacement: Private additive PRISM DID method facade backed by identus-prism-did.
+- Observability: Record only mapping ID, operation, provider route, result category, stable error code, and bounded duration; never record identifiers, operations, keys, services, documents, host errors, stacks, or WASM memory.
+- Fallback: No automatic transport, retry, parser, history, document, or legacy fallback follows canonical or host rejection.
+- Rollback: Select a provider without PRISM capability before initialization and remove the unreleased additive facade without changing canonical Rust.
+- Removal gate: A separately accepted SDK-TS migration may retire a legacy route only after external adoption, accepted target budgets and support, publication authority, and a rehearsed rollback.
+- Vectors: `did.prism.preprod.signed-create`.
+- Rust selectors: `identus_prism_did::PrismDid`, `identus_prism_did::LongFormPrismDid`, `identus_prism_did::PrismDidState`.
+- Language selectors: `packages/identus-sdk/src/public.ts`, `packages/identus-sdk/src/internal/prism-input.ts`, `packages/identus-sdk/src/internal/prism-projection.ts`.
+
+### Fields
+
+| Rust | Language | Transform | Direction | Required |
+| --- | --- | --- | --- | --- |
+| `public keys, services, contexts and initial-state operation` | `PrismDidCreateInput` | closed-public-material-dto | language-to-rust | true |
+| `canonical or long-form identifier and optional projected document` | `PrismDidValue` | frozen-owned-projection | rust-to-language | true |
+| `ordered exact signed operation bytes` | `PrismDidHistoryEffect` | unpadded-base64url-array | language-to-rust | true |
+| `authenticated active or deactivated state` | `PrismDidStateValue` | frozen-owned-projection | rust-to-language | true |

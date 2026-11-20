@@ -4,7 +4,7 @@ Generated deterministically from `docs/architecture/quality-evidence-declaration
 Commands are declared evidence routes; rendering this plan never executes them.
 
 - Registry version: `1.0.0`
-- Evidence evaluated: `2026-11-19`
+- Evidence evaluated: `2026-11-20`
 - Declaration count: `26`
 
 ## `oid4vp.redirect-response.quality.v1`
@@ -1101,42 +1101,38 @@ Commands are declared evidence routes; rendering this plan never executes them.
 
 | Class | Disposition | Lane | Cadence | Freshness | Owner issue |
 | --- | --- | --- | --- | --- | ---: |
-| `property` | `required` | `focused` | `on-change` | `pending` | #611 |
-| `fuzz` | `required` | `slow` | `weekly-or-manual` | `pending` | #611 |
-| `benchmark` | `required` | `slow` | `weekly-or-manual` | `pending` | #611 |
-| `differential` | `required` | `fast` | `per-pull-request` | `pending` | #611 |
+| `property` | `satisfied` | `focused` | `on-change` | `source-bound` | #611 |
+| `fuzz` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #611 |
+| `benchmark` | `satisfied` | `slow` | `weekly-or-manual` | `source-bound` | #611 |
+| `differential` | `satisfied` | `fast` | `per-pull-request` | `source-bound` | #611 |
 
 ### `property`
 
 - Command: `cargo test -p identus-wasm-crypto && npm --prefix packages/identus-sdk test`
 - Budget: Exercise every exact key/signature length, generated and imported handles, idempotent disposal, use-after-dispose rejection, verification result and shared-secret contributory check.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #611
+- Receipt: `source:packages/identus-sdk/tests/crypto-provider.test.mjs`
+- Evidence revision: `6bedfdaccc989a30bad8655dcb9ff38263925869`
 
 ### `fuzz`
 
 - Command: `nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak key_operations`
 - Budget: Run bounded signing, verification and shared-secret inputs for 300 seconds with finite message, timeout and RSS limits.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #611
+- Receipt: `source:fuzz/fuzz_targets/key_operations.rs`
+- Evidence revision: `6bedfdaccc989a30bad8655dcb9ff38263925869`
 
 ### `benchmark`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh benchmark`
 - Budget: Measure deterministic artifact bytes and generated/imported Ed25519 sign/verify plus X25519 derive latency without coupling the result to Rust core CI.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #611
+- Receipt: `source:packages/identus-sdk/tests/crypto-measurements.mjs`
+- Evidence revision: `6bedfdaccc989a30bad8655dcb9ff38263925869`
 
 ### `differential`
 
 - Command: `nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh differential`
 - Budget: Compare exact public keys, Ed25519 signatures, verification results and X25519 shared secrets for both Rust and TypeScript adapters.
-- Receipt: `pending`
-- Evidence revision: `pending`
-- Delivery debt: #611
+- Receipt: `source:packages/identus-sdk/tests/crypto-vector-assertions.mjs`
+- Evidence revision: `6bedfdaccc989a30bad8655dcb9ff38263925869`
 
 ## `factory.rust-1-99-compiler-floor.quality.v1`
 

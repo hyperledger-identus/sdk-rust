@@ -63,6 +63,10 @@ calling it unbounded SDK behavior.
   automatic retry/fallback, or native non-JSON coercion.
 - UniFFI and WASM DID facades delegate to bounded DID parsing after their
   language bridges allocate input.
+- The private WASM crypto facade caps public key-operation messages at one MiB
+  and HD derivation paths at 4 KiB/255 axes before Rust parsing; fixed seed
+  profiles, opaque non-exportable private handles, copied public projection,
+  and explicit disposal remain separate from host mnemonic and custody policy.
 - The private TypeScript peer DID adapter additionally checks selected profile,
   UTF-8 byte ceilings, collection cardinality, descriptors, JSON depth and node
   counts before JSON serialization or wasm-bindgen encoding. Its complete

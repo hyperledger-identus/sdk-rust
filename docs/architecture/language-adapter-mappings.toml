@@ -7,15 +7,15 @@ canonical_owner  = "sdk-rust"
 [[canonical_sources]]
 id                 = "crypto-key-operations.source.identus-wasm-crypto.v1"
 owner_issue        = 512
-state              = "pending-revision"
+state              = "active"
 canonical_crate    = "identus-wasm-crypto"
-canonical_revision = "d291a446ece0e932f7f00cbe19da34b72b36bb17"
+canonical_revision = "87156727348f6b78a0708be0e8d6b87d8409e32e"
 path               = "crates/wasm-crypto/src/lib.rs"
 file_mode          = "100644"
-byte_length        = 10063
-sha256             = "98770ba84083db13766ba478960f76475659ecb862aa93afebb8c434d1606560"
+byte_length        = 23916
+sha256             = "34bd3185d5a8e172871b18fceadb491f8cb1e834877917ba0140347b3ad18cf3"
 git_object_format  = "sha1"
-git_blob_oid       = "46f4d4c34142d5d5d17ab892a0e38f0b9f50a280"
+git_blob_oid       = "5f10fad97b5a169b0dfcc01a7015815a5a88427b"
 
 [[canonical_sources]]
 id                 = "did.source.identus-did.v1"
@@ -169,6 +169,81 @@ language  = "sharedSecret"
 transform = "owned-byte-copy"
 direction = "rust-to-language"
 required  = false
+
+[[mappings]]
+id                       = "crypto.hd-derivation.typescript.v1"
+capability               = "crypto.hd-derivation"
+owner_issue              = 505
+state                    = "active"
+kind                     = "value"
+canonical_crate          = "identus-wasm-crypto"
+canonical_rust_path      = "identus_wasm_crypto::HdPrivateHandle"
+canonical_version_origin = "unreleased-workspace-0.0.0"
+canonical_source_id      = "crypto-key-operations.source.identus-wasm-crypto.v1"
+canonical_description    = "Opaque disposable profile-explicit HD private/public handles with bounded seed/path ingress and public-only byte projection."
+canonical_bound_symbol   = "MAX_HD_DERIVATION_PATH_BYTES"
+language                 = "typescript"
+language_package         = "@hyperledger/identus-sdk"
+language_target          = "browser-node-react-web"
+language_version         = "0.0.0"
+language_revision        = "26bd934bb53feb9f732ef8f4378045dd6f06fef2"
+language_path            = "packages/identus-sdk/src/public.ts"
+language_license         = "Apache-2.0"
+language_symbol          = "HdDerivationProvider"
+language_shape_state     = "private-canary"
+direction                = "bidirectional"
+compatibility_class      = "additive"
+fidelity                 = "lossless"
+version_window           = ">=0.0.0,<0.0.1"
+deprecation_phase        = "none"
+version_negotiation      = "hd-derivation-binding-api-version-1"
+consumers                = [ "sdk-ts" ]
+vector_ids               = [ "crypto.hd-derivation.secp256k1-bip32-vector1", "crypto.hd-derivation.ed25519-slip10-vector1", "crypto.hd-derivation.cardano-v2-soft-public" ]
+rust_selectors           = [ "identus_wasm_crypto::HdPrivateHandle", "identus_wasm_crypto::HdPublicHandle" ]
+language_selectors       = [ "packages/identus-sdk/src/public.ts", "packages/identus-sdk/src/internal/hd-provider.ts" ]
+max_input_bytes          = 4096
+adapter_max_input_bytes  = 4096
+redaction                = "caller-input"
+sensitive_fields         = [ "seed", "private-key", "chain-code", "path" ]
+async_ownership          = "not-applicable"
+cancellation_ownership   = "not-applicable"
+migration_action         = "Select the private Rust-backed provider explicitly, choose one named derivation profile, and keep mnemonic acquisition, custody and persistence outside the facade."
+replacement              = "Capability-named HdDerivationProvider over opaque Rust-owned handles."
+observability            = "Record mapping ID, operation, profile, depth, result class and stable code without seed, path, key material, dependency text or WASM memory."
+fallback                 = "No automatic profile, provider, retry, mnemonic, seed or legacy fallback."
+rollback                 = "Remove the unreleased provider before initialization; private handles cannot be exported or migrated."
+removal_gate             = "External adoption, support and publication require a separate accepted consumer change."
+errors                   = [  ]
+losses                   = [  ]
+unsupported              = [  ]
+
+[[mappings.fields]]
+rust      = "profile"
+language  = "profile"
+transform = "exact-enum"
+direction = "both"
+required  = true
+
+[[mappings.fields]]
+rust      = "private_handle"
+language  = "privateHandle"
+transform = "opaque-owned-handle"
+direction = "both"
+required  = true
+
+[[mappings.fields]]
+rust      = "derivation_path"
+language  = "path"
+transform = "canonical-utf8-string"
+direction = "language-to-rust"
+required  = true
+
+[[mappings.fields]]
+rust      = "public_key_bytes"
+language  = "publicKey.bytes"
+transform = "immutable-byte-copy"
+direction = "rust-to-language"
+required  = true
 
 [[mappings]]
 id = "did.value.typescript.legacy-v1"

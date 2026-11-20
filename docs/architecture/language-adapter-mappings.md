@@ -12,7 +12,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 | Source | State | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |
 | --- | --- | --- | --- | --- | ---: | --- | --- |
-| `crypto-key-operations.source.identus-wasm-crypto.v1` | `pending-revision` | `identus-wasm-crypto` | `d291a446ece0e932f7f00cbe19da34b72b36bb17` | `crates/wasm-crypto/src/lib.rs` | 10063 | `98770ba84083db13766ba478960f76475659ecb862aa93afebb8c434d1606560` | `sha1:46f4d4c34142d5d5d17ab892a0e38f0b9f50a280` |
+| `crypto-key-operations.source.identus-wasm-crypto.v1` | `active` | `identus-wasm-crypto` | `87156727348f6b78a0708be0e8d6b87d8409e32e` | `crates/wasm-crypto/src/lib.rs` | 23916 | `34bd3185d5a8e172871b18fceadb491f8cb1e834877917ba0140347b3ad18cf3` | `sha1:5f10fad97b5a169b0dfcc01a7015815a5a88427b` |
 | `did.source.identus-did.v1` | `active` | `identus-did` | `4612053cef68dd68a26a6940aa10fd41f3fb14e0` | `crates/did/src/did.rs` | 13161 | `89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753` | `sha1:18132b1f388abd1cac9a0bf6fb14935604e089f6` |
 | `did-document.source.identus-did.v1` | `active` | `identus-did` | `f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8` | `crates/did/src/document.rs` | 3202 | `9dc6010e8b9ede3e5da14b78444c20f7ceaafb30ca7c1d9dadfb47adc09ed293` | `sha1:9deb6e0d769c188f87e6a1aa23a924babfd98bb2` |
 | `did-resolution.source.identus-did.v1` | `active` | `identus-did` | `d3cdc6719fb040da2753dbfde9c3a784c85dafb2` | `crates/did/src/resolution/wire.rs` | 1826 | `8383078cee088b9625c142fa650ace84137df5ee3eeae2906c974ef20aee19b7` | `sha1:b928986219a26d07dcbcffcb77cbbf920b435be0` |
@@ -25,6 +25,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | Mapping | Kind | Language surface | Direction | Fidelity | Phase |
 | --- | --- | --- | --- | --- | --- |
 | `crypto.key-operations.typescript.v1` | value | `@hyperledger/identus-sdk` `KeyOperationsProvider` | bidirectional | lossless | none |
+| `crypto.hd-derivation.typescript.v1` | value | `@hyperledger/identus-sdk` `HdDerivationProvider` | bidirectional | lossless | none |
 | `did.value.typescript.legacy-v1` | value | `@hyperledger/identus-sdk` `DID` | bidirectional | lossless | transitional |
 | `did-url.value.typescript.legacy-v1` | value | `@hyperledger/identus-sdk` `DIDUrl` | rust-to-language | lossy | transitional |
 | `did.error.invalid-did.typescript.legacy-v1` | error | `@hyperledger/identus-sdk` `CastorError.InvalidDIDString` | rust-to-language | lossy | transitional |
@@ -39,7 +40,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `crypto.key-operations`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
 - Cargo package: `identus-wasm-crypto`.
-- Rust API: `identus_wasm_crypto::Ed25519PrivateHandle` from source `crypto-key-operations.source.identus-wasm-crypto.v1` at `d291a446ece0e932f7f00cbe19da34b72b36bb17` (unreleased-workspace-0.0.0).
+- Rust API: `identus_wasm_crypto::Ed25519PrivateHandle` from source `crypto-key-operations.source.identus-wasm-crypto.v1` at `87156727348f6b78a0708be0e8d6b87d8409e32e` (unreleased-workspace-0.0.0).
 - Canonical semantics: Opaque disposable Ed25519 and X25519 private handles with exact public, signature and shared-secret byte operations.
 - Canonical bound: `MAX_KEY_OPERATION_MESSAGE_BYTES` in `crates/wasm-crypto/src/lib.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `browser-node-react-web`, symbol `KeyOperationsProvider`, version `0.0.0` at `6bedfdaccc989a30bad8655dcb9ff38263925869`, path `packages/identus-sdk/src/public.ts`.
@@ -67,6 +68,39 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 | `public_key_bytes` | `publicKey.bytes` | immutable-byte-copy | both | true |
 | `signature_bytes` | `signature` | immutable-byte-copy | both | false |
 | `shared_secret_bytes` | `sharedSecret` | owned-byte-copy | rust-to-language | false |
+
+## `crypto.hd-derivation.typescript.v1`
+
+- Record: capability `crypto.hd-derivation`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
+- Cargo package: `identus-wasm-crypto`.
+- Rust API: `identus_wasm_crypto::HdPrivateHandle` from source `crypto-key-operations.source.identus-wasm-crypto.v1` at `87156727348f6b78a0708be0e8d6b87d8409e32e` (unreleased-workspace-0.0.0).
+- Canonical semantics: Opaque disposable profile-explicit HD private/public handles with bounded seed/path ingress and public-only byte projection.
+- Canonical bound: `MAX_HD_DERIVATION_PATH_BYTES` in `crates/wasm-crypto/src/lib.rs`.
+- Language source: `typescript` package `@hyperledger/identus-sdk`, target `browser-node-react-web`, symbol `HdDerivationProvider`, version `0.0.0` at `26bd934bb53feb9f732ef8f4378045dd6f06fef2`, path `packages/identus-sdk/src/public.ts`.
+- Language evidence: license `Apache-2.0`; shape state `private-canary`.
+- Compatibility: additive, bidirectional, lossless; window `>=0.0.0,<0.0.1`; phase `none`.
+- Version negotiation: hd-derivation-binding-api-version-1
+- Consumers: `sdk-ts`.
+- Resource policy: canonical component at most 4096 bytes; complete language-adapter ingress at most 4096 bytes; redaction `caller-input`; sensitive fields: `seed`, `private-key`, `chain-code`, `path`.
+- Ownership: async `not-applicable`; cancellation `not-applicable`.
+- Migration: Select the private Rust-backed provider explicitly, choose one named derivation profile, and keep mnemonic acquisition, custody and persistence outside the facade.
+- Replacement: Capability-named HdDerivationProvider over opaque Rust-owned handles.
+- Observability: Record mapping ID, operation, profile, depth, result class and stable code without seed, path, key material, dependency text or WASM memory.
+- Fallback: No automatic profile, provider, retry, mnemonic, seed or legacy fallback.
+- Rollback: Remove the unreleased provider before initialization; private handles cannot be exported or migrated.
+- Removal gate: External adoption, support and publication require a separate accepted consumer change.
+- Vectors: `crypto.hd-derivation.secp256k1-bip32-vector1`, `crypto.hd-derivation.ed25519-slip10-vector1`, `crypto.hd-derivation.cardano-v2-soft-public`.
+- Rust selectors: `identus_wasm_crypto::HdPrivateHandle`, `identus_wasm_crypto::HdPublicHandle`.
+- Language selectors: `packages/identus-sdk/src/public.ts`, `packages/identus-sdk/src/internal/hd-provider.ts`.
+
+### Fields
+
+| Rust | Language | Transform | Direction | Required |
+| --- | --- | --- | --- | --- |
+| `profile` | `profile` | exact-enum | both | true |
+| `private_handle` | `privateHandle` | opaque-owned-handle | both | true |
+| `derivation_path` | `path` | canonical-utf8-string | language-to-rust | true |
+| `public_key_bytes` | `publicKey.bytes` | immutable-byte-copy | rust-to-language | true |
 
 ## `did.value.typescript.legacy-v1`
 

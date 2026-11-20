@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 612
-disposition    = "behavior-neutral"
-scope          = "governance"
-rationale      = "This preimplementation commit freezes the proposed private TypeScript facade, profiles, vectors, evidence duties and compatibility boundary without yet changing production APIs, behavior, packages, targets or consumers; implementation will register its consumer-visible record after the durable receipt."
-ledger_ids     = [  ]
+disposition    = "consumer-visible"
+scope          = "consumer-contract"
+rationale      = "The implementation adds an opt-in private TypeScript API, new WASM contract, stable errors and target artifacts while retaining all legacy routes, mnemonic acquisition and custody outside the facade."
+ledger_ids     = [ "crypto.hd-derivation.typescript-migration.v1" ]

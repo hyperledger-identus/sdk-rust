@@ -13,8 +13,8 @@ esac
 
 root="$(git rev-parse --show-toplevel)"
 cd "$root"
-head_sha="${SDK_TS_DID_HEAD_SHA:-$(git rev-parse HEAD)}"
-receipt_dir="${SDK_TS_DID_RECEIPT_DIR:-$root/target/sdk-ts-did-receipts}"
+head_sha="${SDK_TS_CRYPTO_HEAD_SHA:-${SDK_TS_DID_HEAD_SHA:-$(git rev-parse HEAD)}}"
+receipt_dir="${SDK_TS_CRYPTO_RECEIPT_DIR:-${SDK_TS_DID_RECEIPT_DIR:-$root/target/sdk-ts-crypto-receipts}}"
 package_root="$root/packages/identus-sdk"
 scratch="$(mktemp -d "$root/target/.sdk-ts-crypto-target.XXXXXX")"
 started="$SECONDS"
@@ -50,14 +50,15 @@ hash_artifacts() {
 
 write_receipt() {
   local target="$1"
+  local receipt_target="crypto-$target"
   node scripts/ci/write-target-receipt.mjs \
     --head "$head_sha" \
-    --target "$target" \
+    --target "$receipt_target" \
     --applicability selected \
     --status success \
     --artifact-sha256 "$(hash_artifacts)" \
     --duration-seconds "$((SECONDS - started))" \
-    --output "$receipt_dir/$target.json"
+    --output "$receipt_dir/$receipt_target.json"
 }
 
 run_package_types() {

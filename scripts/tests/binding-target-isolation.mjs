@@ -8,7 +8,13 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { aggregateFastTargets, createTargetReceipt, validateBindingPlan, validateTargetReceipt } from "../ci/aggregate-fast-targets.mjs";
+import {
+  aggregateFastTargets,
+  createTargetReceipt,
+  cryptoBindingTargets,
+  validateBindingPlan,
+  validateTargetReceipt,
+} from "../ci/aggregate-fast-targets.mjs";
 import { bindingTargets, buildBindingImpactPlan, deriveCargoDependencyPaths } from "../ci/binding-impact-plan.mjs";
 
 const headSha = "b".repeat(40);
@@ -50,6 +56,13 @@ function receiptsFor(bindingPlan) {
       target,
       bindingPlan.targets[target].expectation === "success" ? receipt(target) : inapplicable(target),
     ])),
+    ...Object.fromEntries(cryptoBindingTargets.map((target) => {
+      const baseTarget = target.slice("crypto-".length);
+      return [
+        target,
+        bindingPlan.targets[baseTarget].expectation === "success" ? receipt(target) : inapplicable(target),
+      ];
+    })),
   };
 }
 
@@ -68,6 +81,7 @@ test("Cargo dependency closure is derived transitively", () => {
 test("binding schema, dependency, locks, mappings, vectors and contracts select every target", () => {
   const fixtures = [
     "crates/wasm-did/api/typescript-api.d.ts",
+    "crates/wasm-crypto/src/lib.rs",
     "crates/did/src/lib.rs",
     "Cargo.lock",
     "packages/identus-sdk/package-lock.json",
@@ -78,6 +92,7 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "docs/conformance/fixtures/did-document/v1/vectors.json",
     "docs/conformance/fixtures/did-resolution/v1/vectors.json",
     "docs/conformance/fixtures/did-peer/v1/vectors.json",
+    "docs/conformance/fixtures/crypto-key-operations/v1/vectors.json",
     "docs/conformance/sdk-ts-did-document-quality.md",
     "docs/conformance/sdk-ts-did-resolution-quality.md",
     "docs/conformance/sdk-ts-peer-did-quality.md",
@@ -139,12 +154,23 @@ test("closed exact-head receipts aggregate successfully", () => {
   assert.equal(result.coreResult, "success");
   assert.deepEqual(result.failures, []);
   assert.equal(result.targetResults["react-native"], "inapplicable");
+  assert.equal(result.targetResults["crypto-browser"], "success");
 });
 
 test("document quality evidence remains a closed planner and aggregator signal", () => {
   const bindingPlan = plan(["docs/conformance/sdk-ts-did-document-quality.md"]);
   assert.deepEqual(bindingPlan.signals, ["document-quality-evidence"]);
   assert.deepEqual(bindingTargets.filter((target) => bindingPlan.targets[target].selected), bindingTargets);
+  assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
+  assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");
+});
+
+test("crypto source and vector signals remain closed planner and aggregator inputs", () => {
+  const bindingPlan = plan([
+    "crates/wasm-crypto/src/lib.rs",
+    "docs/conformance/fixtures/crypto-key-operations/v1/vectors.json",
+  ]);
+  assert.deepEqual(bindingPlan.signals, ["crypto-binding-source", "shared-crypto-vectors"]);
   assert.deepEqual(validateBindingPlan(bindingPlan, headSha), []);
   assert.equal(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: receiptsFor(bindingPlan) }).verdict, "success");
 });
@@ -209,6 +235,9 @@ test("missing and every non-success selected terminal state block aggregation", 
   const missing = receiptsFor(bindingPlan);
   delete missing.nodejs;
   assert.match(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: missing }).failures.join(";"), /nodejs: missing receipt/u);
+  const missingCrypto = receiptsFor(bindingPlan);
+  delete missingCrypto["crypto-nodejs"];
+  assert.match(aggregateFastTargets({ headSha, plan: bindingPlan, receipts: missingCrypto }).failures.join(";"), /crypto-nodejs: missing receipt/u);
 
   for (const status of ["failed", "cancelled", "skipped", "timed-out"]) {
     const mutated = receiptsFor(bindingPlan);

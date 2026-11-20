@@ -11,13 +11,19 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const repository = "hyperledger-identus/sdk-rust";
 const shaPattern = /^[0-9a-f]{40}$/u;
 const hashPattern = /^[0-9a-f]{64}$/u;
-const receiptTargets = Object.freeze(["core-rust", ...bindingTargets]);
+export const cryptoBindingTargets = Object.freeze(
+  bindingTargets
+    .filter((target) => target !== "react-native")
+    .map((target) => `crypto-${target}`),
+);
+const receiptTargets = Object.freeze(["core-rust", ...bindingTargets, ...cryptoBindingTargets]);
 const planSignals = new Set([
   "binding-api-schema",
   "browser-source",
   "cargo-dependency-closure",
   "cargo-lock-or-toolchain",
   "ci-contract",
+  "crypto-binding-source",
   "document-quality-evidence",
   "language-mapping",
   "node-source",
@@ -29,6 +35,7 @@ const planSignals = new Set([
   "react-web-source",
   "resolution-quality-evidence",
   "shared-typescript-source",
+  "shared-crypto-vectors",
   "shared-vectors",
   "target-contract",
   "unknown-impact",
@@ -146,6 +153,10 @@ export function aggregateFastTargets({ headSha, plan, receipts }) {
   const expected = {
     "core-rust": { expectation: "success", selected: true },
     ...plan.targets,
+    ...Object.fromEntries(cryptoBindingTargets.map((target) => [
+      target,
+      plan.targets[target.slice("crypto-".length)],
+    ])),
   };
   for (const target of receiptTargets) {
     const receipt = receipts[target];
@@ -170,7 +181,9 @@ export function aggregateFastTargets({ headSha, plan, receipts }) {
     headSha,
     verdict: failures.length === 0 ? "success" : "failure",
     coreResult: outcomes["core-rust"] ?? "missing",
-    targetResults: Object.fromEntries(bindingTargets.map((target) => [target, outcomes[target] ?? "missing"])),
+    targetResults: Object.fromEntries(
+      [...bindingTargets, ...cryptoBindingTargets].map((target) => [target, outcomes[target] ?? "missing"]),
+    ),
     failures: [...new Set(failures)].sort(),
   };
 }
@@ -211,7 +224,7 @@ function main() {
   const options = parseArgs(process.argv.slice(2));
   const receipts = { "core-rust": readBoundedJson(options.core, "core receipt") };
   for (const [target, file] of Object.entries(options.receipts)) {
-    if (!bindingTargets.includes(target)) throw new Error(`unknown receipt target: ${target}`);
+    if (!receiptTargets.includes(target) || target === "core-rust") throw new Error(`unknown receipt target: ${target}`);
     receipts[target] = readBoundedJson(file, `${target} receipt`);
   }
   const result = aggregateFastTargets({ headSha: options.head, plan: readBoundedJson(options.plan, "binding plan"), receipts });

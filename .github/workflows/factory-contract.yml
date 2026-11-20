@@ -159,7 +159,7 @@ jobs:
           runnable="$(jq -c '[.targets | to_entries[] | select(.value.expectation == "success") | .key]' "$RUNNER_TEMP/binding-plan/plan.json")"
           echo "runnable-targets=$runnable" >> "$GITHUB_OUTPUT"
           {
-            printf '### DID syntax and document binding target plan\n\n```json\n'
+            printf '### TypeScript binding target plan\n\n```json\n'
             jq '{baseSha, headSha, signals, unknownImpact, targets}' "$RUNNER_TEMP/binding-plan/plan.json"
             printf '```\n'
           } >> "$GITHUB_STEP_SUMMARY"
@@ -221,10 +221,7 @@ jobs:
           SDK_TS_DID_RECEIPT_DIR: ${{ runner.temp }}/binding-receipts
         run: >-
           nix develop .#typescript --command
-          ./scripts/check-sdk-ts-did-target.sh "${{ matrix.target }}" &&
-          if [[ "${{ matrix.target }}" != "react-native" ]]; then
-            ./scripts/check-sdk-ts-crypto-target.sh "${{ matrix.target }}";
-          fi
+          ./scripts/check-sdk-ts-did-target.sh "${{ matrix.target }}"
 
       - name: Record selected target failure
         if: ${{ failure() && contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
@@ -249,12 +246,86 @@ jobs:
           path: ${{ runner.temp }}/binding-receipts/${{ matrix.target }}.json
           if-no-files-found: ignore
 
+  crypto-binding-target:
+    name: crypto-target-${{ matrix.target }}
+    needs: binding-impact-plan
+    if: needs.binding-impact-plan.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - package-types
+          - browser
+          - nodejs
+          - react-web
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Record inapplicable crypto target without installing its toolchain
+        if: ${{ !contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/crypto-binding-receipts"
+          node scripts/ci/write-target-receipt.mjs \
+            --head "$HEAD_SHA" \
+            --target "crypto-${{ matrix.target }}" \
+            --applicability inapplicable \
+            --status inapplicable \
+            --artifact-sha256 none \
+            --duration-seconds 0 \
+            --output "$RUNNER_TEMP/crypto-binding-receipts/crypto-${{ matrix.target }}.json"
+
+      - name: Install Nix for selected crypto target
+        if: ${{ contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      - name: Run selected TypeScript crypto target in isolation
+        if: ${{ contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
+        env:
+          SDK_TS_CRYPTO_HEAD_SHA: ${{ github.sha }}
+          SDK_TS_CRYPTO_RECEIPT_DIR: ${{ runner.temp }}/crypto-binding-receipts
+        run: >-
+          nix develop .#typescript --command
+          ./scripts/check-sdk-ts-crypto-target.sh "${{ matrix.target }}"
+
+      - name: Record selected crypto target failure
+        if: ${{ failure() && contains(fromJSON(needs.binding-impact-plan.outputs.runnable-targets), matrix.target) }}
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/crypto-binding-receipts"
+          node scripts/ci/write-target-receipt.mjs \
+            --head "$HEAD_SHA" \
+            --target "crypto-${{ matrix.target }}" \
+            --applicability selected \
+            --status failed \
+            --artifact-sha256 none \
+            --duration-seconds 0 \
+            --output "$RUNNER_TEMP/crypto-binding-receipts/crypto-${{ matrix.target }}.json"
+
+      - name: Upload isolated crypto target receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crypto-binding-receipt-${{ matrix.target }}
+          path: ${{ runner.temp }}/crypto-binding-receipts/crypto-${{ matrix.target }}.json
+          if-no-files-found: ignore
+
   fast:
     name: fast
     needs:
       - core-rust
       - binding-impact-plan
       - binding-target
+      - crypto-binding-target
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -280,6 +351,10 @@ jobs:
             --receipt nodejs="$RUNNER_TEMP/fast-evidence/nodejs.json" \
             --receipt react-web="$RUNNER_TEMP/fast-evidence/react-web.json" \
             --receipt react-native="$RUNNER_TEMP/fast-evidence/react-native.json" \
+            --receipt crypto-package-types="$RUNNER_TEMP/fast-evidence/crypto-package-types.json" \
+            --receipt crypto-browser="$RUNNER_TEMP/fast-evidence/crypto-browser.json" \
+            --receipt crypto-nodejs="$RUNNER_TEMP/fast-evidence/crypto-nodejs.json" \
+            --receipt crypto-react-web="$RUNNER_TEMP/fast-evidence/crypto-react-web.json" \
             --output "$RUNNER_TEMP/fast-evidence/verdict.json"
           {
             printf '### Fast aggregation\n\n```json\n'

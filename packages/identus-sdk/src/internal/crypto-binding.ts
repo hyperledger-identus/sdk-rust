@@ -24,3 +24,21 @@ export interface RawKeyOperationsBinding {
   generateX25519(): RawX25519PrivateHandle;
   importX25519(privateKey: Uint8Array): RawX25519PrivateHandle;
 }
+
+export interface RawHdPrivateHandle extends RawPrivateKeyHandle {
+  profile(): unknown;
+  depth(): unknown;
+  derive(path: string): RawHdPrivateHandle;
+  cardanoPublicHandle(): RawHdPublicHandle;
+}
+
+export interface RawHdPublicHandle extends RawPrivateKeyHandle {
+  profile(): unknown;
+  depth(): unknown;
+  derive(path: string): RawHdPublicHandle;
+}
+
+export interface RawHdDerivationBinding {
+  hdDerivationBindingApiVersion(): unknown;
+  createRoot(profile: string, seed: Uint8Array): RawHdPrivateHandle;
+}

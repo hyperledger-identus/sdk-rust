@@ -24,6 +24,7 @@ const planSignals = new Set([
   "cargo-lock-or-toolchain",
   "ci-contract",
   "crypto-binding-source",
+  "crypto-hd-quality-evidence",
   "document-quality-evidence",
   "language-mapping",
   "node-source",

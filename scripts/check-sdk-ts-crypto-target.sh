@@ -70,12 +70,13 @@ run_package_types() {
   (
     cd "$package_root"
     npm run typecheck
-    node --test tests/crypto-provider.test.mjs tests/crypto-runtime.test.mjs tests/public-api.test.mjs
+    node --test tests/crypto-provider.test.mjs tests/crypto-runtime.test.mjs tests/hd-provider.test.mjs tests/public-api.test.mjs
     node --experimental-test-coverage \
       --test-coverage-include=dist/internal/crypto-provider.js \
+      --test-coverage-include=dist/internal/hd-provider.js \
       --test-coverage-lines=80 \
       --test-coverage-branches=70 \
-      --test tests/crypto-provider.test.mjs
+      --test tests/crypto-provider.test.mjs tests/hd-provider.test.mjs
     npm pack --dry-run --json >/dev/null
   )
   write_receipt package-types

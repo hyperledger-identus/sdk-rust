@@ -107,12 +107,7 @@ impl DerivationPath {
         }
 
         let mut parts = path.split('/');
-        if parts
-            .next()
-            .map(str::trim)
-            .map(|root| root.eq_ignore_ascii_case("m"))
-            != Some(true)
-        {
+        if parts.next() != Some("m") {
             return Err(Error::DerivationFailed);
         }
 
@@ -186,8 +181,11 @@ mod tests {
 
     #[test]
     fn text_byte_limit_is_checked_before_path_syntax() {
-        let exact = format!("{}m", " ".repeat(MAX_DERIVATION_PATH_BYTES - 1));
-        assert!(DerivationPath::from_path(&exact).unwrap().is_empty());
+        let exact = format!("m{}", " ".repeat(MAX_DERIVATION_PATH_BYTES - 1));
+        assert!(matches!(
+            DerivationPath::from_path(&exact),
+            Err(Error::DerivationFailed)
+        ));
 
         let oversized_valid = format!("{}m", " ".repeat(MAX_DERIVATION_PATH_BYTES));
         assert!(matches!(
@@ -200,6 +198,17 @@ mod tests {
             DerivationPath::from_path(&oversized_invalid),
             Err(Error::DerivationFailed)
         ));
+    }
+
+    #[test]
+    fn parser_requires_the_canonical_lowercase_root() {
+        assert!(DerivationPath::from_path("m").unwrap().is_empty());
+        for path in ["M", " m", "m ", "m/ 0", "m/0 "] {
+            assert!(matches!(
+                DerivationPath::from_path(path),
+                Err(Error::DerivationFailed)
+            ));
+        }
     }
 
     #[test]

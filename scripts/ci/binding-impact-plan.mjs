@@ -121,8 +121,15 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
         || relative.startsWith("docs/conformance/fixtures/did-peer/")) {
       addSignal(signals, targetSignals, "shared-vectors");
     }
-    if (relative.startsWith("docs/conformance/fixtures/crypto-key-operations/")) {
+    if (relative.startsWith("docs/conformance/fixtures/crypto-key-operations/")
+        || relative.startsWith("docs/conformance/fixtures/crypto-hd-derivation/")) {
       addSignal(signals, targetSignals, "shared-crypto-vectors");
+    }
+    if (relative === "docs/conformance/sdk-ts-crypto-hd-derivation-quality.md"
+        || relative === "fuzz/fuzz_targets/hd_derivation.rs"
+        || relative.startsWith("fuzz/corpus/hd_derivation/")
+        || relative === "fuzz/dictionaries/hd_derivation.dict") {
+      addSignal(signals, targetSignals, "crypto-hd-quality-evidence");
     }
     if (relative === "docs/architecture/quality-evidence-declarations.toml"
         || relative === "docs/architecture/quality-evidence-plan.md"
@@ -160,6 +167,7 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
         || relative.startsWith("openspec/changes/add-sdk-ts-did-canary/")
         || relative.startsWith("openspec/changes/add-sdk-ts-peer-did-method/")
         || relative.startsWith("openspec/changes/add-sdk-ts-prism-did-method/")
+        || relative.startsWith("openspec/changes/add-sdk-ts-hd-derivation/")
         || relative === "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md") {
       addSignal(signals, targetSignals, "target-contract");
     }

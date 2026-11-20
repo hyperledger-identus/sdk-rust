@@ -68,9 +68,11 @@ try {
       createDidProvider,
       createDidQueryProvider,
       createKeyOperationsProvider,
+      createHdDerivationProvider,
       selectDidProvider,
     } = await import("/dist/browser.js");
     const { assertCryptoVectors } = await import("/tests/crypto-vector-assertions.mjs");
+    const { assertHdDerivationVectors } = await import("/tests/hd-vector-assertions.mjs");
     const { assertAllVectors } = await import("/tests/vector-assertions.mjs");
     const { assertAllDocumentVectors } = await import("/tests/document-vector-assertions.mjs");
     const { assertAllResolutionVectors } = await import("/tests/resolution-vector-assertions.mjs");
@@ -96,6 +98,7 @@ try {
     const provider = await createDidProvider();
     try {
       const cryptoCount = assertCryptoVectors(await createKeyOperationsProvider());
+      const hdCount = assertHdDerivationVectors(await createHdDerivationProvider());
       assertAllVectors(provider, didVectors);
       assertAllDocumentVectors(provider, documentVectors);
       assertAllPeerVectors(provider, peerVectors);
@@ -107,7 +110,7 @@ try {
         selectDidProvider,
         createDidQueryProvider,
       });
-      return { status: "success", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length, peerCount: peerVectors.length, cryptoCount, adoptionRoutes: rehearsal.routes.length };
+      return { status: "success", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length, peerCount: peerVectors.length, cryptoCount, hdCount, adoptionRoutes: rehearsal.routes.length };
     } catch {
       return { status: "failure", didCount: didVectors.length, documentCount: documentVectors.length, resolutionCount: resolutionVectors.length, peerCount: peerVectors.length };
     }
@@ -117,10 +120,10 @@ try {
     resolutionVectors: await loadResolutionVectors(),
     peerVectors: await loadPeerVectors(),
   });
-  if (result.didCount !== 22 || result.documentCount < 1 || result.resolutionCount < 1 || result.peerCount !== 13 || result.cryptoCount !== 2 || result.adoptionRoutes !== 2 || result.status !== "success") {
+  if (result.didCount !== 22 || result.documentCount < 1 || result.resolutionCount < 1 || result.peerCount !== 13 || result.cryptoCount !== 2 || result.hdCount !== 3 || result.adoptionRoutes !== 2 || result.status !== "success") {
     throw new Error("browser DID, DID Document, and DID Resolution vector canary failed");
   }
-  process.stdout.write(`browser DID vectors: ${result.didCount} passed; DID Document vectors: ${result.documentCount} passed; DID Resolution vectors: ${result.resolutionCount} passed; peer DID vectors: ${result.peerCount} passed; crypto vectors: ${result.cryptoCount} passed\n`);
+  process.stdout.write(`browser DID vectors: ${result.didCount} passed; DID Document vectors: ${result.documentCount} passed; DID Resolution vectors: ${result.resolutionCount} passed; peer DID vectors: ${result.peerCount} passed; crypto vectors: ${result.cryptoCount} passed; HD profiles: ${result.hdCount} passed\n`);
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));

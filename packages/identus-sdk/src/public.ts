@@ -40,6 +40,13 @@ export type CryptoErrorCode =
   | "crypto.non_contributory_peer"
   | "crypto.entropy_unavailable"
   | "crypto.observer_failure"
+  | "crypto.hd.invalid_profile"
+  | "crypto.hd.invalid_seed"
+  | "crypto.hd.invalid_path"
+  | "crypto.hd.forbidden_axis"
+  | "crypto.hd.depth_overflow"
+  | "crypto.hd.derivation_failed"
+  | "crypto.hd.projection_failed"
   | "adapter.binding_contract";
 
 export type KeyOperation =
@@ -103,6 +110,93 @@ export interface KeyOperationsProvider {
   importX25519(privateKey: Uint8Array): X25519PrivateKeyHandle;
 }
 
+export type HdDerivationProfile =
+  | "secp256k1-bip32-hardened-v1"
+  | "ed25519-slip10-hardened-v1"
+  | "ed25519-cardano-v2-v1";
+
+export type HdDerivationOperation =
+  | "hd.root"
+  | "hd.private.derive"
+  | "hd.private.public-key"
+  | "hd.private.public-derivation"
+  | "hd.private.dispose"
+  | "hd.public.derive"
+  | "hd.public.public-key"
+  | "hd.public.dispose";
+
+export interface HdDerivationObservation {
+  readonly operation: HdDerivationOperation;
+  readonly profile: HdDerivationProfile;
+  readonly route: "rust-wasm";
+  readonly result: "success" | "error";
+  readonly errorCode: CryptoErrorCode | undefined;
+  readonly depth: number;
+  readonly durationMs: number;
+}
+
+export type HdDerivationObserver = (observation: HdDerivationObservation) => void;
+
+export interface HdDerivationProviderOptions {
+  readonly observer?: HdDerivationObserver;
+}
+
+export interface HdPublicKeyValue<Profile extends HdDerivationProfile = HdDerivationProfile> {
+  readonly profile: Profile;
+  readonly depth: number;
+  readonly bytes: Uint8Array;
+}
+
+export interface HdPrivateKeyHandle<Profile extends HdDerivationProfile = HdDerivationProfile> {
+  readonly profile: Profile;
+  readonly depth: number;
+  derive(path: string): HdPrivateKeyHandle<Profile>;
+  publicKey(): HdPublicKeyValue<Profile>;
+  dispose(): void;
+}
+
+export interface CardanoV2PrivateKeyHandle
+  extends HdPrivateKeyHandle<"ed25519-cardano-v2-v1"> {
+  derive(path: string): CardanoV2PrivateKeyHandle;
+  publicDerivation(): CardanoV2PublicKeyHandle;
+}
+
+export interface CardanoV2PublicKeyHandle {
+  readonly profile: "ed25519-cardano-v2-v1";
+  readonly depth: number;
+  derive(path: string): CardanoV2PublicKeyHandle;
+  publicKey(): HdPublicKeyValue<"ed25519-cardano-v2-v1">;
+  dispose(): void;
+}
+
+export type HdPrivateKeyHandleFor<Profile extends HdDerivationProfile> =
+  Profile extends "ed25519-cardano-v2-v1"
+    ? CardanoV2PrivateKeyHandle
+    : HdPrivateKeyHandle<Profile>;
+
+export interface HdDerivationProvider {
+  createRoot<Profile extends HdDerivationProfile>(
+    profile: Profile,
+    seed: Uint8Array,
+  ): HdPrivateKeyHandleFor<Profile>;
+}
+
+export interface InjectedHdDerivationProviderSelection<
+  Provider extends HdDerivationProvider = HdDerivationProvider,
+> {
+  readonly kind: "injected";
+  readonly provider: Provider;
+}
+
+export interface WasmHdDerivationProviderSelection {
+  readonly kind: "wasm";
+  readonly options?: HdDerivationProviderOptions;
+}
+
+export type HdDerivationProviderSelection =
+  | InjectedHdDerivationProviderSelection
+  | WasmHdDerivationProviderSelection;
+
 export interface InjectedKeyOperationsProviderSelection<
   Provider extends KeyOperationsProvider = KeyOperationsProvider,
 > {
@@ -128,6 +222,13 @@ const CRYPTO_ERROR_MESSAGES: Readonly<Record<CryptoErrorCode, string>> = Object.
   "crypto.non_contributory_peer": "Peer public key is non-contributory",
   "crypto.entropy_unavailable": "System entropy is unavailable",
   "crypto.observer_failure": "Crypto observation failed",
+  "crypto.hd.invalid_profile": "HD derivation profile is invalid",
+  "crypto.hd.invalid_seed": "HD derivation seed is invalid",
+  "crypto.hd.invalid_path": "HD derivation path is invalid",
+  "crypto.hd.forbidden_axis": "HD derivation axis is forbidden for this profile",
+  "crypto.hd.depth_overflow": "HD derivation depth exceeds the limit",
+  "crypto.hd.derivation_failed": "HD derivation failed",
+  "crypto.hd.projection_failed": "HD public projection failed",
   "adapter.binding_contract": "Crypto binding contract failed",
 });
 

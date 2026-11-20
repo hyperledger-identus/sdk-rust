@@ -23,6 +23,8 @@ pub const ED25519_KEY_BYTES: usize = 32;
 pub const ED25519_SIGNATURE_BYTES: usize = 64;
 /// Exact X25519 private/public key byte length.
 pub const X25519_KEY_BYTES: usize = 32;
+/// Largest UTF-8 derivation path accepted before Rust path parsing.
+pub const MAX_HD_DERIVATION_PATH_BYTES: usize = 4_096;
 
 const API_VERSION: u32 = 1;
 const HD_DERIVATION_API_VERSION: u32 = 1;
@@ -228,6 +230,9 @@ fn require_standard_seed(seed: &[u8]) -> Result<(), BindingError> {
 }
 
 fn parse_path(path: &str) -> Result<DerivationPath, BindingError> {
+    if path.len() > MAX_HD_DERIVATION_PATH_BYTES {
+        return Err(BindingError::InvalidPath);
+    }
     DerivationPath::from_path(path).map_err(|_| BindingError::InvalidPath)
 }
 

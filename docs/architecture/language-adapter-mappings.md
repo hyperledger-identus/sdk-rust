@@ -12,7 +12,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 | Source | State | Cargo package | Revision | Path | Bytes | SHA-256 | Git blob |
 | --- | --- | --- | --- | --- | ---: | --- | --- |
-| `crypto-key-operations.source.identus-wasm-crypto.v1` | `active` | `identus-wasm-crypto` | `6bedfdaccc989a30bad8655dcb9ff38263925869` | `crates/wasm-crypto/src/lib.rs` | 10063 | `98770ba84083db13766ba478960f76475659ecb862aa93afebb8c434d1606560` | `sha1:46f4d4c34142d5d5d17ab892a0e38f0b9f50a280` |
+| `crypto-key-operations.source.identus-wasm-crypto.v1` | `pending-revision` | `identus-wasm-crypto` | `d291a446ece0e932f7f00cbe19da34b72b36bb17` | `crates/wasm-crypto/src/lib.rs` | 10063 | `98770ba84083db13766ba478960f76475659ecb862aa93afebb8c434d1606560` | `sha1:46f4d4c34142d5d5d17ab892a0e38f0b9f50a280` |
 | `did.source.identus-did.v1` | `active` | `identus-did` | `4612053cef68dd68a26a6940aa10fd41f3fb14e0` | `crates/did/src/did.rs` | 13161 | `89fa144cbe94391c5403c1363a005266bfee5728adbc3958ad605f7d94676753` | `sha1:18132b1f388abd1cac9a0bf6fb14935604e089f6` |
 | `did-document.source.identus-did.v1` | `active` | `identus-did` | `f7e777b8556ba4c82bdc272faf2551e7bfb9d8f8` | `crates/did/src/document.rs` | 3202 | `9dc6010e8b9ede3e5da14b78444c20f7ceaafb30ca7c1d9dadfb47adc09ed293` | `sha1:9deb6e0d769c188f87e6a1aa23a924babfd98bb2` |
 | `did-resolution.source.identus-did.v1` | `active` | `identus-did` | `d3cdc6719fb040da2753dbfde9c3a784c85dafb2` | `crates/did/src/resolution/wire.rs` | 1826 | `8383078cee088b9625c142fa650ace84137df5ee3eeae2906c974ef20aee19b7` | `sha1:b928986219a26d07dcbcffcb77cbbf920b435be0` |
@@ -39,7 +39,7 @@ Owner issue: [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505)
 
 - Record: capability `crypto.key-operations`, owner [#505](https://github.com/hyperledger-identus/sdk-rust/issues/505), state `active`, kind `value`.
 - Cargo package: `identus-wasm-crypto`.
-- Rust API: `identus_wasm_crypto::Ed25519PrivateHandle` from source `crypto-key-operations.source.identus-wasm-crypto.v1` at `6bedfdaccc989a30bad8655dcb9ff38263925869` (unreleased-workspace-0.0.0).
+- Rust API: `identus_wasm_crypto::Ed25519PrivateHandle` from source `crypto-key-operations.source.identus-wasm-crypto.v1` at `d291a446ece0e932f7f00cbe19da34b72b36bb17` (unreleased-workspace-0.0.0).
 - Canonical semantics: Opaque disposable Ed25519 and X25519 private handles with exact public, signature and shared-secret byte operations.
 - Canonical bound: `MAX_KEY_OPERATION_MESSAGE_BYTES` in `crates/wasm-crypto/src/lib.rs`.
 - Language source: `typescript` package `@hyperledger/identus-sdk`, target `browser-node-react-web`, symbol `KeyOperationsProvider`, version `0.0.0` at `6bedfdaccc989a30bad8655dcb9ff38263925869`, path `packages/identus-sdk/src/public.ts`.

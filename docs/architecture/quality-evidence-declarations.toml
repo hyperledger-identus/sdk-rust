@@ -2983,7 +2983,7 @@ replaced_by = ""
 class             = "property"
 disposition       = "satisfied"
 risk              = "Handle disposal, public projection, strict lengths and stable errors may violate the capability contract across operation sequences."
-selectors         = [ "openspec/changes/add-sdk-ts-key-operations/specs/sdk-ts-key-operations/spec.md#Requirement: Rust owns the selected key-operation semantics" ]
+selectors         = [ "openspec/specs/sdk-ts-key-operations/spec.md#Requirement: Rust owns the selected key-operation semantics" ]
 command           = "cargo test -p identus-wasm-crypto && npm --prefix packages/identus-sdk test"
 lane              = "focused"
 cadence           = "on-change"
@@ -3007,7 +3007,7 @@ details           = [ "invariant=Opaque private handles never export secret byte
 class             = "fuzz"
 disposition       = "satisfied"
 risk              = "Arbitrary public bytes, signatures and messages may panic, amplify work, bypass strict parsing or expose unstable dependency errors."
-selectors         = [ "openspec/changes/add-sdk-ts-key-operations/design.md#Resource and error contract" ]
+selectors         = [ "openspec/changes/archive/2026-11-20-add-sdk-ts-key-operations/design.md#Resource and error contract" ]
 command           = "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak key_operations"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -3031,7 +3031,7 @@ details           = [ "harness=Route arbitrary bounded key, message and signatur
 class             = "benchmark"
 disposition       = "satisfied"
 risk              = "WASM bridge copies or cryptographic invocation can regress browser and Node latency or artifact size without a visible Rust-core regression."
-selectors         = [ "openspec/changes/add-sdk-ts-key-operations/design.md#Targets and artifacts" ]
+selectors         = [ "openspec/changes/archive/2026-11-20-add-sdk-ts-key-operations/design.md#Targets and artifacts" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh benchmark"
 lane              = "slow"
 cadence           = "weekly-or-manual"

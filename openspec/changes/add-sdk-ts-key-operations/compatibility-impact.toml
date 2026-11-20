@@ -1,6 +1,6 @@
 schema_version = 1
 issue          = 611
-disposition    = "consumer-visible"
-scope          = "consumer-contract"
-rationale      = "The private TypeScript facade gains opt-in opaque Ed25519 and X25519 operations without activating wallet custody or external SDK-TS routes."
-ledger_ids     = [ "crypto.key-operations.typescript-migration.v1" ]
+disposition    = "behavior-neutral"
+scope          = "governance"
+rationale      = "This preimplementation commit freezes the proposed private TypeScript facade, vectors, evidence duties and compatibility boundary without yet changing production APIs, behavior, packages, targets or consumers; implementation will register its consumer-visible record after the durable receipt."
+ledger_ids     = [  ]

@@ -21,10 +21,6 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. An additive 
 
 State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive identus-sd-jwt-vc crate provides an exact bounded draft-22 profile with canonical dc+sd-jwt issuance, profile claims, caller-supplied issuer/type/status evidence and offline protocol integration.
 
-### `crypto.key-operations.typescript-migration.v1`
-
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade exposes opaque Ed25519 signing and X25519 shared-secret handles with strict public projection, lifecycle, redaction, and target evidence.
-
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 State: `active`. Class: `security` / `security`. Target: `unreleased`. The same SDK wrappers, methods and byte behavior use advisory-clean k256 and p256 0.14; their exposed tuple fields consequently have the corresponding 0.14 upstream type identities.
@@ -138,10 +134,6 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 ### `credentials.sd-jwt.vc-draft22.v1`
 
 `unreleased` → `unreleased` for lace-id-portal, oxid, sdk-rust-adopters, sdk-swift, sdk-ts. Use the canonical dc+sd-jwt profile for new Rust integrations; keep legacy vc+sd-jwt migration isolated to issue #572.
-
-### `crypto.key-operations.typescript-migration.v1`
-
-`unreleased` → `unreleased` for sdk-rust-adopters, sdk-ts. Opt in only through the private key provider and retain platform-owned custody and legacy routes until consumer rehearsal, support, budget, publication, and default-switch decisions are accepted.
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
@@ -257,10 +249,6 @@ Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `u
 
 Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. No compatibility window required.
 
-### `crypto.key-operations.typescript-migration.v1`
-
-Compatibility: `compatible`. First compatible: `unreleased`. Last compatible: `unreleased`. The facade remains private, opt-in, non-default, and unpublished; no external compatibility window starts in this train.
-
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 Compatibility: `source-break`. First compatible: `unreleased`. Last compatible: `0.1.0-rc.1`. The migration is declared on the release-candidate line before stable 0.1.0; the next candidate carries the advisory-clean type identities.
@@ -375,10 +363,6 @@ Fallback: No automatic fallback; canonical APIs keep rejecting vc+sd-jwt and con
 
 Fallback: Consumers retain their current SD-JWT VC implementation until they explicitly adopt a later released profile or language adapter. Rollback: Before publication remove the additive profile crate and proposed ledger record while preserving the RFC 9901 base, immutable vectors and decision history. Removal gate: Not applicable.
 
-### `crypto.key-operations.typescript-migration.v1`
-
-Fallback: No automatic provider, algorithm, entropy, retry, or legacy fallback follows initialization or operation failure. Rollback: Remove the unreleased provider and artifact or select the legacy provider before initialization without exporting or migrating private keys. Removal gate: A separate consumer-visible change may retire a legacy route only after named consumers adopt the Rust-backed facade, accepted support/security/budget evidence exists, and an announced migration window elapses.
-
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 
 Fallback: Delay consumer adoption while migrating to SDK byte boundaries; do not publish a new security-current candidate that restores the rejected 0.13 closure. Rollback: Move forward to another advisory-clean curve family or SDK-owned opaque boundary; never restore the advisory-affected dependency closure as a release state. Removal gate: Not applicable; this is a security remediation and candidate source migration, not a deprecated compatibility facade.
@@ -492,10 +476,6 @@ Visibility: behavior, public-api, security, wire. Only the verified draft-03 com
 ### `credentials.sd-jwt.vc-draft22.v1`
 
 Visibility: behavior, public-api, security, target-support, wire. Exact draft-22 compact profile only; no HTTP, trust/authorization/status acceptance, rendering, replay/storage policy, legacy adapter, bindings, runtime certification, publication or downstream adoption.
-
-### `crypto.key-operations.typescript-migration.v1`
-
-Visibility: behavior, error, public-api, security, target-support. Private Ed25519/X25519 primitive facade only; no HD derivation, mnemonic/seed, additional curves, private export, keystore, KMS/hardware, persistence, wallet custody, React Native, external adoption, publication, stable API, certification, production claim, release, or mdoc.
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 

@@ -2973,7 +2973,7 @@ owner       = "SDK-Rust TypeScript binding maintainers"
 owner_issue = 611
 risk        = "Secret lifecycle, entropy, signature verification, shared-secret derivation, redaction or target packaging can diverge across Rust and JavaScript runtimes."
 targets     = [ "package:identus-crypto", "package:identus-typescript-sdk", "package:identus-wasm-crypto", "runtime:browser", "runtime:nodejs", "runtime:react-web" ]
-vector_ids  = [ "crypto.key-operations.ed25519-rfc8032-empty", "crypto.key-operations.x25519-rfc7748" ]
+vector_ids  = [  ]
 limitations = "Private additive Ed25519/X25519 primitive facade only; no wallet custody, persistence, HD derivation, seed or mnemonic handling, private export, React Native, publication, stable API, certification or mdoc."
 active      = true
 supersedes  = [  ]
@@ -3055,7 +3055,7 @@ details           = [ "operation=Build the isolated crypto artifact and execute 
 class             = "differential"
 disposition       = "required"
 risk              = "The facade can be internally consistent while producing keys, signatures or shared secrets incompatible with the selected standards or donor consumer behavior."
-selectors         = [ "docs/conformance/fixtures/crypto-key-operations/v1/vectors.json#crypto.key-operations.ed25519-rfc8032-empty", "docs/conformance/fixtures/crypto-key-operations/v1/vectors.json#crypto.key-operations.x25519-rfc7748" ]
+selectors         = [ "openspec/changes/add-sdk-ts-key-operations/specs/sdk-ts-key-operations/spec.md#Requirement: applicable targets execute one contract" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh differential"
 lane              = "fast"
 cadence           = "per-pull-request"

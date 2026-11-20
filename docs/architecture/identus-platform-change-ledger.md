@@ -23,7 +23,7 @@ State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive
 
 ### `crypto.key-operations.typescript-migration.v1`
 
-State: `proposed`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade exposes opaque Ed25519 signing and X25519 shared-secret handles with strict public projection, lifecycle, redaction and isolated target artifacts.
+State: `active`. Class: `additive` / `added`. Target: `unreleased`. The additive private facade exposes opaque Ed25519 signing and X25519 shared-secret handles with strict public projection, lifecycle, redaction and isolated target artifacts.
 
 ### `crypto.secp256k1.rustcrypto-security-stack.v1`
 

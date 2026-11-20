@@ -6,7 +6,7 @@
       observability, exclusions, artifacts, and rollback.
 - [x] 1.2 Ledger pinned SDK-TS donor journeys and accepted Rust vectors with an
       immutable disposition.
-- [ ] 1.3 Pass research/constraint readiness, signed+DCO planning commit, and
+- [x] 1.3 Pass research/constraint readiness, signed+DCO planning commit, and
       exact issue #611 durable preimplementation receipt.
 - [ ] 1.4 Add adapter, quality, resource, vector, consumer-change, and TS1 rows.
 

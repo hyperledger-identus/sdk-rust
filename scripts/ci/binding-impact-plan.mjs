@@ -167,7 +167,7 @@ export function buildBindingImpactPlan({ baseSha, headSha, paths, dependencyPath
         || relative.startsWith("openspec/changes/add-sdk-ts-did-canary/")
         || relative.startsWith("openspec/changes/add-sdk-ts-peer-did-method/")
         || relative.startsWith("openspec/changes/add-sdk-ts-prism-did-method/")
-        || relative.startsWith("openspec/changes/add-sdk-ts-hd-derivation/")
+        || relative.startsWith("openspec/specs/sdk-ts-hd-derivation/")
         || relative === "docs/adr/0199-use-target-specific-wasm-behind-the-typescript-did-facade.md") {
       addSignal(signals, targetSignals, "target-contract");
     }

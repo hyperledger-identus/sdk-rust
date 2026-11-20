@@ -109,7 +109,7 @@ test("binding schema, dependency, locks, mappings, vectors and contracts select 
     "openspec/specs/sdk-ts-did-resolution/spec.md",
     "openspec/changes/add-sdk-ts-peer-did-method/specs/sdk-ts-peer-did-method/spec.md",
     "openspec/changes/add-sdk-ts-prism-did-method/specs/sdk-ts-prism-did-method/spec.md",
-    "openspec/changes/add-sdk-ts-hd-derivation/specs/sdk-ts-hd-derivation/spec.md",
+    "openspec/specs/sdk-ts-hd-derivation/spec.md",
     "nix/devshells/typescript.nix",
     "scripts/assemble-sdk-ts-did-artifacts.mjs",
     "scripts/build-sdk-ts-did-artifacts.sh",

@@ -36,5 +36,5 @@
       coverage, secret/profile review, measurements, and isolated receipts.
 - [x] 4.3 Reconcile impact planning, capability matrices, mapping drift,
       resource inventory, quality declarations, and consumer-change evidence.
-- [ ] 4.4 Run focused and complete local gates, distinct review, signed+DCO
+- [x] 4.4 Run focused and complete local gates, distinct review, signed+DCO
       verification, merge-ready metadata, guarded archive, and cleanup.

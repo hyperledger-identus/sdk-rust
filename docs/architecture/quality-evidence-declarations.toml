@@ -3203,7 +3203,7 @@ replaced_by = ""
 class             = "property"
 disposition       = "satisfied"
 risk              = "Path parsing, profile separation, disposal, public projection and stable errors may violate the capability contract across operation sequences."
-selectors         = [ "openspec/changes/add-sdk-ts-hd-derivation/specs/sdk-ts-hd-derivation/spec.md#Requirement: every derivation selects one named Rust profile" ]
+selectors         = [ "openspec/specs/sdk-ts-hd-derivation/spec.md#Requirement: every derivation selects one named Rust profile" ]
 command           = "cargo test -p identus-wasm-crypto && npm --prefix packages/identus-sdk test"
 lane              = "focused"
 cadence           = "on-change"
@@ -3227,7 +3227,7 @@ details           = [ "invariant=Opaque profile-specific handles never export se
 class             = "fuzz"
 disposition       = "satisfied"
 risk              = "Arbitrary seed, path or public bytes may panic, amplify work, bypass profile rules or expose unstable dependency errors."
-selectors         = [ "openspec/changes/add-sdk-ts-hd-derivation/design.md#Path, resource, and error contract" ]
+selectors         = [ "openspec/changes/archive/2026-11-20-add-sdk-ts-hd-derivation/design.md#Path, resource, and error contract" ]
 command           = "nix develop .#fuzz --command ./scripts/fuzz-crypto.sh soak hd_derivation"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -3251,7 +3251,7 @@ details           = [ "harness=Route arbitrary bounded profile, seed, path and p
 class             = "benchmark"
 disposition       = "satisfied"
 risk              = "WASM bridge copies or multi-axis derivation can regress Browser and Node latency or artifact size without a visible Rust-core regression."
-selectors         = [ "openspec/changes/add-sdk-ts-hd-derivation/design.md#Targets and artifacts" ]
+selectors         = [ "openspec/changes/archive/2026-11-20-add-sdk-ts-hd-derivation/design.md#Targets and artifacts" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh benchmark"
 lane              = "slow"
 cadence           = "weekly-or-manual"
@@ -3275,7 +3275,7 @@ details           = [ "operation=Build the isolated crypto artifact and execute 
 class             = "differential"
 disposition       = "satisfied"
 risk              = "The facade can be internally consistent while producing children or public projections incompatible with the selected standards or donor behavior."
-selectors         = [ "openspec/changes/add-sdk-ts-hd-derivation/specs/sdk-ts-hd-derivation/spec.md#Requirement: applicable targets execute one contract" ]
+selectors         = [ "openspec/specs/sdk-ts-hd-derivation/spec.md#Requirement: applicable targets execute one contract" ]
 command           = "nix develop .#typescript --command ./scripts/check-sdk-ts-crypto-target.sh differential"
 lane              = "fast"
 cadence           = "per-pull-request"

@@ -35,5 +35,5 @@
 - [x] 4.2 Record deterministic multi-artifact hashes, vectors, fuzz/property,
       coverage, secret-handling review, measurements, and isolated receipts.
 - [x] 4.3 Extend fail-closed impact planning and aggregation for crypto paths.
-- [ ] 4.4 Run focused and complete local gates, distinct review, signed+DCO
+- [x] 4.4 Run focused and complete local gates, distinct review, signed+DCO
       verification, merge-ready metadata, guarded archive, and cleanup.
